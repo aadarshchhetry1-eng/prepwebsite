@@ -2,6 +2,8 @@
 
 A production-grade, ultra-fast, offline-friendly interview revision and mental-model platform built specifically for **Senior and Staff Engineers**.
 
+> **Deployment Status:** 🚀 **Ready for deploy** — 100% standalone zero-dependency static web application, ready for instant hosting on GitHub Pages, Netlify, Vercel, or Cloudflare Pages.
+
 ---
 
 ## 🌟 Comprehensive Revision Modules
