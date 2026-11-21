@@ -1,0 +1,906 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+  <title>Senior Dev Revision Hub - Java, Spring Boot, DSA & Mind Maps</title>
+  <meta name="description" content="Senior & Staff Engineer interview revision platform for Java, Spring Boot, DSA, SOLID, OOPs, JVM internals and tricky production-level questions.">
+  
+  <!-- Google Fonts: Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  
+  <!-- CSS Stylesheets -->
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/mindmap.css">
+</head>
+<body>
+
+  <!-- =========================================================================
+       Site Header
+       ========================================================================= -->
+  <header class="site-header">
+    <div class="brand-section">
+      <button class="icon-btn sidebar-toggle-mobile" id="mobile-sidebar-toggle" title="Toggle Quick Jump Navigation">☰</button>
+      <div class="brand-logo">⚡</div>
+      <div class="brand-title">
+        <span>SeniorDev</span>
+        <span class="brand-badge">Revision Hub</span>
+      </div>
+    </div>
+
+    <!-- Navigation Tabs (Visible on desktop/laptop) -->
+    <nav class="top-nav" aria-label="Main Navigation">
+      <button class="nav-tab-btn active" data-target="mindmap" onclick="app.switchSection('mindmap')">
+        <span>🧠 Mind Maps</span>
+      </button>
+      <button class="nav-tab-btn" data-target="java" onclick="app.switchSection('java')">
+        <span>☕ Java Core</span>
+      </button>
+      <button class="nav-tab-btn" data-target="streams" onclick="app.switchSection('streams')">
+        <span>🌊 Java Streams</span>
+      </button>
+      <button class="nav-tab-btn" data-target="spring" onclick="app.switchSection('spring')">
+        <span>🌱 Spring Boot</span>
+      </button>
+      <button class="nav-tab-btn" data-target="sql" onclick="app.switchSection('sql')">
+        <span>🗄️ SQL Mastery</span>
+      </button>
+      <button class="nav-tab-btn" data-target="kafka" onclick="app.switchSection('kafka')">
+        <span>⚡ Apache Kafka</span>
+      </button>
+      <button class="nav-tab-btn" data-target="react" onclick="app.switchSection('react')">
+        <span>⚛️ React &amp; Redux</span>
+      </button>
+      <button class="nav-tab-btn" data-target="devops" onclick="app.switchSection('devops')">
+        <span>☸️ K8s &amp; DevOps</span>
+      </button>
+      <button class="nav-tab-btn" data-target="redis" onclick="app.switchSection('redis')">
+        <span>🟥 Redis &amp; Caching</span>
+      </button>
+      <button class="nav-tab-btn" data-target="concurrency" onclick="app.switchSection('concurrency')">
+        <span>🧵 Concurrency</span>
+      </button>
+      <button class="nav-tab-btn" data-target="hld" onclick="app.switchSection('hld')">
+        <span>🏗️ HLD (System Design)</span>
+      </button>
+      <button class="nav-tab-btn" data-target="lld" onclick="app.switchSection('lld')">
+        <span>📐 LLD (Machine Coding)</span>
+      </button>
+      <button class="nav-tab-btn" data-target="dsa" onclick="app.switchSection('dsa')">
+        <span>⚡ DSA & Systems</span>
+      </button>
+      <button class="nav-tab-btn" data-target="questions" onclick="app.switchSection('questions')">
+        <span>🔥 Tricky Q&A</span>
+      </button>
+    </nav>
+
+    <!-- Header Actions -->
+    <div class="header-actions">
+      <button class="search-trigger-btn" onclick="app.openSearchModal()" title="Global Search (Ctrl+K)">
+        <span>🔍</span>
+        <span class="search-text">Search topics...</span>
+        <span class="kbd-shortcut">Ctrl K</span>
+      </button>
+      <button class="btn-primary add-topic-btn" onclick="app.openCreatorModal()" title="Add custom topic or question">
+        <span class="btn-icon">+</span>
+        <span class="btn-text">Add Topic</span>
+      </button>
+      <button class="icon-btn" id="theme-toggle-btn" title="Toggle Dark/Light Mode">☀️</button>
+    </div>
+  </header>
+
+  <!-- Mobile Sidebar Backdrop Overlay -->
+  <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+
+  <!-- =========================================================================
+       App Layout: Left Sidebar + Main Content
+       ========================================================================= -->
+  <div class="app-container">
+
+    <!-- Sticky Left Sidebar (Clean & Minimalist) -->
+    <aside class="sidebar" id="app-sidebar" aria-label="Sidebar Navigation">
+      <div class="sidebar-heading">
+        <span>Quick Navigation</span>
+        <button class="icon-btn sidebar-toggle-mobile" id="mobile-sidebar-close" style="width: 26px; height: 26px; font-size: 0.9rem;" title="Close Sidebar">✕</button>
+      </div>
+
+      <!-- Quick Filter -->
+      <input type="text" id="sidebar-filter-input" class="sidebar-filter-input" placeholder="Filter sections...">
+
+      <!-- Dynamic Compact Nav Groups (Rendered by JS) -->
+      <div id="sidebar-nav-container">
+        <!-- Rendered by app.js -->
+      </div>
+
+      <!-- Revision Progress Card -->
+      <div class="sidebar-stats-card">
+        <div class="stats-header">
+          <span>Mastery Progress</span>
+          <span id="sidebar-stats-count">0 / 0</span>
+        </div>
+        <div class="progress-bar-bg">
+          <div class="progress-bar-fill" id="sidebar-progress-fill"></div>
+        </div>
+        <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 5px; text-align: center;">
+          Saved to local storage
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+
+      <!-- =====================================================================
+           Section 1: Mind Maps & Quick Glance
+           ===================================================================== -->
+      <section class="content-section active" id="section-mindmap">
+        <div class="hero-banner">
+          <h1 class="hero-title">Visual Mind Maps & Flash Glance</h1>
+          <p class="hero-subtitle">
+            One-glance mental models for high-stakes technical interviews. Click any node to open rules, analogies, violation code smells, and solutions.
+          </p>
+          <div class="hero-badges">
+            <span class="hero-badge-pill">📐 SOLID Design</span>
+            <span class="hero-badge-pill">🧩 OOPs Internals</span>
+            <span class="hero-badge-pill">⚙️ Java Memory Model</span>
+            <span class="hero-badge-pill">🌱 Spring Bean Lifecycle</span>
+            <span class="hero-badge-pill">🟥 Redis Caching</span>
+            <span class="hero-badge-pill">🧵 Concurrency &amp; Loom</span>
+            <span class="hero-badge-pill">🏗️ System Design (HLD)</span>
+            <span class="hero-badge-pill">📐 Low-Level Design (LLD)</span>
+            <span class="hero-badge-pill">⚡ 14 DSA Patterns</span>
+          </div>
+        </div>
+
+        <!-- Interactive Mind Map Component -->
+        <div class="mindmap-wrapper">
+          <div class="mindmap-header">
+            <!-- Map Tabs -->
+            <div class="map-selector-tabs" id="map-selector-tabs">
+              <!-- Rendered by mindmap.js -->
+            </div>
+
+            <!-- Zoom & Viewport Controls -->
+            <div class="mindmap-zoom-controls">
+              <span class="mindmap-scroll-hint">↔ Drag/Scroll to pan</span>
+              <button class="zoom-btn" id="zoom-out-btn" title="Zoom Out">−</button>
+              <button class="zoom-btn" id="zoom-reset-btn" title="Reset Zoom">↺</button>
+              <button class="zoom-btn" id="zoom-in-btn" title="Zoom In">+</button>
+            </div>
+          </div>
+
+          <!-- Visual Canvas / Viewport -->
+          <div class="interactive-mindmap-container">
+            <div class="mindmap-viewport" id="mindmap-viewport">
+              <!-- Rendered dynamically by mindmap.js -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Fast Glance Cards Grid (Bite-sized visual mnemonics) -->
+        <div class="section-header-block" style="margin-top: 36px;">
+          <div>
+            <h2 class="section-title">⚡ Fast Glance Cheat Cards</h2>
+            <p class="section-desc">Quickly refresh core invariants, smells, and analogies right before an interview round.</p>
+          </div>
+        </div>
+        <div class="card-grid-2" id="fast-glance-cards-grid">
+          <!-- Rendered by mindmap.js -->
+        </div>
+      </section>
+
+      <!-- =====================================================================
+           Section 2: Core & Advanced Java
+           ===================================================================== -->
+      <section class="content-section" id="section-java">
+        <div class="hero-banner">
+          <h1 class="hero-title">Core & Advanced Java Internals</h1>
+          <p class="hero-subtitle">
+            Staff-level notes on JVM architecture, Happens-Before memory barriers, AQS locks, Java 21 Virtual Threads, and HotSpot GC tuning. Click any card to expand its visual mindmap and deep dive.
+          </p>
+          <div class="hero-badges">
+            <span class="hero-badge-pill highlight">JMM & Volatile</span>
+            <span class="hero-badge-pill">AQS & Locks</span>
+            <span class="hero-badge-pill">Java 21 Loom</span>
+            <span class="hero-badge-pill">G1 / ZGC Safepoints</span>
+            <span class="hero-badge-pill">HashMap Treeification</span>
+          </div>
+        </div>
+
+        <!-- Section Controls Toolbar -->
+        <div class="revision-toolbar">
+          <div class="toolbar-title">
+            <span>☕ Core Java Topics:</span>
+          </div>
+          <div style="display: flex; gap: 6px; margin-left: auto;">
+            <button class="btn-secondary" style="font-size: 0.75rem; padding: 4px 10px;" onclick="app.toggleAllCardsInSection('java-cards-container', true)">Expand All Visuals</button>
+            <button class="btn-secondary" style="font-size: 0.75rem; padding: 4px 10px;" onclick="app.toggleAllCardsInSection('java-cards-container', false)">Collapse All</button>
+          </div>
+        </div>
+
+        <!-- Content Cards Grid -->
+        <div class="card-grid-2" id="java-cards-container">
+          <!-- Rendered by app.js -->
+        </div>
+      </section>
+
+      <!-- =====================================================================
+           Section: Java Streams & Functional API
+           ===================================================================== -->
+      <section class="content-section" id="section-streams">
+        <div class="hero-banner">
+          <h1 class="hero-title">Java Streams API & Functional Mastery</h1>
+          <p class="hero-subtitle">
+            Master the Stream Pipeline Lifecycle, Intermediate vs Stateful Ops, the Collectors Framework, Comparator composition, and 25 most-asked medium-to-hard interview coding challenges.
+          </p>
+          <div class="hero-badges">
+            <span class="hero-badge-pill highlight">Pipeline Loop Fusion</span>
+            <span class="hero-badge-pill">Stateless vs Stateful</span>
+            <span class="hero-badge-pill">Collectors & Reductions</span>
+            <span class="hero-badge-pill">Comparator Chaining</span>
+            <span class="hero-badge-pill">Parallel Spliterators</span>
+            <span class="hero-badge-pill highlight">25 Top Coding Qs</span>
+          </div>
+        </div>
+
+        <!-- Section Controls Toolbar -->
+        <div class="revision-toolbar">
+          <div class="toolbar-title">
+            <span>🌊 Java Streams Topics & Interview Challenges:</span>
+          </div>
+          <div class="toolbar-filters">
+            <button class="filter-chip active" onclick="app.filterStreamsCategory('all')">All (30)</button>
+            <button class="filter-chip" onclick="app.filterStreamsCategory('architecture')">Architecture (5)</button>
+            <button class="filter-chip" onclick="app.filterStreamsCategory('coding')">Coding Problems (25)</button>
+          </div>
+          <div style="display: flex; gap: 6px; margin-left: auto;">
+            <button class="btn-secondary" style="font-size: 0.75rem; padding: 4px 10px;" onclick="app.toggleAllCardsInSection('streams-cards-container', true)">Expand All Visuals</button>
+            <button class="btn-secondary" style="font-size: 0.75rem; padding: 4px 10px;" onclick="app.toggleAllCardsInSection('streams-cards-container', false)">Collapse All</button>
+          </div>
+        </div>
+
+        <!-- Content Cards Grid -->
+        <div class="card-grid-2" id="streams-cards-container">
+          <!-- Rendered by app.js -->
+        </div>
+      </section>
+
+      <!-- =====================================================================
+           Section 3: Spring Boot & Cloud
+           ===================================================================== -->
+      <section class="content-section" id="section-spring">
+        <div class="hero-banner">
+          <h1 class="hero-title">🌱 Spring Boot, Transactions, JPA, Hibernate &amp; Security</h1>
+          <p class="hero-subtitle">
+            Master Spring AOP proxy interception, transaction propagation (REQUIRED vs REQUIRES_NEW), Hibernate First-Level Cache &amp; Dirty Checking, Spring Security filter chains, and 15 staff-level scenario runbooks.
+          </p>
+          <div class="hero-badges">
+            <span class="hero-badge-pill highlight">@Transactional Proxy Trap</span>
+            <span class="hero-badge-pill">Propagation &amp; Rollback-Only</span>
+            <span class="hero-badge-pill">Hibernate Dirty Checking</span>
+            <span class="hero-badge-pill">Security Filter Chains</span>
+            <span class="hero-badge-pill">Auto-Config Internals</span>
+            <span class="hero-badge-pill">Three-Level Cache</span>
+            <span class="hero-badge-pill highlight">15 Staff Scenarios</span>
+          </div>
+        </div>
+
+        <!-- Section Controls Toolbar -->
+        <div class="revision-toolbar">
+          <div class="toolbar-title">
+            <span>🌱 Spring Boot Topics:</span>
+          </div>
+          <div class="toolbar-filters">
+            <button class="filter-chip active" onclick="app.filterSpringCategory('all')">All (23)</button>
+            <button class="filter-chip" onclick="app.filterSpringCategory('architecture')">Architecture &amp; Internals (8)</button>
+            <button class="filter-chip" onclick="app.filterSpringCategory('scenarios')">Scenario Runbooks (15)</button>
+          </div>
+          <div style="display: flex; gap: 6px; margin-left: auto;">
+            <button class="btn-secondary" style="font-size: 0.75rem; padding: 4px 10px;" onclick="app.toggleAllCardsInSection('spring-cards-container', true)">Expand All Visuals</button>
+            <button class="btn-secondary" style="font-size: 0.75rem; padding: 4px 10px;" onclick="app.toggleAllCardsInSection('spring-cards-container', false)">Collapse All</button>
+          </div>
+        </div>
+
+        <!-- Content Cards Grid -->
+        <div class="card-grid-2" id="spring-cards-container">
+          <!-- Rendered by app.js -->
+        </div>
+      </section>
+
+      <!-- =====================================================================
+           Section: SQL Engine & Query Mastery
+           ===================================================================== -->
+      <section class="content-section" id="section-sql">
+        <div class="hero-banner">
+          <h1 class="hero-title">SQL Engine & Query Mastery</h1>
+          <p class="hero-subtitle">
+            Master the 10-Step Logical Query Execution Order, B+Tree Indexing & Leftmost Prefix Rule, Window Functions (DENSE_RANK, LEAD/LAG), Join algorithms, and 20 top interview query challenges.
+          </p>
+          <div class="hero-badges">
+            <span class="hero-badge-pill highlight">10-Step Execution Order</span>
+            <span class="hero-badge-pill">B+Tree Indexing &amp; Prefix</span>
+            <span class="hero-badge-pill">Window Functions &amp; Frames</span>
+            <span class="hero-badge-pill">Join Plans &amp; EXPLAIN</span>
+            <span class="hero-badge-pill">MVCC &amp; Locks</span>
+            <span class="hero-badge-pill highlight">20 Top Coding Queries</span>
+          </div>
+        </div>
+
+        <!-- Section Controls Toolbar -->
+        <div class="revision-toolbar">
+          <div class="toolbar-title">
+            <span>🗄️ SQL Architecture &amp; Top Interview Queries:</span>
+          </div>
+          <div class="toolbar-filters">
+            <button class="filter-chip active" onclick="app.filterSqlCategory('all')">All (25)</button>
+            <button class="filter-chip" onclick="app.filterSqlCategory('architecture')">Architecture (5)</button>
+            <button class="filter-chip" onclick="app.filterSqlCategory('coding')">Coding Queries (20)</button>
+          </div>
+          <div style="display: flex; gap: 6px; margin-left: auto;">
+            <button class="btn-secondary" style="font-size: 0.75rem; padding: 4px 10px;" onclick="app.toggleAllCardsInSection('sql-cards-container', true)">Expand All Visuals</button>
+            <button class="btn-secondary" style="font-size: 0.75rem; padding: 4px 10px;" onclick="app.toggleAllCardsInSection('sql-cards-container', false)">Collapse All</button>
+          </div>
+        </div>
+
+        <!-- Content Cards Grid -->
+        <div class="card-grid-2" id="sql-cards-container">
+          <!-- Rendered by app.js -->
+        </div>
+      </section>
+
+      <!-- =====================================================================
+           Section: Apache Kafka Internals & Scenarios
+           ===================================================================== -->
+      <section class="content-section" id="section-kafka">
+        <div class="hero-banner">
+          <h1 class="hero-title">⚡ Apache Kafka Architecture & 20 Senior Scenarios</h1>
+          <p class="hero-subtitle">
+            Master KRaft consensus, Linux OS PageCache Zero-Copy (sendfile), RecordAccumulator batching, Idempotent exactly-once semantics, CooperativeSticky rebalances, and 20 battle-tested production scenarios.
+          </p>
+          <div class="hero-badges">
+            <span class="hero-badge-pill highlight">Zero-Copy (sendfile)</span>
+            <span class="hero-badge-pill">KRaft Metadata Quorum</span>
+            <span class="hero-badge-pill">Idempotent PID + Seq</span>
+            <span class="hero-badge-pill">CooperativeSticky Assignor</span>
+            <span class="hero-badge-pill">Leader Epochs (KIP-101)</span>
+            <span class="hero-badge-pill">Transactional Outbox CDC</span>
+            <span class="hero-badge-pill highlight">20 Senior Scenarios</span>
+          </div>
+        </div>
+
+        <!-- Section Controls Toolbar -->
+        <div class="revision-toolbar">
+          <div class="toolbar-title">
+            <span>⚡ Apache Kafka Topics &amp; Scenario Challenges:</span>
+          </div>
+          <div class="toolbar-filters">
+            <button class="filter-chip active" onclick="app.filterKafkaCategory('all')">All (25)</button>
+            <button class="filter-chip" onclick="app.filterKafkaCategory('architecture')">Architecture (5)</button>
+            <button class="filter-chip" onclick="app.filterKafkaCategory('scenarios')">Scenario Questions (20)</button>
+          </div>
+          <div style="display: flex; gap: 6px; margin-left: auto;">
+            <button class="btn-secondary" style="font-size: 0.75rem; padding: 4px 10px;" onclick="app.toggleAllCardsInSection('kafka-cards-container', true)">Expand All Visuals</button>
+            <button class="btn-secondary" style="font-size: 0.75rem; padding: 4px 10px;" onclick="app.toggleAllCardsInSection('kafka-cards-container', false)">Collapse All</button>
+          </div>
+        </div>
+
+        <!-- Content Cards Grid -->
+        <div class="card-grid-2" id="kafka-cards-container">
+          <!-- Rendered by app.js -->
+        </div>
+      </section>
+
+      <!-- =====================================================================
+           Section: React & Redux Architecture & Top Scenarios
+           ===================================================================== -->
+      <section class="content-section" id="section-react">
+        <div class="hero-banner">
+          <h1 class="hero-title">⚛️ React &amp; Redux Enterprise Architecture &amp; Top Scenarios</h1>
+          <p class="hero-subtitle">
+            Master React 18/19 Fiber Reconciler, Double-Buffering, Virtual DOM Diffing Heuristics, the memoizedState Hooks linked list, Redux curried middleware, Immer Proxies, and 30 commonly asked interview questions.
+          </p>
+          <div class="hero-badges">
+            <span class="hero-badge-pill highlight">Fiber Double-Buffering</span>
+            <span class="hero-badge-pill">O(N) Diffing Heuristics</span>
+            <span class="hero-badge-pill">memoizedState Linked List</span>
+            <span class="hero-badge-pill">Redux Curried Middleware</span>
+            <span class="hero-badge-pill">Immer ES6 Proxies</span>
+            <span class="hero-badge-pill">React 18 Transitions</span>
+            <span class="hero-badge-pill highlight">30 Commonly Asked Questions</span>
+          </div>
+        </div>
+
+        <!-- Section Controls Toolbar -->
+        <div class="revision-toolbar">
+          <div class="toolbar-title">
+            <span>⚛️ React &amp; Redux Topics:</span>
+          </div>
+          <div class="toolbar-filters">
+            <button class="filter-chip active" onclick="app.filterReactCategory('all')">All (35)</button>
+            <button class="filter-chip" onclick="app.filterReactCategory('architecture')">Architecture &amp; Mechanics (5)</button>
+            <button class="filter-chip" onclick="app.filterReactCategory('scenarios')">Interview Questions (30)</button>
+          </div>
+          <div style="display: flex; gap: 6px; margin-left: auto;">
+            <button class="btn-secondary" style="font-size: 0.75rem; padding: 4px 10px;" onclick="app.toggleAllCardsInSection('react-cards-container', true)">Expand All Visuals</button>
+            <button class="btn-secondary" style="font-size: 0.75rem; padding: 4px 10px;" onclick="app.toggleAllCardsInSection('react-cards-container', false)">Collapse All</button>
+          </div>
+        </div>
+
+        <!-- Content Cards Grid -->
+        <div class="card-grid-2" id="react-cards-container">
+          <!-- Rendered by app.js -->
+        </div>
+      </section>
+
+      <!-- =====================================================================
+           Section: Cloud Native & DevOps (K8s, Docker, CI/CD, Terraform, Helm)
+           ===================================================================== -->
+      <section class="content-section" id="section-devops">
+        <div class="hero-banner">
+          <h1 class="hero-title">☸️ Cloud Native, K8s, Docker, Terraform, Helm &amp; CI/CD</h1>
+          <p class="hero-subtitle">
+            Master Kubernetes Control Plane reconciliation, etcd Raft quorum, Linux namespaces &amp; cgroups v2, Terraform DAG &amp; state locking, Helm 3 tillerless secrets, Cilium eBPF, and 20 top senior/staff scenario runbooks.
+          </p>
+          <div class="hero-badges">
+            <span class="hero-badge-pill highlight">K8s Control Plane &amp; Raft</span>
+            <span class="hero-badge-pill">Namespaces &amp; cgroups v2</span>
+            <span class="hero-badge-pill">Terraform DAG &amp; Mutex Lock</span>
+            <span class="hero-badge-pill">Helm 3 Tillerless Architecture</span>
+            <span class="hero-badge-pill">Cilium eBPF Routing</span>
+            <span class="hero-badge-pill">GitOps ArgoCD</span>
+            <span class="hero-badge-pill highlight">20 Senior Scenarios</span>
+          </div>
+        </div>
+
+        <!-- Section Controls Toolbar -->
+        <div class="revision-toolbar">
+          <div class="toolbar-title">
+            <span>☸️ K8s &amp; DevOps Topics:</span>
+          </div>
+          <div class="toolbar-filters">
+            <button class="filter-chip active" onclick="app.filterDevopsCategory('all')">All (25)</button>
+            <button class="filter-chip" onclick="app.filterDevopsCategory('architecture')">Architecture &amp; Mechanics (5)</button>
+            <button class="filter-chip" onclick="app.filterDevopsCategory('scenarios')">Scenario Runbooks (20)</button>
+          </div>
+          <div style="display: flex; gap: 6px; margin-left: auto;">
+            <button class="btn-secondary" style="font-size: 0.75rem; padding: 4px 10px;" onclick="app.toggleAllCardsInSection('devops-cards-container', true)">Expand All Visuals</button>
+            <button class="btn-secondary" style="font-size: 0.75rem; padding: 4px 10px;" onclick="app.toggleAllCardsInSection('devops-cards-container', false)">Collapse All</button>
+          </div>
+        </div>
+
+        <!-- Content Cards Grid -->
+        <div class="card-grid-2" id="devops-cards-container">
+          <!-- Rendered by app.js -->
+        </div>
+      </section>
+
+      <!-- =====================================================================
+           Section: Redis & In-Memory Caching Architecture
+           ===================================================================== -->
+      <section class="content-section" id="section-redis">
+        <div class="hero-banner">
+          <h1 class="hero-title">🟥 Redis In-Memory Architecture, Clustering &amp; Caching Scenarios</h1>
+          <p class="hero-subtitle">
+            Master Redis single-threaded Reactor event loop, epoll multiplexing, SDS &amp; Skiplist data structures, Linux fork() CoW persistence, 16,384 cluster hash slots, Redlock distributed locking, and 20 staff-level cache scenario runbooks.
+          </p>
+          <div class="hero-badges">
+            <span class="hero-badge-pill highlight">Reactor Event Loop &amp; epoll</span>
+            <span class="hero-badge-pill">SDS, Dict &amp; Skiplist</span>
+            <span class="hero-badge-pill">RDB &amp; AOF CoW Engine</span>
+            <span class="hero-badge-pill">16,384 Cluster Slots</span>
+            <span class="hero-badge-pill">Redlock &amp; Lua Scripts</span>
+            <span class="hero-badge-pill">LRU vs LFU Eviction</span>
+            <span class="hero-badge-pill highlight">20 Senior Scenarios</span>
+          </div>
+        </div>
+
+        <!-- Section Controls Toolbar -->
+        <div class="revision-toolbar">
+          <div class="toolbar-title">
+            <span>🟥 Redis Topics:</span>
+          </div>
+          <div class="toolbar-filters">
+            <button class="filter-chip active" onclick="app.filterRedisCategory('all')">All (25)</button>
+            <button class="filter-chip" onclick="app.filterRedisCategory('architecture')">Architecture &amp; Mechanics (5)</button>
+            <button class="filter-chip" onclick="app.filterRedisCategory('scenarios')">Scenario Runbooks (20)</button>
+          </div>
+          <div style="display: flex; gap: 6px; margin-left: auto;">
+            <button class="btn-secondary" style="font-size: 0.75rem; padding: 4px 10px;" onclick="app.toggleAllCardsInSection('redis-cards-container', true)">Expand All Visuals</button>
+            <button class="btn-secondary" style="font-size: 0.75rem; padding: 4px 10px;" onclick="app.toggleAllCardsInSection('redis-cards-container', false)">Collapse All</button>
+          </div>
+        </div>
+
+        <!-- Content Cards Grid -->
+        <div class="card-grid-2" id="redis-cards-container">
+          <!-- Rendered by app.js -->
+        </div>
+      </section>
+
+      <!-- =====================================================================
+           Section: Java Multithreading & Concurrency Architecture
+           ===================================================================== -->
+      <section class="content-section" id="section-concurrency">
+        <div class="hero-banner">
+          <h1 class="hero-title">🧵 Java Multithreading, JMM &amp; Modern Concurrency</h1>
+          <p class="hero-subtitle">
+            Staff-level deep dives into the Java Memory Model, hardware memory barriers, JVM lock escalation, AQS &amp; ReentrantLock internals, ThreadPoolExecutor saturation &amp; ctl bitmasking, ConcurrentHashMap collaborative resizing, and Java 21 Project Loom virtual threads.
+          </p>
+          <div class="hero-badges">
+            <span class="hero-badge-pill highlight">JMM &amp; Happens-Before</span>
+            <span class="hero-badge-pill">Mark Word &amp; Lock Escalation</span>
+            <span class="hero-badge-pill">AQS &amp; CLH Node Queue</span>
+            <span class="hero-badge-pill">ThreadPool Saturation &amp; Backpressure</span>
+            <span class="hero-badge-pill">ConcurrentHashMap &amp; LongAdder</span>
+            <span class="hero-badge-pill highlight">Java 21 Virtual Threads &amp; Loom</span>
+            <span class="hero-badge-pill">25 Staff Tricky Questions</span>
+          </div>
+        </div>
+
+        <!-- Section Controls Toolbar -->
+        <div class="revision-toolbar">
+          <div class="toolbar-title">
+            <span>🧵 Concurrency Topics:</span>
+          </div>
+          <div class="toolbar-filters">
+            <button class="filter-chip active" onclick="app.filterConcurrencyCategory('all')">All (30)</button>
+            <button class="filter-chip" onclick="app.filterConcurrencyCategory('architecture')">Architecture &amp; Mechanics (5)</button>
+            <button class="filter-chip" onclick="app.filterConcurrencyCategory('questions')">Interview Questions (25)</button>
+          </div>
+          <div style="display: flex; gap: 6px; margin-left: auto;">
+            <button class="btn-secondary" style="font-size: 0.75rem; padding: 4px 10px;" onclick="app.toggleAllCardsInSection('concurrency-cards-container', true)">Expand All Visuals</button>
+            <button class="btn-secondary" style="font-size: 0.75rem; padding: 4px 10px;" onclick="app.toggleAllCardsInSection('concurrency-cards-container', false)">Collapse All</button>
+          </div>
+        </div>
+
+        <!-- Content Cards Grid -->
+        <div class="card-grid-2" id="concurrency-cards-container">
+          <!-- Rendered by app.js -->
+        </div>
+      </section>
+
+      <!-- =====================================================================
+           Section: High-Level System Design (HLD)
+           ===================================================================== -->
+      <section class="content-section" id="section-hld">
+        <div class="hero-banner">
+          <h1 class="hero-title">🏗️ High-Level System Design (HLD) Architecture</h1>
+          <p class="hero-subtitle">
+            Staff-level distributed systems engineering: 45-minute interview roadmap, capacity estimation math, storage decision matrices, caching tiers, asynchronous pipelines, consistency models, and 10 end-to-end system designs (TinyURL, Rate Limiter, Chat, Video Streaming, Uber, Flash Sale, Snowflake, Dynamo, Crawler).
+          </p>
+          <div class="hero-badges">
+            <span class="hero-badge-pill highlight">45-Min Pacing &amp; Scoping</span>
+            <span class="hero-badge-pill">Back-of-Envelope Math</span>
+            <span class="hero-badge-pill">Storage Decision Matrix</span>
+            <span class="hero-badge-pill">Caching Tiers &amp; Invalidation</span>
+            <span class="hero-badge-pill">Kafka &amp; Outbox Pattern</span>
+            <span class="hero-badge-pill highlight">CAP / PACELC &amp; Saga</span>
+            <span class="hero-badge-pill">10 Staff-Level Designs</span>
+          </div>
+        </div>
+
+        <!-- Section Controls Toolbar -->
+        <div class="revision-toolbar">
+          <div class="toolbar-title">
+            <span>🏗️ HLD Topics:</span>
+          </div>
+          <div class="toolbar-filters">
+            <button class="filter-chip active" onclick="app.filterHldCategory('all')">All (16)</button>
+            <button class="filter-chip" onclick="app.filterHldCategory('architecture')">Architecture &amp; Frameworks (6)</button>
+            <button class="filter-chip" onclick="app.filterHldCategory('problems')">System Design Problems (10)</button>
+          </div>
+          <div style="display: flex; gap: 6px; margin-left: auto;">
+            <button class="btn-secondary" style="font-size: 0.75rem; padding: 4px 10px;" onclick="app.toggleAllCardsInSection('hld-cards-container', true)">Expand All Visuals</button>
+            <button class="btn-secondary" style="font-size: 0.75rem; padding: 4px 10px;" onclick="app.toggleAllCardsInSection('hld-cards-container', false)">Collapse All</button>
+          </div>
+        </div>
+
+        <!-- Content Cards Grid -->
+        <div class="card-grid-2" id="hld-cards-container">
+          <!-- Rendered by app.js -->
+        </div>
+      </section>
+
+      <!-- =====================================================================
+           Section: Low-Level Design & Machine Coding (LLD)
+           ===================================================================== -->
+      <section class="content-section" id="section-lld">
+        <div class="hero-banner">
+          <h1 class="hero-title">📐 Low-Level Design &amp; Machine Coding (LLD)</h1>
+          <p class="hero-subtitle">
+            Master object-oriented design and machine coding rounds: 60-90 minute interview workflow, GoF design pattern decision matrices, SOLID clean code execution, thread-safety mechanics, and 10 production-grade machine coding problems with complete runnable Java architectures.
+          </p>
+          <div class="hero-badges">
+            <span class="hero-badge-pill highlight">60-90 Min Playbook</span>
+            <span class="hero-badge-pill">Strategy vs State Patterns</span>
+            <span class="hero-badge-pill">Factory &amp; Builder Models</span>
+            <span class="hero-badge-pill">Chain of Responsibility</span>
+            <span class="hero-badge-pill">SOLID Clean Architecture</span>
+            <span class="hero-badge-pill highlight">Thread-Safe Machine Coding</span>
+            <span class="hero-badge-pill">10 Classic Implementations</span>
+          </div>
+        </div>
+
+        <!-- Section Controls Toolbar -->
+        <div class="revision-toolbar">
+          <div class="toolbar-title">
+            <span>📐 LLD Topics:</span>
+          </div>
+          <div class="toolbar-filters">
+            <button class="filter-chip active" onclick="app.filterLldCategory('all')">All (14)</button>
+            <button class="filter-chip" onclick="app.filterLldCategory('patterns')">Design Patterns &amp; Frameworks (4)</button>
+            <button class="filter-chip" onclick="app.filterLldCategory('problems')">Machine Coding Problems (10)</button>
+          </div>
+          <div style="display: flex; gap: 6px; margin-left: auto;">
+            <button class="btn-secondary" style="font-size: 0.75rem; padding: 4px 10px;" onclick="app.toggleAllCardsInSection('lld-cards-container', true)">Expand All Visuals</button>
+            <button class="btn-secondary" style="font-size: 0.75rem; padding: 4px 10px;" onclick="app.toggleAllCardsInSection('lld-cards-container', false)">Collapse All</button>
+          </div>
+        </div>
+
+        <!-- Content Cards Grid -->
+        <div class="card-grid-2" id="lld-cards-container">
+          <!-- Rendered by app.js -->
+        </div>
+      </section>
+
+      <!-- =====================================================================
+           Section 4: DSA & System Patterns
+           ===================================================================== -->
+      <section class="content-section" id="section-dsa">
+        <div class="hero-banner">
+          <h1 class="hero-title">DSA & System-Oriented Data Structures</h1>
+          <p class="hero-subtitle">
+            Master algorithmic skeleton templates and real-world system data structures (LRU, LFU, Rate Limiters, Monotonic Deques, and Disjoint Sets).
+          </p>
+          <div class="hero-badges">
+            <span class="hero-badge-pill highlight">O(1) LRU & LFU Cache</span>
+            <span class="hero-badge-pill">Token Bucket Rate Limiter</span>
+            <span class="hero-badge-pill">Monotonic Amortized O(N)</span>
+            <span class="hero-badge-pill">Union-Find Path Compression</span>
+          </div>
+        </div>
+
+        <!-- Section Controls Toolbar -->
+        <div class="revision-toolbar">
+          <div class="toolbar-title">
+            <span>⚡ System DSA Patterns:</span>
+          </div>
+          <div style="display: flex; gap: 6px; margin-left: auto;">
+            <button class="btn-secondary" style="font-size: 0.75rem; padding: 4px 10px;" onclick="app.toggleAllCardsInSection('dsa-cards-container', true)">Expand All Visuals</button>
+            <button class="btn-secondary" style="font-size: 0.75rem; padding: 4px 10px;" onclick="app.toggleAllCardsInSection('dsa-cards-container', false)">Collapse All</button>
+          </div>
+        </div>
+
+        <!-- Complexity Matrix Quick Box -->
+        <div class="cheat-card border-dsa" style="margin-bottom: 24px;">
+          <div class="card-header" style="padding: 16px 18px 0 18px; margin-bottom: 8px;">
+            <div class="card-title">📊 Time Complexity Cheat Matrix (Quick Memory Anchor)</div>
+            <span class="hero-badge-pill highlight">Big-O Reference</span>
+          </div>
+          <div class="card-body" style="padding: 0 18px 18px 18px;">
+            <div style="overflow-x: auto; max-width: 100%;">
+              <table style="width: 100%; min-width: 540px; border-collapse: collapse; font-size: 0.84rem; text-align: left;">
+                <thead>
+                  <tr style="border-bottom: 2px solid var(--border-color); color: var(--text-link);">
+                    <th style="padding: 8px;">Structure</th>
+                    <th style="padding: 8px;">Access</th>
+                    <th style="padding: 8px;">Search</th>
+                    <th style="padding: 8px;">Insertion</th>
+                    <th style="padding: 8px;">Deletion</th>
+                    <th style="padding: 8px;">Key Mechanical Tradeoff</th>
+                  </tr>
+                </thead>
+                <tbody style="color: var(--text-secondary);">
+                  <tr style="border-bottom: 1px solid var(--border-subtle);">
+                    <td style="padding: 8px; font-weight: bold; color: var(--text-primary);">Array / ArrayList</td>
+                    <td style="padding: 8px; color: #34d399;">O(1)</td>
+                    <td style="padding: 8px; color: #f87171;">O(N)</td>
+                    <td style="padding: 8px;">O(1) amortized</td>
+                    <td style="padding: 8px; color: #f87171;">O(N) shift</td>
+                    <td style="padding: 8px;">Contiguous CPU cache line prefetching</td>
+                  </tr>
+                  <tr style="border-bottom: 1px solid var(--border-subtle);">
+                    <td style="padding: 8px; font-weight: bold; color: var(--text-primary);">HashMap (Java 8+)</td>
+                    <td style="padding: 8px;">N/A</td>
+                    <td style="padding: 8px; color: #34d399;">O(1) avg / O(log N) tree</td>
+                    <td style="padding: 8px; color: #34d399;">O(1) avg</td>
+                    <td style="padding: 8px; color: #34d399;">O(1) avg</td>
+                    <td style="padding: 8px;">Load factor 0.75, resize doubles buckets</td>
+                  </tr>
+                  <tr style="border-bottom: 1px solid var(--border-subtle);">
+                    <td style="padding: 8px; font-weight: bold; color: var(--text-primary);">TreeMap (Red-Black)</td>
+                    <td style="padding: 8px;">N/A</td>
+                    <td style="padding: 8px; color: #60a5fa;">O(log N)</td>
+                    <td style="padding: 8px; color: #60a5fa;">O(log N)</td>
+                    <td style="padding: 8px; color: #60a5fa;">O(log N)</td>
+                    <td style="padding: 8px;">Strictly sorted keys, self-balancing tree</td>
+                  </tr>
+                  <tr style="border-bottom: 1px solid var(--border-subtle);">
+                    <td style="padding: 8px; font-weight: bold; color: var(--text-primary);">PriorityQueue (Binary Heap)</td>
+                    <td style="padding: 8px; color: #34d399;">O(1) peek</td>
+                    <td style="padding: 8px; color: #f87171;">O(N)</td>
+                    <td style="padding: 8px; color: #60a5fa;">O(log N)</td>
+                    <td style="padding: 8px; color: #60a5fa;">O(log N) poll</td>
+                    <td style="padding: 8px;">Array-backed complete binary tree</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 8px; font-weight: bold; color: var(--text-primary);">Monotonic Deque</td>
+                    <td style="padding: 8px; color: #34d399;">O(1) extremum</td>
+                    <td style="padding: 8px; color: #f87171;">O(N)</td>
+                    <td style="padding: 8px; color: #34d399;">O(1) amortized</td>
+                    <td style="padding: 8px; color: #34d399;">O(1) amortized</td>
+                    <td style="padding: 8px;">Each element entered & popped at most once</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Content Cards Grid -->
+        <div class="card-grid-2" id="dsa-cards-container">
+          <!-- Rendered by app.js -->
+        </div>
+      </section>
+
+      <!-- =====================================================================
+           Section 5: Senior Tricky Interview Q&A
+           ===================================================================== -->
+      <section class="content-section" id="section-questions">
+        <div class="hero-banner">
+          <h1 class="hero-title">Senior & Staff Engineer Tricky Questions</h1>
+          <p class="hero-subtitle">
+            Uncover interview traps, compiler reordering, proxy bypasses, and distributed edge cases. Each question breaks down the interviewer's hidden intent, the common junior trap, and the staff-level answer.
+          </p>
+          <div class="hero-badges">
+            <span class="hero-badge-pill highlight">Senior / Staff Level</span>
+            <span class="hero-badge-pill">Interviewer Traps Exposed</span>
+            <span class="hero-badge-pill">Real Production War Stories</span>
+          </div>
+        </div>
+
+        <!-- Toolbar & Filter -->
+        <div class="revision-toolbar">
+          <div class="toolbar-title">
+            <span>Category:</span>
+          </div>
+          <div class="toolbar-filters">
+            <button class="filter-chip active" onclick="app.filterQuestionsByCategory('all')">All Questions</button>
+            <button class="filter-chip" onclick="app.filterQuestionsByCategory('OOPs')">OOPs &amp; Polymorphism (30)</button>
+            <button class="filter-chip" onclick="app.filterQuestionsByCategory('Java')">Java & JMM</button>
+            <button class="filter-chip" onclick="app.filterQuestionsByCategory('Spring')">Spring Boot</button>
+            <button class="filter-chip" onclick="app.filterQuestionsByCategory('DSA')">DSA & Concurrency</button>
+            <button class="filter-chip" onclick="app.filterQuestionsByCategory('Distributed')">Distributed / Kafka</button>
+          </div>
+          <div style="display: flex; gap: 6px; margin-left: auto;">
+            <button class="btn-secondary" style="font-size: 0.75rem; padding: 4px 10px;" onclick="app.toggleAllQuestions(true)">Expand All</button>
+            <button class="btn-secondary" style="font-size: 0.75rem; padding: 4px 10px;" onclick="app.toggleAllQuestions(false)">Collapse All</button>
+          </div>
+        </div>
+
+        <!-- Questions Accordion Container -->
+        <div id="questions-container">
+          <!-- Rendered by app.js -->
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- Drawer Backdrop Overlay -->
+  <div class="drawer-backdrop" id="drawer-backdrop"></div>
+
+  <!-- =========================================================================
+       Slide-out Quick View Drawer (Node Deep Dive)
+       ========================================================================= -->
+  <div class="quick-view-drawer" id="quick-view-drawer">
+    <div class="drawer-header">
+      <h3 id="drawer-concept-title" style="font-size: 1.1rem; font-weight: 800;">Concept Details</h3>
+      <button class="drawer-close-btn" id="drawer-close-btn">&times;</button>
+    </div>
+    <div id="drawer-content-body">
+      <!-- Injected dynamically on node click -->
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       Global Search Modal (Ctrl + K)
+       ========================================================================= -->
+  <div class="modal-overlay" id="search-modal-overlay" onclick="if(event.target === this) app.closeSearchModal()">
+    <div class="search-modal">
+      <div class="search-input-wrapper">
+        <span>🔍</span>
+        <input type="text" id="global-search-input" placeholder="Search Java, Spring Boot, DSA concepts, annotations, or questions...">
+        <span class="kbd-shortcut">ESC</span>
+      </div>
+      <div class="search-results-list" id="search-results-list">
+        <!-- Rendered by app.js search -->
+      </div>
+      <div class="search-footer">
+        <span>Press <strong>ESC</strong> to close</span>
+        <span>Use <strong>Ctrl + K</strong> anywhere</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       Topic Creator / Manager Modal (Easy Future Additions)
+       ========================================================================= -->
+  <div class="modal-overlay" id="creator-modal-overlay" onclick="if(event.target === this) app.closeCreatorModal()">
+    <div class="creator-modal">
+      <div class="creator-modal-header">
+        <h3 style="font-size: 1.1rem; font-weight: 700;">Add New Revision Topic / Question</h3>
+        <button class="drawer-close-btn" onclick="app.closeCreatorModal()">&times;</button>
+      </div>
+
+      <div class="creator-modal-body">
+        <div class="form-group">
+          <label for="creator-type">Entry Type</label>
+          <select id="creator-type" class="form-select">
+            <option value="java">Java Core Topic</option>
+            <option value="streams">Java Streams Topic / Question</option>
+            <option value="spring">Spring Boot Topic</option>
+            <option value="sql">SQL Topic / Query</option>
+            <option value="kafka">Apache Kafka Topic / Scenario</option>
+            <option value="react">React &amp; Redux Topic / Scenario</option>
+            <option value="devops">☸️ K8s &amp; DevOps Topic / Scenario</option>
+            <option value="redis">🟥 Redis Topic / Scenario</option>
+            <option value="concurrency">🧵 Concurrency Topic / Question</option>
+            <option value="hld">🏗️ High-Level Design (HLD) Topic / Problem</option>
+            <option value="lld">📐 Low-Level Design (LLD) Topic / Problem</option>
+            <option value="dsa">DSA & System Topic</option>
+            <option value="question">Senior Tricky Question</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="creator-title">Title / Question</label>
+          <input type="text" id="creator-title" class="form-input" placeholder="e.g., ThreadPoolExecutor Rejection Policies or Why @Async fails without CompletableFuture">
+        </div>
+
+        <div class="form-group">
+          <label for="creator-category">Category / Tags</label>
+          <input type="text" id="creator-category" class="form-input" placeholder="e.g., Concurrency, Spring AOP, System Design">
+        </div>
+
+        <div class="form-group">
+          <label for="creator-summary">Summary / Senior Answer (Supports multiple lines)</label>
+          <textarea id="creator-summary" class="form-textarea" placeholder="Detailed breakdown of how it works under the hood, key invariants, and pitfalls..."></textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="creator-code">Code Snippet / Demonstration (Optional)</label>
+          <textarea id="creator-code" class="form-textarea" placeholder="// Java or Spring code snippet..."></textarea>
+        </div>
+      </div>
+
+      <div class="creator-modal-footer">
+        <button class="btn-secondary" onclick="app.closeCreatorModal()">Cancel</button>
+        <button class="btn-primary" onclick="app.saveCustomTopic()">Save & Add to Hub</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       Scripts - Modular Data & Application Engine
+       ========================================================================= -->
+  <script src="js/data/topics.js"></script>
+  <script src="js/data/mindmaps-data.js"></script>
+  <script src="js/data/java-data.js"></script>
+  <script src="js/data/streams-data.js"></script>
+  <script src="js/data/springboot-data.js"></script>
+  <script src="js/data/sql-data.js"></script>
+  <script src="js/data/kafka-data.js"></script>
+  <script src="js/data/react-data.js"></script>
+  <script src="js/data/devops-data.js"></script>
+  <script src="js/data/redis-data.js"></script>
+  <script src="js/data/concurrency-data.js"></script>
+  <script src="js/data/hld-data.js"></script>
+  <script src="js/data/lld-data.js"></script>
+  <script src="js/data/dsa-data.js"></script>
+  <script src="js/data/questions-data.js"></script>
+  <script src="js/mindmap.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
