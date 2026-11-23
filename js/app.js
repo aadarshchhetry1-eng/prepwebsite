@@ -166,6 +166,7 @@ class RevisionApp {
           <a href="#java-int-aqs" class="compact-mini-pill" onclick="app.navigateToJavaInternal('java-int-aqs'); return false;">AQS Locks</a>
           <a href="#java-int-cas" class="compact-mini-pill" onclick="app.navigateToJavaInternal('java-int-cas'); return false;">CAS &amp; ABA</a>
           <a href="#java-int-hashmap" class="compact-mini-pill" onclick="app.navigateToJavaInternal('java-int-hashmap'); return false;">HashMap</a>
+          <a href="#java-int-fail-fast-vs-fail-safe" class="compact-mini-pill" onclick="app.navigateToJavaInternal('java-int-fail-fast-vs-fail-safe'); return false;">modCount &amp; CME</a>
           <a href="#java-int-concurrenthashmap" class="compact-mini-pill" onclick="app.navigateToJavaInternal('java-int-concurrenthashmap'); return false;">ConcurrentHashMap</a>
           <a href="#java-int-string-immutability" class="compact-mini-pill" onclick="app.navigateToJavaInternal('java-int-string-immutability'); return false;">String Pool</a>
           <a href="#java-int-io-vs-nio" class="compact-mini-pill" onclick="app.navigateToJavaInternal('java-int-io-vs-nio'); return false;">NIO Selector</a>

@@ -3796,7 +3796,7 @@ window.REVISION_APP_DATA.JAVA_460_TOPICS = [
   },
   {
     "topicId": "fail-fast-vs-fail-safe",
-    "topicTitle": "Fail-fast vs. fail-safe iterators",
+    "topicTitle": "Fail-fast vs. fail-safe iterators & ConcurrentModificationException (modCount)",
     "category": "Collections",
     "summary": "10 Tricky Questions on modCount, CopyOnWrite Snapshots, ConcurrentModificationException & Safe Mutation.",
     "questionCount": 10,
@@ -3818,7 +3818,7 @@ window.REVISION_APP_DATA.JAVA_460_TOPICS = [
         "codeSnippet": "List<String> list = new ArrayList<>(List.of(\"A\", \"B\"));\nfor (String s : list) {\n    if (s.equals(\"A\")) list.remove(s); // THROWS ConcurrentModificationException!\n}",
         "trap": "Calling list.remove() inside a for-each loop throws ConcurrentModificationException in single-threaded code.",
         "topicId": "fail-fast-vs-fail-safe",
-        "topicTitle": "Fail-fast vs. fail-safe iterators",
+        "topicTitle": "Fail-fast vs. fail-safe iterators & ConcurrentModificationException (modCount)",
         "category": "Collections"
       },
       {
@@ -3838,7 +3838,7 @@ window.REVISION_APP_DATA.JAVA_460_TOPICS = [
         "codeSnippet": "Iterator<String> it = list.iterator();\nwhile (it.hasNext()) {\n    if (it.next().equals(\"A\")) {\n        it.remove(); // 100% SAFE! Updates expectedModCount!\n    }\n}",
         "trap": "iterator.remove() is safe because it synchronizes expectedModCount with the collection's modCount.",
         "topicId": "fail-fast-vs-fail-safe",
-        "topicTitle": "Fail-fast vs. fail-safe iterators",
+        "topicTitle": "Fail-fast vs. fail-safe iterators & ConcurrentModificationException (modCount)",
         "category": "Collections"
       },
       {
@@ -3858,7 +3858,7 @@ window.REVISION_APP_DATA.JAVA_460_TOPICS = [
         "codeSnippet": "List<String> list = new ArrayList<>(List.of(\"A\", \"B\"));\nfor (String s : list) {\n    if (s.equals(\"A\")) list.remove(s); // Does NOT throw CME! Loop terminates silently!\n}",
         "trap": "Removing the 2nd-to-last element in for-each skips the modCount check because cursor == size terminates hasNext().",
         "topicId": "fail-fast-vs-fail-safe",
-        "topicTitle": "Fail-fast vs. fail-safe iterators",
+        "topicTitle": "Fail-fast vs. fail-safe iterators & ConcurrentModificationException (modCount)",
         "category": "Collections"
       },
       {
@@ -3878,7 +3878,7 @@ window.REVISION_APP_DATA.JAVA_460_TOPICS = [
         "codeSnippet": "// SLOW (Multiple array shifts):\n// while(it.hasNext()) { if(match) it.remove(); }\n\n// FAST & CLEAN (Single-pass O(N) compaction):\nlist.removeIf(s -> s.startsWith(\"TEST\"));",
         "trap": "Collection.removeIf() uses a single-pass BitSet compaction, vastly outperforming repeated iterator.remove() calls.",
         "topicId": "fail-fast-vs-fail-safe",
-        "topicTitle": "Fail-fast vs. fail-safe iterators",
+        "topicTitle": "Fail-fast vs. fail-safe iterators & ConcurrentModificationException (modCount)",
         "category": "Collections"
       },
       {
@@ -3898,7 +3898,7 @@ window.REVISION_APP_DATA.JAVA_460_TOPICS = [
         "codeSnippet": "var cowList = new CopyOnWriteArrayList<>(List.of(\"A\", \"B\"));\nfor (String s : cowList) {\n    cowList.add(\"C\"); // Mutates new array copy; iterator continues reading old array!\n}",
         "trap": "CopyOnWriteArrayList iterators traverse an immutable snapshot; writes allocate a new array copy.",
         "topicId": "fail-fast-vs-fail-safe",
-        "topicTitle": "Fail-fast vs. fail-safe iterators",
+        "topicTitle": "Fail-fast vs. fail-safe iterators & ConcurrentModificationException (modCount)",
         "category": "Collections"
       },
       {
@@ -3918,7 +3918,7 @@ window.REVISION_APP_DATA.JAVA_460_TOPICS = [
         "codeSnippet": "// PERFECT USE CASE: Event listeners (rarely modified, frequently iterated)\nprivate final List<EventListener> listeners = new CopyOnWriteArrayList<>();",
         "trap": "CopyOnWriteArrayList copies the entire array on every write; catastrophic for write-heavy workloads.",
         "topicId": "fail-fast-vs-fail-safe",
-        "topicTitle": "Fail-fast vs. fail-safe iterators",
+        "topicTitle": "Fail-fast vs. fail-safe iterators & ConcurrentModificationException (modCount)",
         "category": "Collections"
       },
       {
@@ -3938,7 +3938,7 @@ window.REVISION_APP_DATA.JAVA_460_TOPICS = [
         "codeSnippet": "// ConcurrentHashMap iterates live buckets without cloning:\nIterator<String> it = chm.keySet().iterator(); // Weakly consistent, zero memory allocation!",
         "trap": "ConcurrentHashMap is 'weakly consistent' (iterates live buckets), not 'fail-safe' (which implies snapshot cloning).",
         "topicId": "fail-fast-vs-fail-safe",
-        "topicTitle": "Fail-fast vs. fail-safe iterators",
+        "topicTitle": "Fail-fast vs. fail-safe iterators & ConcurrentModificationException (modCount)",
         "category": "Collections"
       },
       {
@@ -3958,7 +3958,7 @@ window.REVISION_APP_DATA.JAVA_460_TOPICS = [
         "codeSnippet": "// In ArrayList:\n// protected transient int modCount = 0; // NOT volatile!",
         "trap": "modCount is not volatile; fail-fast detection across threads is best-effort and cannot be guaranteed.",
         "topicId": "fail-fast-vs-fail-safe",
-        "topicTitle": "Fail-fast vs. fail-safe iterators",
+        "topicTitle": "Fail-fast vs. fail-safe iterators & ConcurrentModificationException (modCount)",
         "category": "Collections"
       },
       {
@@ -3978,7 +3978,7 @@ window.REVISION_APP_DATA.JAVA_460_TOPICS = [
         "codeSnippet": "for (User u : userList) {\n    u.setStatus(\"ACTIVE\"); // SAFE! Not a structural modification. modCount unchanged!\n}",
         "trap": "Mutating an element's fields is not a structural modification and does not increment modCount or trigger CME.",
         "topicId": "fail-fast-vs-fail-safe",
-        "topicTitle": "Fail-fast vs. fail-safe iterators",
+        "topicTitle": "Fail-fast vs. fail-safe iterators & ConcurrentModificationException (modCount)",
         "category": "Collections"
       },
       {
@@ -3998,7 +3998,7 @@ window.REVISION_APP_DATA.JAVA_460_TOPICS = [
         "codeSnippet": "ListIterator<String> lit = list.listIterator();\nwhile (lit.hasNext()) {\n    if (lit.next().equals(\"OLD\")) {\n        lit.set(\"NEW\"); // Replaces in-place safely without CME!\n    }\n}",
         "trap": "ListIterator.set() replaces elements in-place without altering list structure or triggering CME.",
         "topicId": "fail-fast-vs-fail-safe",
-        "topicTitle": "Fail-fast vs. fail-safe iterators",
+        "topicTitle": "Fail-fast vs. fail-safe iterators & ConcurrentModificationException (modCount)",
         "category": "Collections"
       }
     ]
@@ -12924,7 +12924,7 @@ window.REVISION_APP_DATA.JAVA_TOPIC_MAP = {
       "codeSnippet": "List<String> list = new ArrayList<>(List.of(\"A\", \"B\"));\nfor (String s : list) {\n    if (s.equals(\"A\")) list.remove(s); // THROWS ConcurrentModificationException!\n}",
       "trap": "Calling list.remove() inside a for-each loop throws ConcurrentModificationException in single-threaded code.",
       "topicId": "fail-fast-vs-fail-safe",
-      "topicTitle": "Fail-fast vs. fail-safe iterators",
+      "topicTitle": "Fail-fast vs. fail-safe iterators & ConcurrentModificationException (modCount)",
       "category": "Collections"
     },
     {
@@ -12944,7 +12944,7 @@ window.REVISION_APP_DATA.JAVA_TOPIC_MAP = {
       "codeSnippet": "Iterator<String> it = list.iterator();\nwhile (it.hasNext()) {\n    if (it.next().equals(\"A\")) {\n        it.remove(); // 100% SAFE! Updates expectedModCount!\n    }\n}",
       "trap": "iterator.remove() is safe because it synchronizes expectedModCount with the collection's modCount.",
       "topicId": "fail-fast-vs-fail-safe",
-      "topicTitle": "Fail-fast vs. fail-safe iterators",
+      "topicTitle": "Fail-fast vs. fail-safe iterators & ConcurrentModificationException (modCount)",
       "category": "Collections"
     },
     {
@@ -12964,7 +12964,7 @@ window.REVISION_APP_DATA.JAVA_TOPIC_MAP = {
       "codeSnippet": "List<String> list = new ArrayList<>(List.of(\"A\", \"B\"));\nfor (String s : list) {\n    if (s.equals(\"A\")) list.remove(s); // Does NOT throw CME! Loop terminates silently!\n}",
       "trap": "Removing the 2nd-to-last element in for-each skips the modCount check because cursor == size terminates hasNext().",
       "topicId": "fail-fast-vs-fail-safe",
-      "topicTitle": "Fail-fast vs. fail-safe iterators",
+      "topicTitle": "Fail-fast vs. fail-safe iterators & ConcurrentModificationException (modCount)",
       "category": "Collections"
     },
     {
@@ -12984,7 +12984,7 @@ window.REVISION_APP_DATA.JAVA_TOPIC_MAP = {
       "codeSnippet": "// SLOW (Multiple array shifts):\n// while(it.hasNext()) { if(match) it.remove(); }\n\n// FAST & CLEAN (Single-pass O(N) compaction):\nlist.removeIf(s -> s.startsWith(\"TEST\"));",
       "trap": "Collection.removeIf() uses a single-pass BitSet compaction, vastly outperforming repeated iterator.remove() calls.",
       "topicId": "fail-fast-vs-fail-safe",
-      "topicTitle": "Fail-fast vs. fail-safe iterators",
+      "topicTitle": "Fail-fast vs. fail-safe iterators & ConcurrentModificationException (modCount)",
       "category": "Collections"
     },
     {
@@ -13004,7 +13004,7 @@ window.REVISION_APP_DATA.JAVA_TOPIC_MAP = {
       "codeSnippet": "var cowList = new CopyOnWriteArrayList<>(List.of(\"A\", \"B\"));\nfor (String s : cowList) {\n    cowList.add(\"C\"); // Mutates new array copy; iterator continues reading old array!\n}",
       "trap": "CopyOnWriteArrayList iterators traverse an immutable snapshot; writes allocate a new array copy.",
       "topicId": "fail-fast-vs-fail-safe",
-      "topicTitle": "Fail-fast vs. fail-safe iterators",
+      "topicTitle": "Fail-fast vs. fail-safe iterators & ConcurrentModificationException (modCount)",
       "category": "Collections"
     },
     {
@@ -13024,7 +13024,7 @@ window.REVISION_APP_DATA.JAVA_TOPIC_MAP = {
       "codeSnippet": "// PERFECT USE CASE: Event listeners (rarely modified, frequently iterated)\nprivate final List<EventListener> listeners = new CopyOnWriteArrayList<>();",
       "trap": "CopyOnWriteArrayList copies the entire array on every write; catastrophic for write-heavy workloads.",
       "topicId": "fail-fast-vs-fail-safe",
-      "topicTitle": "Fail-fast vs. fail-safe iterators",
+      "topicTitle": "Fail-fast vs. fail-safe iterators & ConcurrentModificationException (modCount)",
       "category": "Collections"
     },
     {
@@ -13044,7 +13044,7 @@ window.REVISION_APP_DATA.JAVA_TOPIC_MAP = {
       "codeSnippet": "// ConcurrentHashMap iterates live buckets without cloning:\nIterator<String> it = chm.keySet().iterator(); // Weakly consistent, zero memory allocation!",
       "trap": "ConcurrentHashMap is 'weakly consistent' (iterates live buckets), not 'fail-safe' (which implies snapshot cloning).",
       "topicId": "fail-fast-vs-fail-safe",
-      "topicTitle": "Fail-fast vs. fail-safe iterators",
+      "topicTitle": "Fail-fast vs. fail-safe iterators & ConcurrentModificationException (modCount)",
       "category": "Collections"
     },
     {
@@ -13064,7 +13064,7 @@ window.REVISION_APP_DATA.JAVA_TOPIC_MAP = {
       "codeSnippet": "// In ArrayList:\n// protected transient int modCount = 0; // NOT volatile!",
       "trap": "modCount is not volatile; fail-fast detection across threads is best-effort and cannot be guaranteed.",
       "topicId": "fail-fast-vs-fail-safe",
-      "topicTitle": "Fail-fast vs. fail-safe iterators",
+      "topicTitle": "Fail-fast vs. fail-safe iterators & ConcurrentModificationException (modCount)",
       "category": "Collections"
     },
     {
@@ -13084,7 +13084,7 @@ window.REVISION_APP_DATA.JAVA_TOPIC_MAP = {
       "codeSnippet": "for (User u : userList) {\n    u.setStatus(\"ACTIVE\"); // SAFE! Not a structural modification. modCount unchanged!\n}",
       "trap": "Mutating an element's fields is not a structural modification and does not increment modCount or trigger CME.",
       "topicId": "fail-fast-vs-fail-safe",
-      "topicTitle": "Fail-fast vs. fail-safe iterators",
+      "topicTitle": "Fail-fast vs. fail-safe iterators & ConcurrentModificationException (modCount)",
       "category": "Collections"
     },
     {
@@ -13104,7 +13104,7 @@ window.REVISION_APP_DATA.JAVA_TOPIC_MAP = {
       "codeSnippet": "ListIterator<String> lit = list.listIterator();\nwhile (lit.hasNext()) {\n    if (lit.next().equals(\"OLD\")) {\n        lit.set(\"NEW\"); // Replaces in-place safely without CME!\n    }\n}",
       "trap": "ListIterator.set() replaces elements in-place without altering list structure or triggering CME.",
       "topicId": "fail-fast-vs-fail-safe",
-      "topicTitle": "Fail-fast vs. fail-safe iterators",
+      "topicTitle": "Fail-fast vs. fail-safe iterators & ConcurrentModificationException (modCount)",
       "category": "Collections"
     }
   ],
@@ -21803,7 +21803,7 @@ window.REVISION_APP_DATA.JAVA_460_QUESTIONS = [
     "codeSnippet": "List<String> list = new ArrayList<>(List.of(\"A\", \"B\"));\nfor (String s : list) {\n    if (s.equals(\"A\")) list.remove(s); // THROWS ConcurrentModificationException!\n}",
     "trap": "Calling list.remove() inside a for-each loop throws ConcurrentModificationException in single-threaded code.",
     "topicId": "fail-fast-vs-fail-safe",
-    "topicTitle": "Fail-fast vs. fail-safe iterators",
+    "topicTitle": "Fail-fast vs. fail-safe iterators & ConcurrentModificationException (modCount)",
     "category": "Collections"
   },
   {
@@ -21823,7 +21823,7 @@ window.REVISION_APP_DATA.JAVA_460_QUESTIONS = [
     "codeSnippet": "Iterator<String> it = list.iterator();\nwhile (it.hasNext()) {\n    if (it.next().equals(\"A\")) {\n        it.remove(); // 100% SAFE! Updates expectedModCount!\n    }\n}",
     "trap": "iterator.remove() is safe because it synchronizes expectedModCount with the collection's modCount.",
     "topicId": "fail-fast-vs-fail-safe",
-    "topicTitle": "Fail-fast vs. fail-safe iterators",
+    "topicTitle": "Fail-fast vs. fail-safe iterators & ConcurrentModificationException (modCount)",
     "category": "Collections"
   },
   {
@@ -21843,7 +21843,7 @@ window.REVISION_APP_DATA.JAVA_460_QUESTIONS = [
     "codeSnippet": "List<String> list = new ArrayList<>(List.of(\"A\", \"B\"));\nfor (String s : list) {\n    if (s.equals(\"A\")) list.remove(s); // Does NOT throw CME! Loop terminates silently!\n}",
     "trap": "Removing the 2nd-to-last element in for-each skips the modCount check because cursor == size terminates hasNext().",
     "topicId": "fail-fast-vs-fail-safe",
-    "topicTitle": "Fail-fast vs. fail-safe iterators",
+    "topicTitle": "Fail-fast vs. fail-safe iterators & ConcurrentModificationException (modCount)",
     "category": "Collections"
   },
   {
@@ -21863,7 +21863,7 @@ window.REVISION_APP_DATA.JAVA_460_QUESTIONS = [
     "codeSnippet": "// SLOW (Multiple array shifts):\n// while(it.hasNext()) { if(match) it.remove(); }\n\n// FAST & CLEAN (Single-pass O(N) compaction):\nlist.removeIf(s -> s.startsWith(\"TEST\"));",
     "trap": "Collection.removeIf() uses a single-pass BitSet compaction, vastly outperforming repeated iterator.remove() calls.",
     "topicId": "fail-fast-vs-fail-safe",
-    "topicTitle": "Fail-fast vs. fail-safe iterators",
+    "topicTitle": "Fail-fast vs. fail-safe iterators & ConcurrentModificationException (modCount)",
     "category": "Collections"
   },
   {
@@ -21883,7 +21883,7 @@ window.REVISION_APP_DATA.JAVA_460_QUESTIONS = [
     "codeSnippet": "var cowList = new CopyOnWriteArrayList<>(List.of(\"A\", \"B\"));\nfor (String s : cowList) {\n    cowList.add(\"C\"); // Mutates new array copy; iterator continues reading old array!\n}",
     "trap": "CopyOnWriteArrayList iterators traverse an immutable snapshot; writes allocate a new array copy.",
     "topicId": "fail-fast-vs-fail-safe",
-    "topicTitle": "Fail-fast vs. fail-safe iterators",
+    "topicTitle": "Fail-fast vs. fail-safe iterators & ConcurrentModificationException (modCount)",
     "category": "Collections"
   },
   {
@@ -21903,7 +21903,7 @@ window.REVISION_APP_DATA.JAVA_460_QUESTIONS = [
     "codeSnippet": "// PERFECT USE CASE: Event listeners (rarely modified, frequently iterated)\nprivate final List<EventListener> listeners = new CopyOnWriteArrayList<>();",
     "trap": "CopyOnWriteArrayList copies the entire array on every write; catastrophic for write-heavy workloads.",
     "topicId": "fail-fast-vs-fail-safe",
-    "topicTitle": "Fail-fast vs. fail-safe iterators",
+    "topicTitle": "Fail-fast vs. fail-safe iterators & ConcurrentModificationException (modCount)",
     "category": "Collections"
   },
   {
@@ -21923,7 +21923,7 @@ window.REVISION_APP_DATA.JAVA_460_QUESTIONS = [
     "codeSnippet": "// ConcurrentHashMap iterates live buckets without cloning:\nIterator<String> it = chm.keySet().iterator(); // Weakly consistent, zero memory allocation!",
     "trap": "ConcurrentHashMap is 'weakly consistent' (iterates live buckets), not 'fail-safe' (which implies snapshot cloning).",
     "topicId": "fail-fast-vs-fail-safe",
-    "topicTitle": "Fail-fast vs. fail-safe iterators",
+    "topicTitle": "Fail-fast vs. fail-safe iterators & ConcurrentModificationException (modCount)",
     "category": "Collections"
   },
   {
@@ -21943,7 +21943,7 @@ window.REVISION_APP_DATA.JAVA_460_QUESTIONS = [
     "codeSnippet": "// In ArrayList:\n// protected transient int modCount = 0; // NOT volatile!",
     "trap": "modCount is not volatile; fail-fast detection across threads is best-effort and cannot be guaranteed.",
     "topicId": "fail-fast-vs-fail-safe",
-    "topicTitle": "Fail-fast vs. fail-safe iterators",
+    "topicTitle": "Fail-fast vs. fail-safe iterators & ConcurrentModificationException (modCount)",
     "category": "Collections"
   },
   {
@@ -21963,7 +21963,7 @@ window.REVISION_APP_DATA.JAVA_460_QUESTIONS = [
     "codeSnippet": "for (User u : userList) {\n    u.setStatus(\"ACTIVE\"); // SAFE! Not a structural modification. modCount unchanged!\n}",
     "trap": "Mutating an element's fields is not a structural modification and does not increment modCount or trigger CME.",
     "topicId": "fail-fast-vs-fail-safe",
-    "topicTitle": "Fail-fast vs. fail-safe iterators",
+    "topicTitle": "Fail-fast vs. fail-safe iterators & ConcurrentModificationException (modCount)",
     "category": "Collections"
   },
   {
@@ -21983,7 +21983,7 @@ window.REVISION_APP_DATA.JAVA_460_QUESTIONS = [
     "codeSnippet": "ListIterator<String> lit = list.listIterator();\nwhile (lit.hasNext()) {\n    if (lit.next().equals(\"OLD\")) {\n        lit.set(\"NEW\"); // Replaces in-place safely without CME!\n    }\n}",
     "trap": "ListIterator.set() replaces elements in-place without altering list structure or triggering CME.",
     "topicId": "fail-fast-vs-fail-safe",
-    "topicTitle": "Fail-fast vs. fail-safe iterators",
+    "topicTitle": "Fail-fast vs. fail-safe iterators & ConcurrentModificationException (modCount)",
     "category": "Collections"
   },
   {
