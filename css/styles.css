@@ -33,6 +33,10 @@
   --accent-hld: #06b6d4;        /* HLD Architecture Cyan */
   --accent-lld: #6366f1;        /* LLD Indigo */
   --accent-dsa: #3b82f6;        /* DSA Blue */
+  --accent-patterns: #8b5cf6;   /* Design Patterns Purple */
+  --accent-microservices: #0ea5e9; /* Microservices Cyan-Blue */
+  --accent-aws: #ff9900;        /* AWS Cloud Orange */
+  --accent-gcp: #4285f4;        /* Google Cloud Blue */
   --accent-solid: #a855f7;      /* SOLID Purple */
   --accent-warn: #eab308;       /* Pitfall Yellow */
   --accent-danger: #ef4444;     /* Trap Red */
@@ -704,6 +708,10 @@ body {
 .cheat-card.border-hld { border-left: 5px solid var(--accent-hld); }
 .cheat-card.border-lld { border-left: 5px solid var(--accent-lld); }
 .cheat-card.border-dsa { border-left: 5px solid var(--accent-dsa); }
+.cheat-card.border-patterns { border-left: 5px solid var(--accent-patterns); }
+.cheat-card.border-microservices { border-left: 5px solid var(--accent-microservices); }
+.cheat-card.border-aws { border-left: 5px solid var(--accent-aws); }
+.cheat-card.border-gcp { border-left: 5px solid var(--accent-gcp); }
 
 /* Clickable Accordion Header for Topic Cards */
 .card-expand-header {
@@ -1590,5 +1598,409 @@ pre code {
   }
   .main-content {
     padding: 16px 12px 60px 12px;
+  }
+}
+
+/* ==========================================================================
+   Application Lifecycle Pipeline (Spring Boot to GCP & Apigee)
+   ========================================================================== */
+.lifecycle-container {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+/* Phase Legend */
+.lifecycle-phase-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 12px 16px;
+  margin-bottom: 18px;
+}
+.legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+.legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+/* Sticky Stage Mini-Nav */
+.lifecycle-sticky-nav {
+  position: sticky;
+  top: var(--header-height);
+  z-index: 20;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
+  margin-bottom: 22px;
+  box-shadow: var(--shadow-md);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.lifecycle-stepper-pills {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+  scrollbar-width: thin;
+}
+.stepper-pill-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border-radius: 20px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+  font-size: 0.76rem;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: var(--transition);
+  text-decoration: none;
+}
+.stepper-pill-btn:hover, .stepper-pill-btn:focus-visible {
+  border-color: var(--border-highlight);
+  color: var(--text-primary);
+  transform: translateY(-1px);
+}
+.stepper-pill-num {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+}
+
+/* Pipeline Stepper Flow */
+.lifecycle-pipeline-flow {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  position: relative;
+  margin-bottom: 36px;
+}
+
+/* Stage Accordion Card */
+.lifecycle-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  transition: var(--transition);
+  overflow: hidden;
+  position: relative;
+}
+.lifecycle-card:hover {
+  border-color: rgba(88, 166, 255, 0.4);
+  box-shadow: var(--shadow-md);
+}
+.lifecycle-card.phase-dev { border-left: 5px solid #3b82f6; }
+.lifecycle-card.phase-cicd { border-left: 5px solid #8b5cf6; }
+.lifecycle-card.phase-deploy { border-left: 5px solid #10b981; }
+.lifecycle-card.phase-ops { border-left: 5px solid #f97316; }
+
+.lifecycle-header {
+  padding: 16px 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  background: transparent;
+  user-select: none;
+}
+.lifecycle-header:focus-visible {
+  outline: 2px solid var(--border-highlight);
+  outline-offset: -2px;
+}
+.lifecycle-header-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.lifecycle-step-badge {
+  width: 42px;
+  height: 42px;
+  border-radius: var(--radius-md);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 0.88rem;
+  color: #fff;
+  flex-shrink: 0;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+}
+.lifecycle-icon-wrap {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  flex-shrink: 0;
+  border: 1px solid var(--border-color);
+}
+.lifecycle-title-block {
+  min-width: 0;
+}
+.lifecycle-meta-tags {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+  flex-wrap: wrap;
+}
+.lifecycle-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+  line-height: 1.35;
+}
+.lifecycle-subtitle {
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  margin-top: 3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.lifecycle-chevron {
+  width: 24px;
+  height: 24px;
+  color: var(--text-muted);
+  transition: transform 0.25s ease;
+  flex-shrink: 0;
+}
+.lifecycle-card.open .lifecycle-chevron {
+  transform: rotate(180deg);
+  color: var(--text-link);
+}
+
+/* Accordion Body */
+.lifecycle-body {
+  display: none;
+  padding: 0 20px 22px 20px;
+  border-top: 1px solid var(--border-subtle);
+  animation: lifecycleFadeIn 0.2s ease-out;
+}
+.lifecycle-card.open .lifecycle-body {
+  display: block;
+}
+@keyframes lifecycleFadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.lifecycle-section-title {
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  margin: 16px 0 8px 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.lifecycle-text {
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: var(--text-primary);
+  margin-bottom: 14px;
+}
+.lifecycle-tools-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+.lifecycle-tool-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  font-size: 0.78rem;
+  font-family: var(--font-mono);
+  color: var(--text-link);
+}
+
+/* Developer Responsibility Callout */
+.callout-dev {
+  background: rgba(56, 189, 248, 0.08);
+  border-left: 4px solid #38bdf8;
+  padding: 12px 16px;
+  border-radius: var(--radius-sm);
+  margin: 14px 0;
+}
+.callout-dev-header {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #38bdf8;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+
+/* Pitfall Callout */
+.callout-pitfall {
+  background: rgba(239, 68, 68, 0.08);
+  border-left: 4px solid #ef4444;
+  padding: 12px 16px;
+  border-radius: var(--radius-sm);
+  margin: 14px 0;
+}
+.callout-pitfall-header {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #ef4444;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+
+/* Matrix Table */
+.lifecycle-matrix-wrapper {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  overflow-x: auto;
+  box-shadow: var(--shadow-sm);
+  margin: 18px 0;
+}
+.lifecycle-matrix-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.85rem;
+  min-width: 780px;
+}
+.lifecycle-matrix-table th {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  padding: 12px 16px;
+  font-weight: 700;
+  border-bottom: 1px solid var(--border-color);
+  white-space: nowrap;
+}
+.lifecycle-matrix-table td {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  line-height: 1.5;
+  vertical-align: top;
+}
+.lifecycle-matrix-table tr:hover td {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+/* Cheat Sheet Container */
+.lifecycle-cheat-sheet {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 20px 24px;
+  margin: 28px 0;
+  box-shadow: var(--shadow-sm);
+}
+.cheat-sheet-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 12px;
+  margin-top: 14px;
+}
+.cheat-sheet-item {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+}
+.cheat-sheet-num {
+  font-weight: 800;
+  font-size: 0.78rem;
+  color: var(--text-link);
+  background: rgba(88, 166, 255, 0.12);
+  padding: 2px 6px;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+/* Accessibility & Print Media */
+@media (prefers-reduced-motion: reduce) {
+  .lifecycle-card, .lifecycle-chevron, .lifecycle-body, .stepper-pill-btn {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .lifecycle-header {
+    padding: 14px 16px;
+  }
+  .lifecycle-step-badge {
+    width: 34px;
+    height: 34px;
+    font-size: 0.78rem;
+  }
+  .lifecycle-icon-wrap {
+    display: none;
+  }
+  .lifecycle-body {
+    padding: 0 16px 18px 16px;
+  }
+}
+
+@media print {
+  .lifecycle-sticky-nav, .revision-toolbar, .hero-badges, .btn-secondary, #theme-toggle-btn {
+    display: none !important;
+  }
+  .lifecycle-card {
+    border: 1px solid #ccc !important;
+    box-shadow: none !important;
+    page-break-inside: avoid;
+    margin-bottom: 12px !important;
+  }
+  .lifecycle-body {
+    display: block !important;
+  }
+  .lifecycle-chevron {
+    display: none !important;
+  }
+  body, .content-section, .lifecycle-container {
+    background: #fff !important;
+    color: #111 !important;
   }
 }

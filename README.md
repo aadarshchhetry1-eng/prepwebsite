@@ -14,10 +14,16 @@ A production-grade, ultra-fast, offline-friendly interview revision and mental-m
    - Fast Glance revision cards for rapid recall 30 minutes before an interview.
 
 2. **☕ Senior Core & Advanced Java**
-   - JVM Memory Model (JMM), instruction reordering, `volatile` memory barriers (`mfence`/`sfence`), and Happens-Before rules.
-   - AbstractQueuedSynchronizer (AQS) mechanics, non-fair vs fair locks, CAS, and CLH wait queue.
-   - Java 21 Virtual Threads (Project Loom), OS carrier threads, continuation parking, and the `synchronized` pinning trap.
-   - Generational GC (G1GC vs ZGC), Safepoints, Counted loop bias, and diagnosing `ThreadLocal` / Metaspace memory leaks.
+   - **55 Core Engine Internal Working Deep Dives** with visual flow diagrams, "What is it exactly?" elevator pitches, under-the-hood HotSpot/bytecode mechanics, and senior staff traps:
+     - *JVM Memory & Garbage Collection (6)*: JVM Memory Structure & Runtime Data Areas, Heap vs. Stack Memory, Garbage Collection Roots (GC Roots), Garbage Collection Algorithms, Generational Garbage Collection, GC Implementations (CMS, G1, ZGC)
+     - *Class Loading & JIT Execution (8)*: Class Loading Mechanism, Parent-Delegation Model & Breaking Scenarios, Class Loading Stages (Loading, Linking, Initialization), Class Loaders Hierarchy & Custom Loaders, JIT Compilation & Tiered Compilation, JIT Deoptimization & Uncommon Traps, Escape Analysis & Scalar Replacement, Bytecode Execution & HotSpot Interpreter Loop
+     - *Java Memory Model & Threads (7)*: Java Memory Model (JMM) Architecture, `volatile` Keyword & Hardware Memory Barriers, `synchronized` Keyword & Object Monitor Internals, Happens-Before Rules & Transitivity, Atomicity, Visibility & Ordering, Thread Lifecycle & OS Native States, Thread vs. Process (OS Scheduling & Memory Context)
+     - *Advanced Concurrency & Synchronizers (10)*: Thread Stack Size & Xss Memory Sizing, ConcurrentHashMap Internals (Java 8+ CAS + Synchronized), CompletableFuture Internals & Completion Stages, ThreadPoolExecutor Internals & Rejection Policies, AbstractQueuedSynchronizer (AQS) Mechanics, Intrinsic vs. Explicit Locks (Synchronized vs ReentrantLock), Deadlock Detection & Avoidance Strategies, CAS (Compare-And-Swap) Hardware Primitives, ABA Problem & AtomicStampedReference, Java 21 Virtual Threads & Loom Continuation Engine
+     - *Collections Framework Internals (9)*: ArrayList Internals & Growth Factor, LinkedList Internals & Cache Locality Tradeoffs, HashMap Internals (Hashing, Resizing & Treeification), HashSet Internals & Dummy Value Mapping, Fail-Fast vs. Fail-Safe Iterators, CopyOnWriteArrayList Internals, PriorityQueue Internals (Binary Min-Heap), ArrayDeque Internals (Circular Array Buffer), Comparable vs. Comparator Internals & TimSort
+     - *Strings & Object Semantics (9)*: String Immutability & Compact Strings, String Constant Pool (SCP) Internals, `String.intern()` Engine Mechanics, `equals()` and `hashCode()` Contract & Violations, Object Creation Internals (Allocation to Initialization), Reflection API Internals & Inflation Mechanics, Annotation Processing & Runtime Retention, Generics and Type Erasure (Bridge Methods), `final` Keyword Semantics & JMM Freezing
+     - *I/O, NIO & Serialization (6)*: Java Classic I/O (BIO) vs. Java NIO, NIO Channel, Buffer & Selector Multiplexing Model, Java Serialization Internals, `serialVersionUID` Evolution & Incompatible Changes, `transient` Keyword & Custom Serialization Protocols, `Externalizable` vs. `Serializable` Performance
+   - 460 Senior & Staff tricky interview questions across 46 individual subtopics (10 tricky questions each) covering OOP, Strings & Exceptions, Collections Framework, Multithreading & Concurrency, Java 8+ / Virtual Threads, JVM Memory & Internals, and Tricky Edge Traps.
+   - Interactive UX: Inline expandable cards + Full-Screen Deep Dive Modal with sequential keyboard navigation (`←`/`→`), category filter toolbar, and instant search filter.
 
 3. **🌊 Java Streams & Functional Pipelines**
    - Stream lifecycle pipeline, lazy evaluation, short-circuiting operations.
@@ -25,9 +31,38 @@ A production-grade, ultra-fast, offline-friendly interview revision and mental-m
    - 25 medium-to-hard Stream interview coding challenges.
 
 4. **🌱 Spring Boot & Enterprise Architecture**
+   - **29 Engine Internal Working Deep Dives** with visual flow diagrams, "What is it exactly?" elevator pitches, under-the-hood execution mechanics, and senior staff traps:
+     1. `@SpringBootApplication` Composition & Meta-Annotations
+     2. `Auto-Configuration` Internal Engine & Evaluation Order
+     3. `META-INF/spring.factories` vs `AutoConfiguration.imports`
+     4. `Conditional Annotations` Mechanics (`@ConditionalOnClass`, `@ConditionalOnMissingBean`, `@ConditionalOnProperty`)
+     5. `Starter Dependencies` Architecture & Transitive Resolution
+     6. `Spring Boot BOM` & Dependency Management Internals
+     7. `SpringApplication.run()` 12-Step Execution Pipeline
+     8. `ApplicationContext` Creation & The 12-Step `refresh()` Method
+     9. `Embedded Web Server Startup` (Tomcat / Jetty / Undertow)
+     10. `ApplicationRunner` vs `CommandLineRunner` Execution Mechanics
+     11. `Spring Boot Event & Listener` Internal Multicaster
+     12. `Spring Bean Complete Lifecycle` (10 Distinct Stages)
+     13. `Circular Dependency Resolution` & The Three-Level Cache
+     14. `@Configuration` (Full) vs `@Component` (Lite) CGLIB Proxying
+     15. `@Transactional Proxy` Mechanics & The Self-Invocation Trap
+     16. `Component Scanning` Internals (ASM TypeFilters & Indexing)
+     17. `Externalized Configuration` & The 17-Level Priority Order
+     18. `Spring Profiles` Internal Activation & Multi-Document YAML
+     19. `Spring Boot Actuator` Architecture & Endpoint Discovery
+     20. `Spring Boot DevTools` ClassLoader Isolation & LiveReload
+     21. `Spring Boot Logging System` & Logback Pre-Initialization
+     22. `Exception Handling Architecture` (`@ControllerAdvice` vs `ErrorController`)
+     23. `Spring MVC Request Flow` & `DispatcherServlet` Internals
+     24. `Embedded Server Advanced Configuration` & Thread Pools
+     25. `Auto-Configuration Back-off` & Graceful Surrender Mechanics
+     26. `BeanPostProcessor` Internal Interception & Extension Points
+     27. `Spring Environment Abstraction` & `MutablePropertySources`
+     28. `@ConfigurationProperties` & `ConfigurationPropertiesBindingPostProcessor`
+     29. `Spring Boot Test Slices` (`@SpringBootTest` vs Test Slices)
+   - Interactive UX: Inline expandable cards + Full-Screen Deep Dive Modal with sequential keyboard navigation (`←`/`→`) and instant search.
    - Transaction propagation (`REQUIRED`, `REQUIRES_NEW`, `NESTED`), self-invocation CGLIB proxy bypass, and rollback rules.
-   - Auto-Configuration engine (`AutoConfiguration.imports`, `DeferredImportSelector`).
-   - Circular Dependency resolution via the Three-Level Cache.
    - Hibernate dirty checking, N+1 query solutions (`@EntityGraph`, `JOIN FETCH`), and Open Session in View (OSIV) pitfalls.
    - Spring Security Filter Chain (`SecurityFilterChain`, `AuthenticationManager`, JWT filter order).
    - 15 Staff-level microservice scenario runbooks.
@@ -82,9 +117,36 @@ A production-grade, ultra-fast, offline-friendly interview revision and mental-m
     - Thread-safety mechanics and SOLID clean code execution.
     - 10 Runnable Machine Coding Implementations: Parking Lot, Elevator Fleet, Tic-Tac-Toe O(1), Splitwise, Snake & Ladder, BookMyShow, ATM Machine, Vending Machine, Async Log4j, In-Memory LRU Cache.
 
-13. **⚡ DSA & System Patterns**
-    - Big-O Complexity Matrix with CPU cache-line analysis.
-    - Monotonic stacks/deques, Union-Find (Disjoint Set Union), Rate Limiters.
+13. **⚡ DSA & System Patterns (Problem Finding Master Blueprints)**
+    - **3-Step Senior Interview Strategy**: Classify by Trigger Keywords ➔ Bound by Input Constraint N ➔ Formulate Brute Force then Eliminate Bottleneck.
+    - Input Constraint ($N$) to Big-O Decision Matrix & Keyword Signal Decision Table.
+    - 30 Comprehensive Topics: 25 Core Algorithmic Patterns (Two Pointers, Sliding Window, Monotonic Stack, Dijkstra, Bitmask DP, Segment Tree, etc.) and 5 Production System Data Structures (LRU, LFU, Token Bucket, Monotonic Deque, Graph/DSU).
+
+14. **☁️ Amazon Web Services (AWS) Architecture & IAM Mastery**
+    - **Under-the-Hood Engine Mechanics & IAM Blueprints** for the top 9 enterprise services:
+      1. `aws-iam`: **AWS IAM & Role Architecture** (STS AssumeRole, Trust Policies, EC2 Instance Profiles, EKS IRSA with OIDC Federation, Least Privilege).
+      2. `aws-ec2`: **Amazon EC2 & Auto Scaling** (Nitro hardware offload, IMDSv2 anti-SSRF security, gp3 EBS NVMe, Multi-AZ ASG target tracking).
+      3. `aws-s3`: **Amazon S3 Object Storage** (Strong read-after-write consistency, S3 Presigned URLs for zero-backend offloading, Glacier lifecycle, Multipart upload).
+      4. `aws-rds`: **Amazon RDS & Aurora** (Aurora 'The Log is the Database' 6-way storage quorum across 3 AZs, sub-10ms read replicas, IAM Database Authentication).
+      5. `aws-dynamodb`: **Amazon DynamoDB** (O(1) MD5 partition hashing, Single-Table Design, GSI projection, 24-hr Change Data Capture Streams, ACID transactions).
+      6. `aws-lambda`: **AWS Lambda & SnapStart** (Firecracker microVM isolation, Java 17+ CRaC memory snapshot restore in ~150ms, Event Source Mapping).
+      7. `aws-eks`: **Amazon EKS & Cloud-Native Networking** (High-availability managed control plane, VPC CNI secondary ENI pod IPs, Karpenter JIT autoscaling, IRSA pod security).
+      8. `aws-sqs-sns`: **Amazon SQS & SNS Messaging** (Pub/Sub fan-out architecture, visibility timeout heartbeats, FIFO deduplication, Dead Letter Queues).
+      9. `aws-api-gateway`: **Amazon API Gateway** (REST vs HTTP APIs, Token Bucket rate limiting, Cognito JWT authorizers, VPC Link to private microservices).
+    - Interactive UX: Category filter toolbar, dropdown quick selector, search filter, and Full-Screen Deep Dive Modal with visual flows and Java SDK v2 code snippets.
+
+15. **🌐 Google Cloud Platform (GCP) Architecture & IAM Mastery**
+    - **Under-the-Hood Engine Mechanics & IAM Blueprints** for the top 9 enterprise services:
+      1. `gcp-iam`: **Google Cloud IAM & Workload Identity Federation** (Resource Hierarchy, GKE Workload Identity keyless KSA-to-GSA mapping, Workload Identity Federation for GitHub Actions, Impersonation).
+      2. `gcp-gce`: **Google Compute Engine (GCE)** (Live Migration with zero downtime/reboot during maintenance, Regional MIGs, Regional Persistent Disks, Cloud NAT).
+      3. `gcp-gcs`: **Google Cloud Storage (GCS)** (Colossus distributed file system, strong global consistency, Uniform Bucket-Level Access, GCS V4 Signed URLs).
+      4. `gcp-cloud-sql`: **Cloud SQL & Cloud Spanner** (Cloud SQL regional HA failover; Cloud Spanner globally distributed ACID serializability powered by TrueTime GPS & atomic clocks).
+      5. `gcp-gke`: **Google Kubernetes Engine (GKE)** (GKE Autopilot hands-off node management, VPC-native Alias IP networking, Dataplane V2 eBPF, Gateway API).
+      6. `gcp-cloud-run`: **Google Cloud Run** (Serverless containers on Knative & gVisor sandboxing, multi-concurrency up to 250 req/instance, scale-to-zero, OIDC service-to-service auth).
+      7. `gcp-pubsub`: **Cloud Pub/Sub** (Globally distributed streaming, Push vs Pull gRPC streaming, Exactly-Once Delivery, Ordering Keys, Direct BigQuery subscriptions).
+      8. `gcp-bigquery`: **Google BigQuery** (Serverless analytics warehouse, Dremel multi-tier tree execution across slots, Capacitor columnar storage, Partitioning & Clustering block pruning).
+      9. `gcp-apigee`: **Apigee API Management** (Enterprise API proxy pipeline, SpikeArrest micro-burst leveling, Quotas, JSONThreatProtection, Developer Portal).
+    - Interactive UX: Category filter toolbar, dropdown quick selector, search filter, and Full-Screen Deep Dive Modal with visual flows and Google Cloud Client Library code snippets.
 
 ---
 
@@ -115,7 +177,12 @@ prepwebsite/
         ├── concurrency-data.js  # JMM fences, lock escalation, AQS, Loom, 25 tricky Qs
         ├── hld-data.js          # System Design framework, math, matrices & 10 full designs
         ├── lld-data.js          # Machine coding playbook, patterns & 10 complete models
-        ├── dsa-data.js          # LRU, LFU, Rate Limiters, Monotonic stacks, Big-O
+        ├── dsa-data.js          # 30 DSA topics, 3-step strategy, Big-O table, Decision Matrix
+        ├── aws-data.js          # 9 AWS Core Services & IAM Role Architecture
+        ├── gcp-data.js          # 9 GCP Core Services & Workload Identity Architecture
+        ├── java-patterns-data.js # 24 Gang of Four & Modern Java Design Patterns
+        ├── microservices-patterns-data.js # 25 Microservices Distributed Architecture Patterns
+        ├── lifecycle-data.js    # 12-stage Spring Boot to GCP delivery lifecycle
         └── questions-data.js    # Senior/Staff tricky interview questions with traps
 ```
 

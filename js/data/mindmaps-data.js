@@ -7,6 +7,115 @@
 window.REVISION_APP_DATA = window.REVISION_APP_DATA || {};
 
 window.REVISION_APP_DATA.MINDMAPS = {
+  java_core: {
+    id: "java_core",
+    title: "Java Core & Tricky Traps",
+    subtitle: "7 Architectural Pillars: OOP, Strings, Collections, Concurrency, Java 8+, JVM & Edge Traps",
+    centralNode: "Java Core Traps",
+    branches: [
+      {
+        key: "O",
+        name: "OOP & Design Invariants",
+        mnemonic: "Polymorphism, equals/hashCode & LSP",
+        colorClass: "active-solid-s",
+        rule: "Subclasses must strictly preserve superclass behavioral invariants without publishing uninitialized state in constructors.",
+        analogy: "A legal contract amendment: you can add specific clauses, but contradicting the core clauses breaches the agreement.",
+        violationSmell: "Calling overridden methods inside super-constructor, mutating equals/hashCode key fields inside HashMaps.",
+        solutionPattern: "Defensive copying, immutable Records, making constructors call only private/final methods.",
+        codeSnippet: `// BAD: Super-constructor calls overridden method before child field init
+class Base { Base() { print(); } void print() { System.out.println("Base"); } }
+class Child extends Base { 
+    String msg = "Initialized"; 
+    @Override void print() { System.out.println(msg); } // Prints NULL!
+}`
+      },
+      {
+        key: "S",
+        name: "Strings, Wrappers & Exceptions",
+        mnemonic: "StringTable, IntegerCache & Ternary NPE",
+        colorClass: "active-solid-o",
+        rule: "Primitive wrapper conversions obey strict JLS widening before boxing rules and ternary primitive unboxing coercion.",
+        analogy: "Currency exchange counter with strict conversion rules: passing an invalid token causes an immediate halt.",
+        violationSmell: "Using == on Integer outside [-128, 127], mixing primitives and wrappers in ternary branches causing silent NPE.",
+        solutionPattern: "Use Objects.equals() or primitive comparisons, avoid unboxing in ternary expressions, use try-with-resources.",
+        codeSnippet: `Integer x = null;
+int y = false ? x : 0; // Evaluates to 0 safely
+int z = true ? x : 0;  // THROWS NullPointerException at runtime due to implicit x.intValue() unboxing!`
+      },
+      {
+        key: "C",
+        name: "Collections & Treeification",
+        mnemonic: "Bitwise Spread, CHM No-Null & LRU",
+        colorClass: "active-solid-l",
+        rule: "Hash collections rely on immutable keys, bitwise power-of-2 bucket distributions, and treeification at 8 entries.",
+        analogy: "A warehouse sorting system: moving an item's SKU after placement means it can never be found again.",
+        violationSmell: "Mutating object fields after inserting into HashSet/HashMap, calling recursive computeIfAbsent on colliding buckets.",
+        solutionPattern: "Immutable keys, ConcurrentHashMap for multi-threading, LinkedHashMap with removeEldestEntry for LRU.",
+        codeSnippet: `// Silent memory leak: Mutating key hashCode
+Employee emp = new Employee(101);
+map.put(emp, "Dev");
+emp.setId(202); // Recalculates hash to new bucket -> map.get(emp) returns null! Old entry trapped forever.`
+      },
+      {
+        key: "M",
+        name: "Multithreading & JMM",
+        mnemonic: "StoreLoad Barriers, DCL & Loom Pinning",
+        colorClass: "active-solid-i",
+        rule: "CPU store buffers and instruction reordering violate visibility unless synchronized via volatile memory barriers.",
+        analogy: "Air traffic control: Without clear barrier signals, takeoffs and runway assignments occur out-of-order.",
+        violationSmell: "Double-checked locking without volatile, blocking operations inside synchronized blocks pinning virtual threads.",
+        solutionPattern: "Use volatile for safe publication, ReentrantLock instead of synchronized in Java 21 Virtual Threads.",
+        codeSnippet: `// DCL without volatile: CPU reorders 1. Allocate -> 3. Assign ref -> 2. Construct
+// Thread B sees non-null reference to half-constructed object with null fields!
+private static volatile Singleton INSTANCE; // volatile StoreLoad barrier fixes it!`
+      },
+      {
+        key: "8",
+        name: "Java 8+ & Virtual Threads",
+        mnemonic: "Stream Loop Fusion, Lazy vs Eager",
+        colorClass: "active-solid-d",
+        rule: "Stream pipelines execute lazily via loop fusion and demand non-interference of underlying collection sources.",
+        analogy: "An assembly line conveyor belt: only moves when the packaging station at the very end draws a product.",
+        violationSmell: "Using Optional.orElse() with expensive method calls, mutating collections during stream intermediate operations.",
+        solutionPattern: "Always use Optional.orElseGet() for lazy suppliers, prefer Records and sealed class pattern matching.",
+        codeSnippet: `Optional<User> opt = Optional.of(user);
+opt.orElse(fetchFromDb());          // Eagerly calls DB even though opt is PRESENT!
+opt.orElseGet(() -> fetchFromDb()); // Lazily called ONLY when opt is EMPTY.`
+      },
+      {
+        key: "J",
+        name: "JVM Memory & GC Internals",
+        mnemonic: "Generational Heap, ZGC & Classloaders",
+        colorClass: "active-solid-s",
+        rule: "HotSpot divides heap into Eden, Survivor, and Tenured regions, governed by weak generational hypothesis.",
+        analogy: "A municipal recycling sorting facility: items surviving multiple sorting stages get moved to long-term storage.",
+        violationSmell: "Metaspace leaks from custom ClassLoader retention, ThreadLocal leaks in thread pools, off-heap DirectBuffer OOM.",
+        solutionPattern: "Always call ThreadLocal.remove() in finally blocks, configure MaxMetaspaceSize, tune ZGC / G1GC.",
+        codeSnippet: `// ThreadLocal memory leak in thread pool:
+try {
+    userContext.set(ctx);
+    process();
+} finally {
+    userContext.remove(); // MANDATORY! Thread pool threads never terminate, keeping context alive forever.
+}`
+      },
+      {
+        key: "E",
+        name: "Tricky JVM Edge Cases",
+        mnemonic: "Non-Serializable Super, Weak vs Phantom",
+        colorClass: "active-solid-o",
+        rule: "Deserialization invokes the first non-serializable superclass no-arg constructor, bypassing subclass constructors.",
+        analogy: "A security checkpoint: if you bypass normal entry, only default baseline clearance is granted.",
+        violationSmell: "Relying on transient inline field initializers, using finalize() for resource cleanup causing resurrection.",
+        solutionPattern: "Use Cleaner API instead of finalize(), implement readResolve() for Singletons, use PhantomReference for off-heap cleaning.",
+        codeSnippet: `// Non-serializable superclass no-arg constructor reset
+class Parent { int val = 10; } // Not serializable
+class Child extends Parent implements Serializable { int x = 20; }
+// On deserialization: Parent() no-arg constructor is invoked, resetting val to 10 regardless of serialized value!`
+      }
+    ]
+  },
+
   solid: {
     id: "solid",
     title: "SOLID Principles in 1-Glance",

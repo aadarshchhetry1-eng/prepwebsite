@@ -17,18 +17,31 @@ class RevisionApp {
     this.initTheme();
     this.buildSearchIndex();
     this.renderSidebarNavigation();
-    this.renderJavaTopics();
+    this.renderJavaSubtopicSelector();
+    this.renderJavaInternalsSelector();
+    this.renderJavaTopics('internals');
+    this.renderJavaPatternsSelector();
+    this.renderJavaPatterns('all');
     this.renderStreamsTopics();
-    this.renderSpringTopics();
+    this.renderSpringInternalsSelector();
+    this.renderSpringTopics('internals');
+    this.renderMicroservicesPatternsSelector();
+    this.renderMicroservicesPatterns('all');
     this.renderSqlTopics();
     this.renderKafkaTopics();
     this.renderReactTopics();
     this.renderDevopsTopics();
+    this.renderLifecycleSection();
     this.renderRedisTopics();
     this.renderConcurrencyTopics();
     this.renderHldTopics();
     this.renderLldTopics();
-    this.renderDsaTopics();
+    this.renderDsaPatternsSelector();
+    this.renderDsaTopics('all');
+    this.renderAwsSelector();
+    this.renderAwsTopics('all');
+    this.renderGcpSelector();
+    this.renderGcpTopics('all');
     this.renderQuestions();
     this.initMindMap();
     this.setupEventListeners();
@@ -132,19 +145,56 @@ class RevisionApp {
 
     // 2. Java Group
     const javaTopics = window.REVISION_APP_DATA?.JAVA_TOPICS || [];
+    const javaQuestions = window.REVISION_APP_DATA?.JAVA_460_QUESTIONS || window.REVISION_APP_DATA?.JAVA_QUESTIONS || [];
+    const javaInternals = window.REVISION_APP_DATA?.JAVA_INTERNALS || [];
     html += `
       <div class="compact-section-card">
         <button class="compact-section-header" onclick="app.switchSection('java')">
           <span>☕ Core Java</span>
-          <span class="badge-count">${javaTopics.length}</span>
+          <span class="badge-count">${javaTopics.length + javaQuestions.length + javaInternals.length}</span>
         </button>
         <div class="compact-pills-row">
-          <a href="#jmm-concurrency-barriers" class="compact-mini-pill" onclick="app.navigateToTopic('java', 'jmm-concurrency-barriers'); return false;">JMM Barriers</a>
-          <a href="#aqs-locks-synchronizers" class="compact-mini-pill" onclick="app.navigateToTopic('java', 'aqs-locks-synchronizers'); return false;">AQS Locks</a>
-          <a href="#java21-virtual-threads" class="compact-mini-pill" onclick="app.navigateToTopic('java', 'java21-virtual-threads'); return false;">V-Threads</a>
-          <a href="#hashmap-internals-treeification" class="compact-mini-pill" onclick="app.navigateToTopic('java', 'hashmap-internals-treeification'); return false;">HashMap</a>
-          <a href="#jvm-vtable-polymorphism" class="compact-mini-pill" onclick="app.navigateToTopic('java', 'jvm-vtable-polymorphism'); return false;">V-Table &amp; OOPs</a>
-          <a href="#gc-safepoints-pause-tuning" class="compact-mini-pill" onclick="app.navigateToTopic('java', 'gc-safepoints-pause-tuning'); return false;">GC Tuning</a>
+          <a href="#java" class="compact-mini-pill" style="color: var(--accent-cyan); font-weight: 700; background: rgba(56, 189, 248, 0.15);" onclick="app.switchSection('java'); app.filterJavaCategory('internals'); return false;">⚙️ 55 Internals</a>
+          <a href="#java-int-jvm-memory-structure" class="compact-mini-pill" onclick="app.navigateToJavaInternal('java-int-jvm-memory-structure'); return false;">JVM Memory</a>
+          <a href="#java-int-gc-implementations" class="compact-mini-pill" onclick="app.navigateToJavaInternal('java-int-gc-implementations'); return false;">G1 vs ZGC</a>
+          <a href="#java-int-parent-delegation" class="compact-mini-pill" onclick="app.navigateToJavaInternal('java-int-parent-delegation'); return false;">ClassLoaders</a>
+          <a href="#java-int-jit-compilation" class="compact-mini-pill" onclick="app.navigateToJavaInternal('java-int-jit-compilation'); return false;">JIT Comp</a>
+          <a href="#java-int-jmm" class="compact-mini-pill" onclick="app.navigateToJavaInternal('java-int-jmm'); return false;">JMM Barriers</a>
+          <a href="#java-int-volatile" class="compact-mini-pill" onclick="app.navigateToJavaInternal('java-int-volatile'); return false;">volatile</a>
+          <a href="#java-int-synchronized" class="compact-mini-pill" onclick="app.navigateToJavaInternal('java-int-synchronized'); return false;">synchronized</a>
+          <a href="#java-int-virtual-threads" class="compact-mini-pill" onclick="app.navigateToJavaInternal('java-int-virtual-threads'); return false;">V-Threads</a>
+          <a href="#java-int-aqs" class="compact-mini-pill" onclick="app.navigateToJavaInternal('java-int-aqs'); return false;">AQS Locks</a>
+          <a href="#java-int-cas" class="compact-mini-pill" onclick="app.navigateToJavaInternal('java-int-cas'); return false;">CAS &amp; ABA</a>
+          <a href="#java-int-hashmap" class="compact-mini-pill" onclick="app.navigateToJavaInternal('java-int-hashmap'); return false;">HashMap</a>
+          <a href="#java-int-concurrenthashmap" class="compact-mini-pill" onclick="app.navigateToJavaInternal('java-int-concurrenthashmap'); return false;">ConcurrentHashMap</a>
+          <a href="#java-int-string-immutability" class="compact-mini-pill" onclick="app.navigateToJavaInternal('java-int-string-immutability'); return false;">String Pool</a>
+          <a href="#java-int-io-vs-nio" class="compact-mini-pill" onclick="app.navigateToJavaInternal('java-int-io-vs-nio'); return false;">NIO Selector</a>
+          <a href="#java-int-serialization" class="compact-mini-pill" onclick="app.navigateToJavaInternal('java-int-serialization'); return false;">Serialization</a>
+        </div>
+      </div>
+    `;
+
+    // 2b. Java Design Patterns Group (GoF & Modern)
+    const javaPatterns = window.REVISION_APP_DATA?.JAVA_PATTERNS || [];
+    html += `
+      <div class="compact-section-card">
+        <button class="compact-section-header" onclick="app.switchSection('design-patterns')">
+          <span>📐 Java Design Patterns</span>
+          <span class="badge-count">${javaPatterns.length} Patterns</span>
+        </button>
+        <div class="compact-pills-row">
+          <a href="#pat-singleton" class="compact-mini-pill" onclick="app.navigateToJavaPattern('pat-singleton'); return false;">Singleton DCL</a>
+          <a href="#pat-factory-method" class="compact-mini-pill" onclick="app.navigateToJavaPattern('pat-factory-method'); return false;">Factory Method</a>
+          <a href="#pat-builder" class="compact-mini-pill" onclick="app.navigateToJavaPattern('pat-builder'); return false;">Builder</a>
+          <a href="#pat-adapter" class="compact-mini-pill" onclick="app.navigateToJavaPattern('pat-adapter'); return false;">Adapter</a>
+          <a href="#pat-decorator" class="compact-mini-pill" onclick="app.navigateToJavaPattern('pat-decorator'); return false;">Decorator</a>
+          <a href="#pat-proxy" class="compact-mini-pill" onclick="app.navigateToJavaPattern('pat-proxy'); return false;">CGLIB Proxy</a>
+          <a href="#pat-chain-of-responsibility" class="compact-mini-pill" onclick="app.navigateToJavaPattern('pat-chain-of-responsibility'); return false;">Chain of Resp</a>
+          <a href="#pat-observer" class="compact-mini-pill" onclick="app.navigateToJavaPattern('pat-observer'); return false;">Observer Event</a>
+          <a href="#pat-strategy" class="compact-mini-pill" onclick="app.navigateToJavaPattern('pat-strategy'); return false;">Strategy</a>
+          <a href="#pat-state" class="compact-mini-pill" onclick="app.navigateToJavaPattern('pat-state'); return false;">State Machine</a>
+          <a href="#pat-visitor" class="compact-mini-pill" onclick="app.navigateToJavaPattern('pat-visitor'); return false;">Visitor</a>
+          <a href="#pat-dependency-injection" class="compact-mini-pill" onclick="app.navigateToJavaPattern('pat-dependency-injection'); return false;">Dependency Inj</a>
         </div>
       </div>
     `;
@@ -175,31 +225,34 @@ class RevisionApp {
     // 4. Spring Boot Group
     const springTopics = window.REVISION_APP_DATA?.SPRING_TOPICS || [];
     const springQuestions = window.REVISION_APP_DATA?.SPRING_QUESTIONS || [];
+    const springInternals = window.REVISION_APP_DATA?.SPRING_INTERNALS || [];
     html += `
       <div class="compact-section-card">
         <button class="compact-section-header" onclick="app.switchSection('spring')">
           <span>🌱 Spring Boot</span>
-          <span class="badge-count">${springTopics.length + springQuestions.length}</span>
+          <span class="badge-count">${springTopics.length + springQuestions.length + springInternals.length}</span>
         </button>
         <div class="compact-pills-row">
+          <a href="#spring" class="compact-mini-pill" style="color: var(--accent-cyan); font-weight: 700; background: rgba(56, 189, 248, 0.15);" onclick="app.switchSection('spring'); app.filterSpringCategory('internals'); return false;">⚙️ 29 Internals</a>
+          <a href="#sb-int-springbootapplication" class="compact-mini-pill" onclick="app.navigateToSpringInternal('sb-int-springbootapplication'); return false;">@SpringBootApp</a>
+          <a href="#sb-int-autoconfiguration" class="compact-mini-pill" onclick="app.navigateToSpringInternal('sb-int-autoconfiguration'); return false;">Auto-Config</a>
+          <a href="#sb-int-springapplication-run-flow" class="compact-mini-pill" onclick="app.navigateToSpringInternal('sb-int-springapplication-run-flow'); return false;">run() Startup</a>
+          <a href="#sb-int-embedded-server-startup" class="compact-mini-pill" onclick="app.navigateToSpringInternal('sb-int-embedded-server-startup'); return false;">Tomcat Startup</a>
+          <a href="#sb-int-circular-dependencies-three-level-cache" class="compact-mini-pill" onclick="app.navigateToSpringInternal('sb-int-circular-dependencies-three-level-cache'); return false;">3-Level Cache</a>
+          <a href="#sb-int-configuration-vs-component" class="compact-mini-pill" onclick="app.navigateToSpringInternal('sb-int-configuration-vs-component'); return false;">CGLIB Proxy</a>
+          <a href="#sb-int-transactional-self-invocation" class="compact-mini-pill" onclick="app.navigateToSpringInternal('sb-int-transactional-self-invocation'); return false;">@Transactional Trap</a>
+          <a href="#sb-int-dispatcher-servlet-flow" class="compact-mini-pill" onclick="app.navigateToSpringInternal('sb-int-dispatcher-servlet-flow'); return false;">DispatcherServlet</a>
+          <a href="#sb-int-beanpostprocessor" class="compact-mini-pill" onclick="app.navigateToSpringInternal('sb-int-beanpostprocessor'); return false;">BeanPostProcessor</a>
+          <a href="#sb-int-configurationproperties-binding" class="compact-mini-pill" onclick="app.navigateToSpringInternal('sb-int-configurationproperties-binding'); return false;">ConfigProperties</a>
+          <a href="#sb-int-test-slices" class="compact-mini-pill" onclick="app.navigateToSpringInternal('sb-int-test-slices'); return false;">Test Slices</a>
           <a href="#spring-proxies-transactional-pitfalls" class="compact-mini-pill" onclick="app.navigateToTopic('spring', 'spring-proxies-transactional-pitfalls'); return false;">Proxy Trap</a>
           <a href="#spring-transaction-propagation-internals" class="compact-mini-pill" onclick="app.navigateToTopic('spring', 'spring-transaction-propagation-internals'); return false;">Propagation</a>
           <a href="#hibernate-persistence-context-dirty-checking" class="compact-mini-pill" onclick="app.navigateToTopic('spring', 'hibernate-persistence-context-dirty-checking'); return false;">Dirty Checking</a>
           <a href="#spring-security-filter-chain-delegating-proxy" class="compact-mini-pill" onclick="app.navigateToTopic('spring', 'spring-security-filter-chain-delegating-proxy'); return false;">Security Chain</a>
-          <a href="#spring-boot-autoconfiguration-internals" class="compact-mini-pill" onclick="app.navigateToTopic('spring', 'spring-boot-autoconfiguration-internals'); return false;">Auto-Config</a>
-          <a href="#circular-dependencies-three-level-cache" class="compact-mini-pill" onclick="app.navigateToTopic('spring', 'circular-dependencies-three-level-cache'); return false;">3-Level Cache</a>
-          <a href="#jpa-hibernate-nplusone-osiv" class="compact-mini-pill" onclick="app.navigateToTopic('spring', 'jpa-hibernate-nplusone-osiv'); return false;">N+1 & OSIV</a>
           <a href="#spring-q1-nested-transaction-rollback-only" class="compact-mini-pill" onclick="app.navigateToTopic('spring', 'spring-q1-nested-transaction-rollback-only'); return false;">Rollback-Only</a>
           <a href="#spring-q2-kafka-event-published-before-db-commit" class="compact-mini-pill" onclick="app.navigateToTopic('spring', 'spring-q2-kafka-event-published-before-db-commit'); return false;">Kafka Dual-Write</a>
           <a href="#spring-q3-async-loses-security-context-tenant" class="compact-mini-pill" onclick="app.navigateToTopic('spring', 'spring-q3-async-loses-security-context-tenant'); return false;">Async Context</a>
-          <a href="#spring-q4-high-concurrency-deadlocks-jpa" class="compact-mini-pill" onclick="app.navigateToTopic('spring', 'spring-q4-high-concurrency-deadlocks-jpa'); return false;">Deadlocks JPA</a>
           <a href="#spring-q5-lazyinitializationexception-osiv-false" class="compact-mini-pill" onclick="app.navigateToTopic('spring', 'spring-q5-lazyinitializationexception-osiv-false'); return false;">LazyInit Fix</a>
-          <a href="#spring-q7-security-filter-exception-bypasses-controller-advice" class="compact-mini-pill" onclick="app.navigateToTopic('spring', 'spring-q7-security-filter-exception-bypasses-controller-advice'); return false;">Filter Error</a>
-          <a href="#spring-q8-hibernate-batch-insert-memory-leak-first-level-cache" class="compact-mini-pill" onclick="app.navigateToTopic('spring', 'spring-q8-hibernate-batch-insert-memory-leak-first-level-cache'); return false;">Batch Flush</a>
-          <a href="#spring-q9-optimistic-locking-collision-storms" class="compact-mini-pill" onclick="app.navigateToTopic('spring', 'spring-q9-optimistic-locking-collision-storms'); return false;">Optimistic Storm</a>
-          <a href="#spring-q10-generationtype-identity-disables-jdbc-batching" class="compact-mini-pill" onclick="app.navigateToTopic('spring', 'spring-q10-generationtype-identity-disables-jdbc-batching'); return false;">IDENTITY Batch</a>
-          <a href="#spring-q11-checked-exception-transaction-rollback-trap" class="compact-mini-pill" onclick="app.navigateToTopic('spring', 'spring-q11-checked-exception-transaction-rollback-trap'); return false;">Checked Ex Trap</a>
-          <a href="#spring-q15-shedlock-distributed-scheduled-tasks" class="compact-mini-pill" onclick="app.navigateToTopic('spring', 'spring-q15-shedlock-distributed-scheduled-tasks'); return false;">ShedLock</a>
         </div>
       </div>
     `;
@@ -308,6 +361,99 @@ class RevisionApp {
           <a href="#devops-q7-terraform-state-lock-stuck-recovery" class="compact-mini-pill" onclick="app.navigateToTopic('devops', 'devops-q7-terraform-state-lock-stuck-recovery'); return false;">TF State Lock</a>
           <a href="#devops-q14-argocd-gitops-outofsync-loop-selfhealing" class="compact-mini-pill" onclick="app.navigateToTopic('devops', 'devops-q14-argocd-gitops-outofsync-loop-selfhealing'); return false;">GitOps ArgoCD</a>
           <a href="#devops-q20-canary-deployments-argo-rollouts-service-mesh" class="compact-mini-pill" onclick="app.navigateToTopic('devops', 'devops-q20-canary-deployments-argo-rollouts-service-mesh'); return false;">Canary Rollouts</a>
+        </div>
+      </div>
+    `;
+
+    // 8b. Application Lifecycle (Spring Boot to GCP & Apigee)
+    const lifecycleStages = window.REVISION_APP_DATA?.LIFECYCLE_STAGES || [];
+    html += `
+      <div class="compact-section-card">
+        <button class="compact-section-header" onclick="app.switchSection('lifecycle')">
+          <span>🚀 App Lifecycle (GCP)</span>
+          <span class="badge-count">${lifecycleStages.length} Stages</span>
+        </button>
+        <div class="compact-pills-row">
+          <a href="#stage-1-local-dev" class="compact-mini-pill" onclick="app.navigateToLifecycleStage(1); return false;">1. Local Dev</a>
+          <a href="#stage-3-ci-trigger" class="compact-mini-pill" onclick="app.navigateToLifecycleStage(3); return false;">3. Jenkins CI</a>
+          <a href="#stage-4-build-and-test" class="compact-mini-pill" onclick="app.navigateToLifecycleStage(4); return false;">4. Maven Build</a>
+          <a href="#stage-5-containerization" class="compact-mini-pill" onclick="app.navigateToLifecycleStage(5); return false;">5. Dockerfile</a>
+          <a href="#stage-6-registry" class="compact-mini-pill" onclick="app.navigateToLifecycleStage(6); return false;">6. Artifact Reg</a>
+          <a href="#stage-7-configuration-manifests" class="compact-mini-pill" onclick="app.navigateToLifecycleStage(7); return false;">7. Helm Values</a>
+          <a href="#stage-8-gke-deployment" class="compact-mini-pill" onclick="app.navigateToLifecycleStage(8); return false;">8. GKE Deploy</a>
+          <a href="#stage-9-apigee-gateway" class="compact-mini-pill" onclick="app.navigateToLifecycleStage(9); return false;">9. Apigee X</a>
+          <a href="#stage-10-ingress-load-balancing" class="compact-mini-pill" onclick="app.navigateToLifecycleStage(10); return false;">10. Ingress &amp; TLS</a>
+          <a href="#stage-11-observability" class="compact-mini-pill" onclick="app.navigateToLifecycleStage(11); return false;">11. Observability</a>
+          <a href="#stage-12-rollback" class="compact-mini-pill" onclick="app.navigateToLifecycleStage(12); return false;">12. Rollback</a>
+        </div>
+      </div>
+    `;
+
+    // 8c. AWS Cloud Services Group
+    const awsServices = window.REVISION_APP_DATA?.AWS_SERVICES || [];
+    html += `
+      <div class="compact-section-card">
+        <button class="compact-section-header" onclick="app.switchSection('aws')">
+          <span>☁️ AWS Cloud</span>
+          <span class="badge-count">${awsServices.length} Services</span>
+        </button>
+        <div class="compact-pills-row">
+          <a href="#aws-iam" class="compact-mini-pill" onclick="app.navigateToAwsTopic('aws-iam'); return false;">IAM &amp; IRSA</a>
+          <a href="#aws-ec2" class="compact-mini-pill" onclick="app.navigateToAwsTopic('aws-ec2'); return false;">EC2 &amp; Nitro</a>
+          <a href="#aws-s3" class="compact-mini-pill" onclick="app.navigateToAwsTopic('aws-s3'); return false;">S3 Object</a>
+          <a href="#aws-rds" class="compact-mini-pill" onclick="app.navigateToAwsTopic('aws-rds'); return false;">Aurora 6-Way</a>
+          <a href="#aws-dynamodb" class="compact-mini-pill" onclick="app.navigateToAwsTopic('aws-dynamodb'); return false;">DynamoDB</a>
+          <a href="#aws-lambda" class="compact-mini-pill" onclick="app.navigateToAwsTopic('aws-lambda'); return false;">Lambda SnapStart</a>
+          <a href="#aws-eks" class="compact-mini-pill" onclick="app.navigateToAwsTopic('aws-eks'); return false;">EKS &amp; CNI</a>
+          <a href="#aws-sqs-sns" class="compact-mini-pill" onclick="app.navigateToAwsTopic('aws-sqs-sns'); return false;">SNS-SQS Fanout</a>
+          <a href="#aws-api-gateway" class="compact-mini-pill" onclick="app.navigateToAwsTopic('aws-api-gateway'); return false;">API Gateway</a>
+        </div>
+      </div>
+    `;
+
+    // 8d. Google Cloud Platform (GCP) Group
+    const gcpServices = window.REVISION_APP_DATA?.GCP_SERVICES || [];
+    html += `
+      <div class="compact-section-card">
+        <button class="compact-section-header" onclick="app.switchSection('gcp')">
+          <span>🌐 Google Cloud (GCP)</span>
+          <span class="badge-count">${gcpServices.length} Services</span>
+        </button>
+        <div class="compact-pills-row">
+          <a href="#gcp-iam" class="compact-mini-pill" onclick="app.navigateToGcpTopic('gcp-iam'); return false;">IAM &amp; Workload Id</a>
+          <a href="#gcp-gce" class="compact-mini-pill" onclick="app.navigateToGcpTopic('gcp-gce'); return false;">GCE Migration</a>
+          <a href="#gcp-gcs" class="compact-mini-pill" onclick="app.navigateToGcpTopic('gcp-gcs'); return false;">GCS Colossus</a>
+          <a href="#gcp-cloud-sql" class="compact-mini-pill" onclick="app.navigateToGcpTopic('gcp-cloud-sql'); return false;">Spanner TrueTime</a>
+          <a href="#gcp-gke" class="compact-mini-pill" onclick="app.navigateToGcpTopic('gcp-gke'); return false;">GKE Autopilot</a>
+          <a href="#gcp-cloud-run" class="compact-mini-pill" onclick="app.navigateToGcpTopic('gcp-cloud-run'); return false;">Cloud Run 250x</a>
+          <a href="#gcp-pubsub" class="compact-mini-pill" onclick="app.navigateToGcpTopic('gcp-pubsub'); return false;">Pub/Sub Stream</a>
+          <a href="#gcp-bigquery" class="compact-mini-pill" onclick="app.navigateToGcpTopic('gcp-bigquery'); return false;">BigQuery Dremel</a>
+          <a href="#gcp-apigee" class="compact-mini-pill" onclick="app.navigateToGcpTopic('gcp-apigee'); return false;">Apigee Gateway</a>
+        </div>
+      </div>
+    `;
+
+    // 8e. Microservices Architecture Patterns Group
+    const microservicesPatterns = window.REVISION_APP_DATA?.MICROSERVICES_PATTERNS || [];
+    html += `
+      <div class="compact-section-card">
+        <button class="compact-section-header" onclick="app.switchSection('microservices')">
+          <span>🌐 Microservices Patterns</span>
+          <span class="badge-count">${microservicesPatterns.length} Patterns</span>
+        </button>
+        <div class="compact-pills-row">
+          <a href="#ms-strangler-fig" class="compact-mini-pill" onclick="app.navigateToMicroservicesPattern('ms-strangler-fig'); return false;">Strangler Fig</a>
+          <a href="#ms-saga-orchestration" class="compact-mini-pill" onclick="app.navigateToMicroservicesPattern('ms-saga-orchestration'); return false;">Saga Orch</a>
+          <a href="#ms-saga-choreography" class="compact-mini-pill" onclick="app.navigateToMicroservicesPattern('ms-saga-choreography'); return false;">Choreography</a>
+          <a href="#ms-transactional-outbox" class="compact-mini-pill" onclick="app.navigateToMicroservicesPattern('ms-transactional-outbox'); return false;">Outbox</a>
+          <a href="#ms-cqrs" class="compact-mini-pill" onclick="app.navigateToMicroservicesPattern('ms-cqrs'); return false;">CQRS</a>
+          <a href="#ms-event-sourcing" class="compact-mini-pill" onclick="app.navigateToMicroservicesPattern('ms-event-sourcing'); return false;">Event Sourcing</a>
+          <a href="#ms-api-gateway" class="compact-mini-pill" onclick="app.navigateToMicroservicesPattern('ms-api-gateway'); return false;">API Gateway</a>
+          <a href="#ms-backend-for-frontend" class="compact-mini-pill" onclick="app.navigateToMicroservicesPattern('ms-backend-for-frontend'); return false;">BFF</a>
+          <a href="#ms-circuit-breaker" class="compact-mini-pill" onclick="app.navigateToMicroservicesPattern('ms-circuit-breaker'); return false;">Circuit Breaker</a>
+          <a href="#ms-bulkhead" class="compact-mini-pill" onclick="app.navigateToMicroservicesPattern('ms-bulkhead'); return false;">Bulkhead</a>
+          <a href="#ms-distributed-tracing" class="compact-mini-pill" onclick="app.navigateToMicroservicesPattern('ms-distributed-tracing'); return false;">Tracing</a>
+          <a href="#ms-service-mesh" class="compact-mini-pill" onclick="app.navigateToMicroservicesPattern('ms-service-mesh'); return false;">Service Mesh</a>
         </div>
       </div>
     `;
@@ -441,14 +587,38 @@ class RevisionApp {
     html += `
       <div class="compact-section-card">
         <button class="compact-section-header" onclick="app.switchSection('dsa')">
-          <span>⚡ DSA & Systems</span>
-          <span class="badge-count">${dsaTopics.length}</span>
+          <span>⚡ DSA &amp; Patterns</span>
+          <span class="badge-count">${dsaTopics.length} Patterns</span>
         </button>
         <div class="compact-pills-row">
-          <a href="#lru-cache-implementation" class="compact-mini-pill" onclick="app.navigateToTopic('dsa', 'lru-cache-implementation'); return false;">LRU Cache</a>
-          <a href="#sliding-window-rate-limiter" class="compact-mini-pill" onclick="app.navigateToTopic('dsa', 'sliding-window-rate-limiter'); return false;">Rate Limiter</a>
-          <a href="#monotonic-stack-queue" class="compact-mini-pill" onclick="app.navigateToTopic('dsa', 'monotonic-stack-queue'); return false;">Monotonic</a>
-          <a href="#tree-graph-toposort-unionfind" class="compact-mini-pill" onclick="app.navigateToTopic('dsa', 'tree-graph-toposort-unionfind'); return false;">Union-Find</a>
+          <a href="#dsa-two-pointers" class="compact-mini-pill" onclick="app.navigateToDsaPattern('dsa-two-pointers'); return false;">Two Pointers</a>
+          <a href="#dsa-sliding-window" class="compact-mini-pill" onclick="app.navigateToDsaPattern('dsa-sliding-window'); return false;">Sliding Window</a>
+          <a href="#dsa-fast-slow-pointers" class="compact-mini-pill" onclick="app.navigateToDsaPattern('dsa-fast-slow-pointers'); return false;">Fast &amp; Slow</a>
+          <a href="#dsa-monotonic-stack" class="compact-mini-pill" onclick="app.navigateToDsaPattern('dsa-monotonic-stack'); return false;">Mono Stack</a>
+          <a href="#dsa-monotonic-deque" class="compact-mini-pill" onclick="app.navigateToDsaPattern('dsa-monotonic-deque'); return false;">Mono Deque</a>
+          <a href="#dsa-merge-intervals" class="compact-mini-pill" onclick="app.navigateToDsaPattern('dsa-merge-intervals'); return false;">Intervals</a>
+          <a href="#dsa-cyclic-sort" class="compact-mini-pill" onclick="app.navigateToDsaPattern('dsa-cyclic-sort'); return false;">Cyclic Sort</a>
+          <a href="#dsa-binary-search-answer" class="compact-mini-pill" onclick="app.navigateToDsaPattern('dsa-binary-search-answer'); return false;">BS on Answer</a>
+          <a href="#dsa-top-k-heap" class="compact-mini-pill" onclick="app.navigateToDsaPattern('dsa-top-k-heap'); return false;">Top K Heap</a>
+          <a href="#dsa-two-heaps" class="compact-mini-pill" onclick="app.navigateToDsaPattern('dsa-two-heaps'); return false;">Two Heaps</a>
+          <a href="#dsa-k-way-merge" class="compact-mini-pill" onclick="app.navigateToDsaPattern('dsa-k-way-merge'); return false;">K-Way Merge</a>
+          <a href="#dsa-bfs-graph" class="compact-mini-pill" onclick="app.navigateToDsaPattern('dsa-bfs-graph'); return false;">BFS Grid</a>
+          <a href="#dsa-dfs-islands" class="compact-mini-pill" onclick="app.navigateToDsaPattern('dsa-dfs-islands'); return false;">DFS Islands</a>
+          <a href="#dsa-topological-sort" class="compact-mini-pill" onclick="app.navigateToDsaPattern('dsa-topological-sort'); return false;">Kahn's Topo</a>
+          <a href="#dsa-union-find" class="compact-mini-pill" onclick="app.navigateToDsaPattern('dsa-union-find'); return false;">Union-Find DSU</a>
+          <a href="#dsa-graph-dijkstra" class="compact-mini-pill" onclick="app.navigateToDsaPattern('dsa-graph-dijkstra'); return false;">Dijkstra</a>
+          <a href="#dsa-backtracking" class="compact-mini-pill" onclick="app.navigateToDsaPattern('dsa-backtracking'); return false;">Backtracking</a>
+          <a href="#dsa-dp-1d-kadane" class="compact-mini-pill" onclick="app.navigateToDsaPattern('dsa-dp-1d-kadane'); return false;">Kadane 1D DP</a>
+          <a href="#dsa-dp-2d-knapsack" class="compact-mini-pill" onclick="app.navigateToDsaPattern('dsa-dp-2d-knapsack'); return false;">0/1 Knapsack</a>
+          <a href="#dsa-dp-strings-lcs" class="compact-mini-pill" onclick="app.navigateToDsaPattern('dsa-dp-strings-lcs'); return false;">LCS String DP</a>
+          <a href="#dsa-tree-dp-lca" class="compact-mini-pill" onclick="app.navigateToDsaPattern('dsa-tree-dp-lca'); return false;">Tree DP &amp; LCA</a>
+          <a href="#dsa-dp-bitmask" class="compact-mini-pill" onclick="app.navigateToDsaPattern('dsa-dp-bitmask'); return false;">Bitmask DP</a>
+          <a href="#dsa-trie-prefix" class="compact-mini-pill" onclick="app.navigateToDsaPattern('dsa-trie-prefix'); return false;">Trie Prefix</a>
+          <a href="#dsa-bit-manipulation" class="compact-mini-pill" onclick="app.navigateToDsaPattern('dsa-bit-manipulation'); return false;">Bit Manipulation</a>
+          <a href="#dsa-segment-fenwick-tree" class="compact-mini-pill" onclick="app.navigateToDsaPattern('dsa-segment-fenwick-tree'); return false;">Fenwick Tree</a>
+          <a href="#lru-cache-implementation" class="compact-mini-pill" onclick="app.navigateToDsaPattern('lru-cache-implementation'); return false;">LRU Cache</a>
+          <a href="#lfu-cache-implementation" class="compact-mini-pill" onclick="app.navigateToDsaPattern('lfu-cache-implementation'); return false;">LFU Cache</a>
+          <a href="#sliding-window-rate-limiter" class="compact-mini-pill" onclick="app.navigateToDsaPattern('sliding-window-rate-limiter'); return false;">Token Bucket</a>
         </div>
       </div>
     `;
@@ -491,6 +661,58 @@ class RevisionApp {
   navigateToTopic(sectionId, topicId) {
     this.switchSection(sectionId);
     this.closeMobileSidebar();
+    if (sectionId === 'spring' && topicId.startsWith('sb-int-')) {
+      this.selectSpringInternalTopic(topicId);
+      return;
+    }
+    if (sectionId === 'java' && topicId.startsWith('java-int-')) {
+      this.selectJavaInternalTopic(topicId);
+      return;
+    }
+    if (sectionId === 'design-patterns') {
+      this.switchSection('design-patterns');
+      this.closeMobileSidebar();
+      this.selectJavaPattern(topicId);
+      return;
+    }
+    if (sectionId === 'microservices') {
+      this.switchSection('microservices');
+      this.closeMobileSidebar();
+      this.selectMicroservicesPattern(topicId);
+      return;
+    }
+    if (sectionId === 'dsa') {
+      this.switchSection('dsa');
+      this.closeMobileSidebar();
+      this.selectDsaPattern(topicId);
+      return;
+    }
+    if (sectionId === 'aws') {
+      this.switchSection('aws');
+      this.closeMobileSidebar();
+      this.selectAwsTopic(topicId);
+      return;
+    }
+    if (sectionId === 'gcp') {
+      this.switchSection('gcp');
+      this.closeMobileSidebar();
+      this.selectGcpTopic(topicId);
+      return;
+    }
+    if (sectionId === 'lifecycle') {
+      this.switchSection('lifecycle');
+      this.closeMobileSidebar();
+      setTimeout(() => {
+        const el = document.getElementById(topicId);
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          el.classList.add('open');
+          const header = el.querySelector('.lifecycle-header');
+          if (header) header.setAttribute('aria-expanded', 'true');
+        }
+      }, 120);
+      return;
+    }
     setTimeout(() => {
       const el = document.getElementById(topicId);
       if (el) {
@@ -504,33 +726,908 @@ class RevisionApp {
     }, 120);
   }
 
+  navigateToJavaInternal(topicId) {
+    this.switchSection('java');
+    this.closeMobileSidebar();
+    this.selectJavaInternalTopic(topicId);
+  }
+
+  navigateToSpringInternal(topicId) {
+    this.switchSection('spring');
+    this.closeMobileSidebar();
+    this.selectSpringInternalTopic(topicId);
+  }
+
+  navigateToJavaPattern(patternId) {
+    this.switchSection('design-patterns');
+    this.closeMobileSidebar();
+    this.selectJavaPattern(patternId);
+  }
+
+  navigateToMicroservicesPattern(patternId) {
+    this.switchSection('microservices');
+    this.closeMobileSidebar();
+    this.selectMicroservicesPattern(patternId);
+  }
+
+  navigateToDsaPattern(patternId) {
+    this.switchSection('dsa');
+    this.closeMobileSidebar();
+    this.selectDsaPattern(patternId);
+  }
+
   // -------------------------------------------------------------
   // Expandable Topic Cards Rendering (Java, Spring, DSA)
   // -------------------------------------------------------------
-  renderJavaTopics() {
-    const container = document.getElementById('java-cards-container');
-    if (!container) return;
-    const topics = window.REVISION_APP_DATA?.JAVA_TOPICS || [];
-    container.innerHTML = this.renderTopicCardsHtml(topics, 'border-java');
+  renderJavaSubtopicSelector() {
+    const select = document.getElementById('java-subtopic-select');
+    if (!select) return;
+
+    const topics = window.REVISION_APP_DATA?.JAVA_460_TOPICS || [];
+    const categories = window.REVISION_APP_DATA?.JAVA_460_CATEGORIES || [
+      { id: "oop", title: "OOP & Design (6 Topics, 60 Qs)" },
+      { id: "strings", title: "Strings, Wrappers & Exceptions (7 Topics, 70 Qs)" },
+      { id: "collections", title: "Collections Framework (6 Topics, 60 Qs)" },
+      { id: "concurrency", title: "Multithreading & Concurrency (9 Topics, 90 Qs)" },
+      { id: "java8", title: "Java 8+ Features & Loom (7 Topics, 70 Qs)" },
+      { id: "jvm", title: "JVM Internals & Memory (6 Topics, 60 Qs)" },
+      { id: "edge", title: "Tricky Edge Cases (5 Topics, 50 Qs)" }
+    ];
+
+    let html = '<option value="all">-- Jump to any of the 46 Subtopics (10 Qs each) --</option>';
+    categories.forEach(cat => {
+      const catTopics = topics.filter(t => t.category === cat.id);
+      if (catTopics.length > 0) {
+        html += `<optgroup label="${cat.title}">`;
+        catTopics.forEach(t => {
+          html += `<option value="${t.topicId}">${t.topicTitle} (10 Qs)</option>`;
+        });
+        html += `</optgroup>`;
+      }
+    });
+
+    select.innerHTML = html;
   }
 
-  renderSpringTopics(filterCategory = 'all') {
-    const container = document.getElementById('spring-cards-container');
+  selectJavaSubtopic(topicId) {
+    const banner = document.getElementById('java-active-topic-banner');
+    const container = document.getElementById('java-cards-container');
+    const select = document.getElementById('java-subtopic-select');
     if (!container) return;
+
+    if (select && topicId) select.value = topicId;
+
+    if (!topicId || topicId === 'all') {
+      if (banner) banner.style.display = 'none';
+      this.renderJavaTopics('all');
+      return;
+    }
+
+    const topics = window.REVISION_APP_DATA?.JAVA_460_TOPICS || [];
+    const topic = topics.find(t => t.topicId === topicId);
+    const questions = window.REVISION_APP_DATA?.JAVA_TOPIC_MAP?.[topicId] || topic?.questions || [];
+
+    if (banner && topic) {
+      banner.style.display = 'block';
+      banner.innerHTML = `
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap;">
+          <div>
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px; flex-wrap: wrap;">
+              <span class="hero-badge-pill highlight" style="font-size: 0.75rem;">Selected Subtopic</span>
+              <strong style="color: var(--text-primary); font-size: 1.05rem;">${topic.topicTitle}</strong>
+              <span style="font-size: 0.78rem; color: var(--text-link); font-weight: 700;">(10 Tricky Senior Questions)</span>
+            </div>
+            <div style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.4;">${topic.summary}</div>
+          </div>
+          <button class="btn-secondary" style="font-size: 0.75rem; padding: 4px 10px; white-space: nowrap;" onclick="app.selectJavaSubtopic('all')">✕ Clear Filter</button>
+        </div>
+      `;
+    }
+
+    const formattedList = questions.map(q => this.formatQuestionAsTopic(q, topic?.topicTitle || 'Java Topic'));
+    container.innerHTML = this.renderTopicCardsHtml(formattedList, 'border-java');
+
+    setTimeout(() => {
+      const firstCard = container.querySelector('.cheat-card');
+      if (firstCard) firstCard.classList.add('open');
+    }, 50);
+  }
+
+  searchJavaQuestions(query) {
+    const container = document.getElementById('java-cards-container');
+    const banner = document.getElementById('java-active-topic-banner');
+    if (!container) return;
+
+    const qLower = (query || '').trim().toLowerCase();
+    if (!qLower) {
+      if (banner) banner.style.display = 'none';
+      this.renderJavaTopics('all');
+      return;
+    }
+
+    const allQuestions = window.REVISION_APP_DATA?.JAVA_460_QUESTIONS || [];
+    const matches = allQuestions.filter(q => 
+      (q.title || '').toLowerCase().includes(qLower) ||
+      (q.question || '').toLowerCase().includes(qLower) ||
+      (q.topicTitle || '').toLowerCase().includes(qLower) ||
+      (q.innerWorking || '').toLowerCase().includes(qLower) ||
+      (q.trap || '').toLowerCase().includes(qLower) ||
+      (q.problem || '').toLowerCase().includes(qLower) ||
+      (q.codeSnippet || '').toLowerCase().includes(qLower)
+    );
+
+    if (banner) {
+      banner.style.display = 'block';
+      banner.innerHTML = `
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+          <div>
+            <strong>Search Results:</strong> Found <strong>${matches.length}</strong> questions matching "<em>${this.escapeHtml(query)}</em>" across 46 subtopics.
+          </div>
+          <button class="btn-secondary" style="font-size: 0.75rem; padding: 4px 10px;" onclick="document.getElementById('java-question-search').value=''; app.searchJavaQuestions('');">Clear Search</button>
+        </div>
+      `;
+    }
+
+    const formattedList = matches.map(q => this.formatQuestionAsTopic(q, q.topicTitle || 'Search Match'));
+    container.innerHTML = matches.length > 0 
+      ? this.renderTopicCardsHtml(formattedList, 'border-java')
+      : `<div class="empty-state" style="padding: 40px; text-align: center; color: var(--text-muted); grid-column: 1 / -1;">
+          <div style="font-size: 2rem; margin-bottom: 8px;">🔍</div>
+          <div>No questions found matching "<strong>${this.escapeHtml(query)}</strong>". Try searching for <em>equals</em>, <em>volatile</em>, <em>virtual threads</em>, or <em>metaspace</em>.</div>
+        </div>`;
+  }
+
+  // -------------------------------------------------------------
+  // Java Core Engine Internals (55 Topics & Deep Dives)
+  // -------------------------------------------------------------
+  renderJavaInternalsSelector() {
+    const select = document.getElementById('java-internals-select');
+    if (!select) return;
+
+    const internals = window.REVISION_APP_DATA?.JAVA_INTERNALS || [];
+    const categories = window.REVISION_APP_DATA?.JAVA_INTERNALS_CATEGORIES || [
+      { id: "jvm_memory", title: "☕ JVM Memory & GC" },
+      { id: "classloading", title: "⚙️ Class Loading & JIT" },
+      { id: "jmm", title: "🧵 Java Memory Model & Threads" },
+      { id: "concurrency", title: "⚡ Concurrency & Synchronizers" },
+      { id: "collections", title: "📦 Collections Framework" },
+      { id: "strings", title: "🔤 Strings & Object Semantics" },
+      { id: "io_nio", title: "💾 I/O, NIO & Serialization" }
+    ];
+
+    const isJavaCatMatch = (catId, tc) => {
+      if (catId === 'jvm_memory') return tc === 'JVM Memory & Architecture';
+      if (catId === 'classloading') return tc === 'Class Loading & JIT';
+      if (catId === 'jmm') return tc === 'Java Memory Model & Threads';
+      if (catId === 'concurrency') return tc === 'Advanced Concurrency & Synchronizers';
+      if (catId === 'collections') return tc === 'Collections Framework Internals';
+      if (catId === 'strings') return tc === 'Strings & Object Semantics';
+      if (catId === 'io_nio') return tc === 'I/O, NIO & Serialization';
+      return false;
+    };
+
+    let html = '<option value="all">-- Jump to any of the 55 Java Internals --</option>';
+    categories.forEach(cat => {
+      const catTopics = internals.filter(t => isJavaCatMatch(cat.id, t.category));
+      if (catTopics.length > 0) {
+        html += `<optgroup label="${cat.title} (${catTopics.length} Topics)">`;
+        catTopics.forEach(t => {
+          html += `<option value="${t.id}">${t.title}</option>`;
+        });
+        html += `</optgroup>`;
+      }
+    });
+
+    select.innerHTML = html;
+  }
+
+  selectJavaInternalTopic(topicId) {
+    const banner = document.getElementById('java-active-internal-banner');
+    const container = document.getElementById('java-cards-container');
+    const select = document.getElementById('java-internals-select');
+    if (!container) return;
+
+    if (select && topicId) select.value = topicId;
+
+    if (!topicId || topicId === 'all') {
+      if (banner) banner.style.display = 'none';
+      this.renderJavaTopics('internals');
+      return;
+    }
+
+    const internals = window.REVISION_APP_DATA?.JAVA_INTERNALS || [];
+    const topic = internals.find(t => t.id === topicId);
+    if (!topic) return;
+
+    if (banner) {
+      banner.style.display = 'block';
+      banner.innerHTML = `
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 14px; flex-wrap: wrap; width: 100%;">
+          <div style="flex: 1 1 500px;">
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 5px; flex-wrap: wrap;">
+              <span class="hero-badge-pill highlight" style="font-size: 0.74rem;">Selected Core Internal Mechanic</span>
+              <strong style="color: var(--text-primary); font-size: 1.05rem;">${topic.title}</strong>
+              <span class="hero-badge-pill" style="font-size: 0.72rem;">${topic.badge}</span>
+            </div>
+            <div style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.5;">${topic.whatIsIt}</div>
+          </div>
+          <div style="display: flex; gap: 8px; align-items: center; flex-wrap: nowrap;">
+            <button class="btn-primary" style="font-size: 0.78rem; padding: 6px 12px; background: #2563eb;" onclick="app.openJavaInternalModal('${topic.id}')">🔍 Open Modal Deep Dive</button>
+            <button class="btn-secondary" style="font-size: 0.78rem; padding: 6px 12px; white-space: nowrap;" onclick="app.selectJavaInternalTopic('all')">✕ View All 55</button>
+          </div>
+        </div>
+      `;
+    }
+
+    const formattedTopic = this.formatJavaInternalAsTopic(topic);
+    container.innerHTML = this.renderTopicCardsHtml([formattedTopic], 'border-java');
+
+    setTimeout(() => {
+      const card = container.querySelector('.cheat-card');
+      if (card) {
+        card.classList.add('open');
+        card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+    }, 40);
+  }
+
+  searchJavaInternals(query) {
+    const container = document.getElementById('java-cards-container');
+    const banner = document.getElementById('java-active-internal-banner');
+    if (!container) return;
+
+    const qLower = (query || '').trim().toLowerCase();
+    if (!qLower) {
+      if (banner) banner.style.display = 'none';
+      this.renderJavaTopics('internals');
+      return;
+    }
+
+    const internals = window.REVISION_APP_DATA?.JAVA_INTERNALS || [];
+    const matches = internals.filter(t =>
+      (t.title || '').toLowerCase().includes(qLower) ||
+      (t.oneLiner || '').toLowerCase().includes(qLower) ||
+      (t.whatIsIt || '').toLowerCase().includes(qLower) ||
+      (t.internalWorking || '').toLowerCase().includes(qLower) ||
+      (t.complexPart || '').toLowerCase().includes(qLower) ||
+      (t.pitfall || '').toLowerCase().includes(qLower) ||
+      (t.interviewTip || '').toLowerCase().includes(qLower) ||
+      (t.category || '').toLowerCase().includes(qLower) ||
+      (t.badge || '').toLowerCase().includes(qLower) ||
+      (t.codeSnippet || '').toLowerCase().includes(qLower) ||
+      (t.keyPoints || []).some(kp => kp.toLowerCase().includes(qLower))
+    );
+
+    if (banner) {
+      banner.style.display = 'block';
+      banner.innerHTML = `
+        <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; width: 100%;">
+          <div>
+            <span class="hero-badge-pill highlight" style="font-size: 0.74rem;">Search Filter</span>
+            <span style="font-size: 0.88rem; color: var(--text-primary); margin-left: 8px;">
+              Found <strong>${matches.length}</strong> internal topic${matches.length === 1 ? '' : 's'} matching "<strong>${this.escapeHtml(query)}</strong>"
+            </span>
+          </div>
+          <button class="btn-secondary" style="font-size: 0.74rem; padding: 4px 10px;" onclick="document.getElementById('java-internals-search').value = ''; app.searchJavaInternals('');">✕ Clear Search</button>
+        </div>
+      `;
+    }
+
+    const formattedList = matches.map(item => this.formatJavaInternalAsTopic(item));
+    container.innerHTML = formattedList.length > 0
+      ? this.renderTopicCardsHtml(formattedList, 'border-java')
+      : `<div class="empty-state" style="padding: 40px; text-align: center; color: var(--text-muted); grid-column: 1 / -1;">
+          <div style="font-size: 2rem; margin-bottom: 8px;">🔍</div>
+          <div>No Java internals found matching "<strong>${this.escapeHtml(query)}</strong>". Try searching for <em>AQS</em>, <em>ZGC</em>, <em>JMM</em>, <em>ClassLoader</em>, <em>Virtual Threads</em>, or <em>NIO</em>.</div>
+        </div>`;
+
+    if (formattedList.length > 0) {
+      setTimeout(() => {
+        const firstCard = container.querySelector('.cheat-card');
+        if (firstCard) firstCard.classList.add('open');
+      }, 40);
+    }
+  }
+
+  formatJavaInternalAsTopic(item) {
+    return {
+      id: item.id,
+      title: item.title,
+      category: `Java Internals: ${item.category}`,
+      badge: item.badge || 'Engine Internals',
+      oneLiner: item.oneLiner || item.whatIsIt,
+      visualDiagram: `
+        <!-- 1. What Is It Exactly (Elevator Pitch) -->
+        <div class="callout-box callout-info" style="margin: 0 0 14px 0; background: rgba(56, 189, 248, 0.08); border-left: 4px solid #38bdf8;">
+          <span class="callout-icon">💡</span>
+          <div>
+            <strong style="color: #38bdf8; display: block; margin-bottom: 4px; font-size: 0.85rem;">What is it exactly? (Elevator Pitch)</strong>
+            <div style="font-size: 0.86rem; color: var(--text-primary); line-height: 1.55;">${this.escapeHtml(item.whatIsIt)}</div>
+          </div>
+        </div>
+
+        <!-- 2. Visual Mental Model / Flow Diagram -->
+        ${item.visualDiagram || ''}
+
+        <!-- 3. Under the Hood Execution Mechanics -->
+        <div style="margin: 14px 0 12px 0;">
+          <div style="font-size: 0.84rem; font-weight: 700; color: var(--accent-cyan); margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
+            <span>⚙️</span> Under the Hood (Internal Execution Mechanics):
+          </div>
+          <div style="font-size: 0.84rem; line-height: 1.6; color: var(--text-secondary); background: var(--bg-tertiary); padding: 12px 14px; border-radius: var(--radius-sm); border-left: 3px solid #38bdf8;">
+            ${this.escapeHtml(item.internalWorking)}
+          </div>
+        </div>
+
+        <!-- 4. Complex Part You Must Know (Senior Trap) -->
+        <div class="callout-box callout-danger" style="margin: 14px 0 14px 0; border-left: 4px solid #f87171; background: rgba(239, 68, 68, 0.08);">
+          <span class="callout-icon">🔥</span>
+          <div>
+            <strong style="color: #f87171; display: block; margin-bottom: 4px; font-size: 0.85rem;">Complex Part You Must Know (Senior/Staff Level Trap):</strong>
+            <div style="font-size: 0.84rem; color: var(--text-secondary); line-height: 1.55;">${this.escapeHtml(item.complexPart)}</div>
+          </div>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; margin-bottom: 6px;">
+          <button class="btn-primary" style="font-size: 0.76rem; padding: 5px 12px; background: #1e3a8a; border-color: #3b82f6;" onclick="event.stopPropagation(); app.openJavaInternalModal('${item.id}')">
+            🔍 Open Full-Screen Diagram &amp; Deep Dive Modal
+          </button>
+        </div>
+      `,
+      keyPoints: item.keyPoints || [],
+      codeSnippet: item.codeSnippet,
+      pitfall: item.pitfall,
+      interviewTip: item.interviewTip
+    };
+  }
+
+  openJavaInternalModal(topicId) {
+    const internals = window.REVISION_APP_DATA?.JAVA_INTERNALS || [];
+    const topic = internals.find(t => t.id === topicId);
+    if (!topic) return;
+
+    this.currentJavaInternalId = topicId;
+
+    const overlay = document.getElementById('java-internals-modal-overlay');
+    const catBadge = document.getElementById('java-modal-category-badge');
+    const badge = document.getElementById('java-modal-badge');
+    const title = document.getElementById('java-modal-title');
+    const body = document.getElementById('java-modal-body');
+    const footerCount = document.getElementById('java-modal-footer-count');
+    if (!overlay || !body) return;
+
+    const currentIndex = internals.findIndex(t => t.id === topicId);
+    if (catBadge) catBadge.textContent = topic.category;
+    if (badge) badge.textContent = topic.badge;
+    if (title) title.textContent = topic.title;
+    if (footerCount) footerCount.textContent = `Topic ${currentIndex + 1} of ${internals.length}: ${topic.title}`;
+
+    body.innerHTML = `
+      <!-- 1. What Is It Exactly (Elevator Pitch) -->
+      <div class="callout-box callout-info" style="margin: 0; background: rgba(56, 189, 248, 0.08); border-left: 4px solid #38bdf8;">
+        <span class="callout-icon" style="font-size: 1.3rem;">💡</span>
+        <div>
+          <strong style="color: #38bdf8; display: block; font-size: 0.95rem; margin-bottom: 4px;">What Is It Exactly?</strong>
+          <div style="font-size: 0.92rem; color: var(--text-primary); line-height: 1.6;">${this.escapeHtml(topic.whatIsIt)}</div>
+        </div>
+      </div>
+
+      <!-- 2. Visual Mental Model / Flow Diagram -->
+      <div style="margin: 2px 0;">
+        ${topic.visualDiagram || ''}
+      </div>
+
+      <!-- 3. Under the Hood Mechanics -->
+      <div style="background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 16px 18px;">
+        <div style="font-size: 0.92rem; font-weight: 700; color: var(--accent-cyan); margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">
+          <span style="font-size: 1.15rem;">⚙️</span>
+          <span>Under the Hood (Internal Execution Mechanics):</span>
+        </div>
+        <div style="font-size: 0.88rem; line-height: 1.68; color: var(--text-secondary);">
+          ${this.escapeHtml(topic.internalWorking)}
+        </div>
+      </div>
+
+      <!-- 4. Complex Part You Must Know (Senior Trap) -->
+      <div class="callout-box callout-danger" style="margin: 0; border-left: 4px solid #f87171; background: rgba(239, 68, 68, 0.08);">
+        <span class="callout-icon" style="font-size: 1.3rem;">🔥</span>
+        <div>
+          <strong style="color: #f87171; display: block; font-size: 0.95rem; margin-bottom: 4px;">Complex Part You Must Know (Senior/Staff Trap):</strong>
+          <div style="font-size: 0.88rem; color: var(--text-secondary); line-height: 1.6;">${this.escapeHtml(topic.complexPart)}</div>
+        </div>
+      </div>
+
+      <!-- 5. Core Architectural Invariants -->
+      <div style="margin-top: 4px;">
+        <div style="font-size: 0.88rem; font-weight: 700; color: var(--text-link); margin-bottom: 8px;">
+          📌 Core Architectural Invariants:
+        </div>
+        <ul class="key-points-list">
+          ${topic.keyPoints.map(kp => `
+            <li class="key-point-item">
+              <span class="point-bullet">›</span>
+              <span style="font-size: 0.86rem;">${this.escapeHtml(kp)}</span>
+            </li>
+          `).join('')}
+        </ul>
+      </div>
+
+      <!-- 6. Production Code / Bytecode / HotSpot Details -->
+      ${topic.codeSnippet ? `
+        <div class="card-code-preview" style="margin-top: 4px;">
+          <div class="code-header">
+            <span>Production Code / Bytecode &amp; Engine Details</span>
+            <button class="copy-btn" onclick="app.copyCode(this)">Copy</button>
+          </div>
+          <pre><code>${this.escapeHtml(topic.codeSnippet)}</code></pre>
+        </div>
+      ` : ''}
+
+      <!-- 7. Traps and Tips -->
+      ${(topic.pitfall || topic.interviewTip) ? `
+        <div class="card-callout-grid" style="margin-top: 4px;">
+          ${topic.pitfall ? `
+            <div class="callout-box callout-danger" style="margin: 0;">
+              <span class="callout-icon">⚠️</span>
+              <div><strong>Trap to Avoid:</strong> ${this.escapeHtml(topic.pitfall)}</div>
+            </div>
+          ` : ''}
+          ${topic.interviewTip ? `
+            <div class="callout-box callout-tip" style="margin: 0;">
+              <span class="callout-icon">💡</span>
+              <div><strong>Interview Strategy:</strong> ${this.escapeHtml(topic.interviewTip)}</div>
+            </div>
+          ` : ''}
+        </div>
+      ` : ''}
+    `;
+
+    overlay.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  closeJavaInternalModal() {
+    const overlay = document.getElementById('java-internals-modal-overlay');
+    if (overlay) overlay.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  navigateJavaInternalModal(direction) {
+    const internals = window.REVISION_APP_DATA?.JAVA_INTERNALS || [];
+    if (internals.length === 0) return;
+    let idx = internals.findIndex(t => t.id === this.currentJavaInternalId);
+    if (idx === -1) idx = 0;
+    const newIdx = (idx + direction + internals.length) % internals.length;
+    this.openJavaInternalModal(internals[newIdx].id);
+  }
+
+  renderJavaTopics(filterCategory = 'internals') {
+    const container = document.getElementById('java-cards-container');
+    const banner = document.getElementById('java-active-internal-banner');
+    if (!container) return;
+
+    if (banner && filterCategory !== 'custom') {
+      banner.style.display = 'none';
+    }
+
+    const archTopics = window.REVISION_APP_DATA?.JAVA_TOPICS || [];
+    const all460Questions = window.REVISION_APP_DATA?.JAVA_460_QUESTIONS || window.REVISION_APP_DATA?.JAVA_QUESTIONS || [];
+    const trickyQs = all460Questions.map(q => this.formatQuestionAsTopic(q, q.topicTitle || 'Java Tricky Q&A'));
+    const rawInternals = window.REVISION_APP_DATA?.JAVA_INTERNALS || [];
+    const formattedInternals = rawInternals.map(item => this.formatJavaInternalAsTopic(item));
+
+    const isJavaCatMatch = (catId, tc) => {
+      if (catId === 'jvm_memory') return tc === 'JVM Memory & Architecture';
+      if (catId === 'classloading') return tc === 'Class Loading & JIT';
+      if (catId === 'jmm') return tc === 'Java Memory Model & Threads';
+      if (catId === 'concurrency') return tc === 'Advanced Concurrency & Synchronizers';
+      if (catId === 'collections') return tc === 'Collections Framework Internals';
+      if (catId === 'strings') return tc === 'Strings & Object Semantics';
+      if (catId === 'io_nio') return tc === 'I/O, NIO & Serialization';
+      return false;
+    };
+
+    let list = [];
+    if (filterCategory === 'internals') {
+      list = formattedInternals;
+    } else if (filterCategory === 'architecture') {
+      list = archTopics;
+    } else if (filterCategory === 'tricky-questions') {
+      list = trickyQs;
+    } else if (['jvm_memory', 'classloading', 'jmm', 'concurrency', 'collections', 'strings', 'io_nio'].includes(filterCategory)) {
+      list = rawInternals.filter(t => isJavaCatMatch(filterCategory, t.category)).map(item => this.formatJavaInternalAsTopic(item));
+    } else if (filterCategory === 'oop') {
+      list = trickyQs.filter(t => (t.category || '').toLowerCase().includes('oop'));
+    } else if (filterCategory === 'java8') {
+      list = [...archTopics.filter(t => (t.id || '').includes('virtual-threads') || (t.id || '').includes('modern-java')), ...trickyQs.filter(t => (t.category || '').toLowerCase().includes('java 8') || (t.category || '').toLowerCase().includes('java8'))];
+    } else if (filterCategory === 'edge-cases' || filterCategory === 'edge') {
+      list = trickyQs.filter(t => (t.category || '').toLowerCase().includes('edge'));
+    } else if (filterCategory === 'all') {
+      list = [...formattedInternals, ...archTopics, ...trickyQs];
+    } else {
+      list = formattedInternals;
+    }
+
+    container.innerHTML = this.renderTopicCardsHtml(list, 'border-java');
+
+    const totalEl = document.getElementById('java-total-count');
+    const trickyEl = document.getElementById('java-tricky-count');
+    if (totalEl) totalEl.textContent = (archTopics.length + all460Questions.length + rawInternals.length);
+    if (trickyEl) trickyEl.textContent = all460Questions.length;
+  }
+
+  filterJavaCategory(cat) {
+    const container = document.getElementById('section-java');
+    if (container) {
+      container.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+      if (typeof event !== 'undefined' && event?.target?.classList?.contains('filter-chip')) {
+        event.target.classList.add('active');
+      }
+    }
+    this.renderJavaTopics(cat);
+  }
+
+  // -------------------------------------------------------------
+  // Spring Boot 3 Engine Internals & Scenarios Section
+  // -------------------------------------------------------------
+  renderSpringInternalsSelector() {
+    const select = document.getElementById('spring-internals-select');
+    if (!select) return;
+
+    const internals = window.REVISION_APP_DATA?.SPRING_INTERNALS || [];
+    const categories = window.REVISION_APP_DATA?.SPRING_INTERNALS_CATEGORIES || [
+      { id: "bootstrap", title: "🚀 Bootstrap & Startup Engine" },
+      { id: "dependencies", title: "🧩 Auto-Config & Dependencies" },
+      { id: "ioc", title: "🔄 Core IoC, Lifecycle & Proxies" },
+      { id: "config", title: "⚙️ Configuration & Properties" },
+      { id: "web", title: "🌐 Web, Server, Observability & Testing" }
+    ];
+
+    const isCatMatch = (catId, tc) => {
+      if (catId === 'bootstrap') return tc === 'Bootstrap & Core Engine';
+      if (catId === 'dependencies') return tc === 'Auto-Config & Dependencies';
+      if (catId === 'ioc') return tc === 'Core IoC & Proxies';
+      if (catId === 'config') return tc === 'Configuration & Properties';
+      if (catId === 'web') return tc === 'Web & Server Engine' || tc === 'Web, Server & Observability';
+      return false;
+    };
+
+    let html = '<option value="all">-- Jump to any of the 29 Internal Mechanics --</option>';
+    categories.forEach(cat => {
+      const catTopics = internals.filter(t => isCatMatch(cat.id, t.category));
+      if (catTopics.length > 0) {
+        html += `<optgroup label="${cat.title} (${catTopics.length} Topics)">`;
+        catTopics.forEach(t => {
+          html += `<option value="${t.id}">${t.title}</option>`;
+        });
+        html += `</optgroup>`;
+      }
+    });
+
+    select.innerHTML = html;
+  }
+
+  selectSpringInternalTopic(topicId) {
+    const banner = document.getElementById('spring-active-topic-banner');
+    const container = document.getElementById('spring-cards-container');
+    const select = document.getElementById('spring-internals-select');
+    if (!container) return;
+
+    if (select && topicId) select.value = topicId;
+
+    if (!topicId || topicId === 'all') {
+      if (banner) banner.style.display = 'none';
+      this.renderSpringTopics('internals');
+      return;
+    }
+
+    const internals = window.REVISION_APP_DATA?.SPRING_INTERNALS || [];
+    const topic = internals.find(t => t.id === topicId);
+    if (!topic) return;
+
+    if (banner) {
+      banner.style.display = 'block';
+      banner.innerHTML = `
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 14px; flex-wrap: wrap; width: 100%;">
+          <div style="flex: 1 1 500px;">
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 5px; flex-wrap: wrap;">
+              <span class="hero-badge-pill highlight" style="font-size: 0.74rem;">Selected Internal Mechanic</span>
+              <strong style="color: var(--text-primary); font-size: 1.05rem;">${topic.title}</strong>
+              <span class="hero-badge-pill" style="font-size: 0.72rem;">${topic.badge}</span>
+            </div>
+            <div style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.5;">${topic.whatIsIt}</div>
+          </div>
+          <div style="display: flex; gap: 8px; align-items: center; flex-wrap: nowrap;">
+            <button class="btn-primary" style="font-size: 0.78rem; padding: 6px 12px; background: #2563eb;" onclick="app.openSpringInternalModal('${topic.id}')">🔍 Open Modal Deep Dive</button>
+            <button class="btn-secondary" style="font-size: 0.78rem; padding: 6px 12px; white-space: nowrap;" onclick="app.selectSpringInternalTopic('all')">✕ View All 29</button>
+          </div>
+        </div>
+      `;
+    }
+
+    const formattedTopic = this.formatSpringInternalAsTopic(topic);
+    container.innerHTML = this.renderTopicCardsHtml([formattedTopic], 'border-spring');
+
+    setTimeout(() => {
+      const card = container.querySelector('.cheat-card');
+      if (card) {
+        card.classList.add('open');
+        card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+    }, 40);
+  }
+
+  searchSpringInternals(query) {
+    const container = document.getElementById('spring-cards-container');
+    const banner = document.getElementById('spring-active-topic-banner');
+    if (!container) return;
+
+    const qLower = (query || '').trim().toLowerCase();
+    if (!qLower) {
+      if (banner) banner.style.display = 'none';
+      this.renderSpringTopics('internals');
+      return;
+    }
+
+    const internals = window.REVISION_APP_DATA?.SPRING_INTERNALS || [];
+    const matches = internals.filter(t =>
+      (t.title || '').toLowerCase().includes(qLower) ||
+      (t.oneLiner || '').toLowerCase().includes(qLower) ||
+      (t.whatIsIt || '').toLowerCase().includes(qLower) ||
+      (t.internalWorking || '').toLowerCase().includes(qLower) ||
+      (t.complexPart || '').toLowerCase().includes(qLower) ||
+      (t.pitfall || '').toLowerCase().includes(qLower) ||
+      (t.interviewTip || '').toLowerCase().includes(qLower) ||
+      (t.category || '').toLowerCase().includes(qLower) ||
+      (t.badge || '').toLowerCase().includes(qLower) ||
+      (t.codeSnippet || '').toLowerCase().includes(qLower) ||
+      (t.keyPoints || []).some(kp => kp.toLowerCase().includes(qLower))
+    );
+
+    if (banner) {
+      banner.style.display = 'block';
+      banner.innerHTML = `
+        <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; width: 100%;">
+          <div>
+            <span class="hero-badge-pill highlight" style="font-size: 0.74rem;">Search Filter</span>
+            <span style="font-size: 0.88rem; color: var(--text-primary); margin-left: 8px;">
+              Found <strong>${matches.length}</strong> internal topic${matches.length === 1 ? '' : 's'} matching "<strong>${this.escapeHtml(query)}</strong>"
+            </span>
+          </div>
+          <button class="btn-secondary" style="font-size: 0.74rem; padding: 4px 10px;" onclick="document.getElementById('spring-internals-search').value = ''; app.searchSpringInternals('');">✕ Clear Search</button>
+        </div>
+      `;
+    }
+
+    const formattedList = matches.map(item => this.formatSpringInternalAsTopic(item));
+    container.innerHTML = formattedList.length > 0
+      ? this.renderTopicCardsHtml(formattedList, 'border-spring')
+      : `<div class="empty-state" style="padding: 40px; text-align: center; color: var(--text-muted); grid-column: 1 / -1;">
+          <div style="font-size: 2rem; margin-bottom: 8px;">🔍</div>
+          <div>No Spring Boot internals found matching "<strong>${this.escapeHtml(query)}</strong>". Try searching for <em>three-level cache</em>, <em>CGLIB</em>, <em>DispatcherServlet</em>, <em>BOM</em>, or <em>BeanPostProcessor</em>.</div>
+        </div>`;
+
+    if (formattedList.length > 0) {
+      setTimeout(() => {
+        const firstCard = container.querySelector('.cheat-card');
+        if (firstCard) firstCard.classList.add('open');
+      }, 40);
+    }
+  }
+
+  formatSpringInternalAsTopic(item) {
+    return {
+      id: item.id,
+      title: item.title,
+      category: `Spring Internals: ${item.category}`,
+      badge: item.badge || 'Engine Internals',
+      oneLiner: item.oneLiner || item.whatIsIt,
+      visualDiagram: `
+        <!-- 1. What Is It Exactly (Elevator Pitch) -->
+        <div class="callout-box callout-info" style="margin: 0 0 14px 0; background: rgba(56, 189, 248, 0.08); border-left: 4px solid #38bdf8;">
+          <span class="callout-icon">💡</span>
+          <div>
+            <strong style="color: #38bdf8; display: block; margin-bottom: 4px; font-size: 0.85rem;">What is it exactly? (Elevator Pitch)</strong>
+            <div style="font-size: 0.86rem; color: var(--text-primary); line-height: 1.55;">${this.escapeHtml(item.whatIsIt)}</div>
+          </div>
+        </div>
+
+        <!-- 2. Visual Mental Model / Flow Diagram -->
+        ${item.visualDiagram || ''}
+
+        <!-- 3. Under the Hood Execution Mechanics -->
+        <div style="margin: 14px 0 12px 0;">
+          <div style="font-size: 0.84rem; font-weight: 700; color: var(--accent-cyan); margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
+            <span>⚙️</span> Under the Hood (Internal Execution Mechanics):
+          </div>
+          <div style="font-size: 0.84rem; line-height: 1.6; color: var(--text-secondary); background: var(--bg-tertiary); padding: 12px 14px; border-radius: var(--radius-sm); border-left: 3px solid #38bdf8;">
+            ${this.escapeHtml(item.internalWorking)}
+          </div>
+        </div>
+
+        <!-- 4. Complex Part You Must Know (Senior Trap) -->
+        <div class="callout-box callout-danger" style="margin: 14px 0 14px 0; border-left: 4px solid #f87171; background: rgba(239, 68, 68, 0.08);">
+          <span class="callout-icon">🔥</span>
+          <div>
+            <strong style="color: #f87171; display: block; margin-bottom: 4px; font-size: 0.85rem;">Complex Part You Must Know (Senior/Staff Level Trap):</strong>
+            <div style="font-size: 0.84rem; color: var(--text-secondary); line-height: 1.55;">${this.escapeHtml(item.complexPart)}</div>
+          </div>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; margin-bottom: 6px;">
+          <button class="btn-primary" style="font-size: 0.76rem; padding: 5px 12px; background: #1e3a8a; border-color: #3b82f6;" onclick="event.stopPropagation(); app.openSpringInternalModal('${item.id}')">
+            🔍 Open Full-Screen Diagram &amp; Deep Dive Modal
+          </button>
+        </div>
+      `,
+      keyPoints: item.keyPoints || [],
+      codeSnippet: item.codeSnippet,
+      pitfall: item.pitfall,
+      interviewTip: item.interviewTip
+    };
+  }
+
+  openSpringInternalModal(topicId) {
+    const internals = window.REVISION_APP_DATA?.SPRING_INTERNALS || [];
+    const topic = internals.find(t => t.id === topicId);
+    if (!topic) return;
+
+    this.currentSpringInternalId = topicId;
+
+    const overlay = document.getElementById('spring-internals-modal-overlay');
+    const catBadge = document.getElementById('sb-modal-category-badge');
+    const badge = document.getElementById('sb-modal-badge');
+    const title = document.getElementById('sb-modal-title');
+    const body = document.getElementById('sb-modal-body');
+    const footerCount = document.getElementById('sb-modal-footer-count');
+    if (!overlay || !body) return;
+
+    const currentIndex = internals.findIndex(t => t.id === topicId);
+    if (catBadge) catBadge.textContent = topic.category;
+    if (badge) badge.textContent = topic.badge;
+    if (title) title.textContent = topic.title;
+    if (footerCount) footerCount.textContent = `Topic ${currentIndex + 1} of ${internals.length}: ${topic.title}`;
+
+    body.innerHTML = `
+      <!-- 1. What Is It Exactly (Elevator Pitch) -->
+      <div class="callout-box callout-info" style="margin: 0; background: rgba(56, 189, 248, 0.08); border-left: 4px solid #38bdf8;">
+        <span class="callout-icon" style="font-size: 1.3rem;">💡</span>
+        <div>
+          <strong style="color: #38bdf8; display: block; font-size: 0.95rem; margin-bottom: 4px;">What Is It Exactly?</strong>
+          <div style="font-size: 0.92rem; color: var(--text-primary); line-height: 1.6;">${this.escapeHtml(topic.whatIsIt)}</div>
+        </div>
+      </div>
+
+      <!-- 2. Visual Mental Model / Flow Diagram -->
+      <div style="margin: 2px 0;">
+        ${topic.visualDiagram || ''}
+      </div>
+
+      <!-- 3. Under the Hood Mechanics -->
+      <div style="background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 16px 18px;">
+        <div style="font-size: 0.92rem; font-weight: 700; color: var(--accent-cyan); margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">
+          <span style="font-size: 1.15rem;">⚙️</span>
+          <span>Under the Hood (Internal Execution Mechanics):</span>
+        </div>
+        <div style="font-size: 0.88rem; line-height: 1.68; color: var(--text-secondary);">
+          ${this.escapeHtml(topic.internalWorking)}
+        </div>
+      </div>
+
+      <!-- 4. Complex Part You Must Know (Senior Trap) -->
+      <div class="callout-box callout-danger" style="margin: 0; border-left: 4px solid #f87171; background: rgba(239, 68, 68, 0.08);">
+        <span class="callout-icon" style="font-size: 1.3rem;">🔥</span>
+        <div>
+          <strong style="color: #f87171; display: block; font-size: 0.95rem; margin-bottom: 4px;">Complex Part You Must Know (Senior/Staff Trap):</strong>
+          <div style="font-size: 0.88rem; color: var(--text-secondary); line-height: 1.6;">${this.escapeHtml(topic.complexPart)}</div>
+        </div>
+      </div>
+
+      <!-- 5. Core Architectural Invariants -->
+      <div style="margin-top: 4px;">
+        <div style="font-size: 0.88rem; font-weight: 700; color: var(--text-link); margin-bottom: 8px;">
+          📌 Core Architectural Invariants:
+        </div>
+        <ul class="key-points-list">
+          ${topic.keyPoints.map(kp => `
+            <li class="key-point-item">
+              <span class="point-bullet">›</span>
+              <span style="font-size: 0.86rem;">${this.escapeHtml(kp)}</span>
+            </li>
+          `).join('')}
+        </ul>
+      </div>
+
+      <!-- 6. Production Code / Configuration -->
+      ${topic.codeSnippet ? `
+        <div class="card-code-preview" style="margin-top: 4px;">
+          <div class="code-header">
+            <span>Production Code / Configuration</span>
+            <button class="copy-btn" onclick="app.copyCode(this)">Copy</button>
+          </div>
+          <pre><code>${this.escapeHtml(topic.codeSnippet)}</code></pre>
+        </div>
+      ` : ''}
+
+      <!-- 7. Traps and Tips -->
+      ${(topic.pitfall || topic.interviewTip) ? `
+        <div class="card-callout-grid" style="margin-top: 4px;">
+          ${topic.pitfall ? `
+            <div class="callout-box callout-danger" style="margin: 0;">
+              <span class="callout-icon">⚠️</span>
+              <div><strong>Trap to Avoid:</strong> ${this.escapeHtml(topic.pitfall)}</div>
+            </div>
+          ` : ''}
+          ${topic.interviewTip ? `
+            <div class="callout-box callout-tip" style="margin: 0;">
+              <span class="callout-icon">💡</span>
+              <div><strong>Interview Strategy:</strong> ${this.escapeHtml(topic.interviewTip)}</div>
+            </div>
+          ` : ''}
+        </div>
+      ` : ''}
+    `;
+
+    overlay.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  closeSpringInternalModal() {
+    const overlay = document.getElementById('spring-internals-modal-overlay');
+    if (overlay) overlay.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  navigateSpringInternalModal(direction) {
+    const internals = window.REVISION_APP_DATA?.SPRING_INTERNALS || [];
+    if (internals.length === 0) return;
+    let idx = internals.findIndex(t => t.id === this.currentSpringInternalId);
+    if (idx === -1) idx = 0;
+    const newIdx = (idx + direction + internals.length) % internals.length;
+    this.openSpringInternalModal(internals[newIdx].id);
+  }
+
+  renderSpringTopics(filterCategory = 'internals') {
+    const container = document.getElementById('spring-cards-container');
+    const banner = document.getElementById('spring-active-topic-banner');
+    if (!container) return;
+
+    if (banner && filterCategory !== 'custom') {
+      banner.style.display = 'none';
+    }
 
     const archTopics = window.REVISION_APP_DATA?.SPRING_TOPICS || [];
     const scenarioQs = (window.REVISION_APP_DATA?.SPRING_QUESTIONS || []).map(q => this.formatQuestionAsTopic(q, 'Spring Scenario'));
+    const internals = (window.REVISION_APP_DATA?.SPRING_INTERNALS || []).map(item => this.formatSpringInternalAsTopic(item));
+
+    const isCatMatch = (catId, tc) => {
+      if (catId === 'bootstrap') return tc === 'Bootstrap & Core Engine';
+      if (catId === 'dependencies') return tc === 'Auto-Config & Dependencies';
+      if (catId === 'ioc') return tc === 'Core IoC & Proxies';
+      if (catId === 'config') return tc === 'Configuration & Properties';
+      if (catId === 'web') return tc === 'Web & Server Engine' || tc === 'Web, Server & Observability';
+      return false;
+    };
 
     let list = [];
-    if (filterCategory === 'architecture') {
+    if (filterCategory === 'internals') {
+      list = internals;
+    } else if (filterCategory === 'architecture') {
       list = archTopics;
     } else if (filterCategory === 'scenarios' || filterCategory === 'questions') {
       list = scenarioQs;
+    } else if (filterCategory === 'bootstrap' || filterCategory === 'dependencies' || filterCategory === 'ioc' || filterCategory === 'config' || filterCategory === 'web') {
+      const rawInternals = window.REVISION_APP_DATA?.SPRING_INTERNALS || [];
+      list = rawInternals.filter(t => isCatMatch(filterCategory, t.category)).map(item => this.formatSpringInternalAsTopic(item));
     } else {
-      list = [...archTopics, ...scenarioQs];
+      // 'all'
+      list = [...internals, ...archTopics, ...scenarioQs];
     }
 
     container.innerHTML = this.renderTopicCardsHtml(list, 'border-spring');
+
+    const totalEl = document.getElementById('spring-total-count');
+    if (totalEl) totalEl.textContent = (archTopics.length + scenarioQs.length + internals.length);
   }
 
   filterSpringCategory(cat) {
@@ -542,11 +1639,1937 @@ class RevisionApp {
     this.renderSpringTopics(cat);
   }
 
-  renderDsaTopics() {
-    const container = document.getElementById('dsa-cards-container');
+  // -------------------------------------------------------------
+  // Java Design Patterns (24 GoF & Modern Patterns)
+  // -------------------------------------------------------------
+  renderJavaPatternsSelector() {
+    const select = document.getElementById('patterns-select');
+    if (!select) return;
+
+    const patterns = window.REVISION_APP_DATA?.JAVA_PATTERNS || [];
+    const categories = window.REVISION_APP_DATA?.JAVA_PATTERN_CATEGORIES || [
+      { id: "creational", title: "🏗️ Creational Patterns (5)" },
+      { id: "structural", title: "🧩 Structural Patterns (7)" },
+      { id: "behavioral", title: "🔄 Behavioral Patterns (11)" },
+      { id: "modern", title: "⚡ Modern Idioms & DI (1)" }
+    ];
+
+    let html = '<option value="all">-- Jump to any of the 24 Design Patterns --</option>';
+    categories.forEach(cat => {
+      const catPatterns = patterns.filter(p => p.category.toLowerCase().includes(cat.id.toLowerCase()));
+      if (catPatterns.length > 0) {
+        html += `<optgroup label="${cat.title} (${catPatterns.length} Patterns)">`;
+        catPatterns.forEach(p => {
+          html += `<option value="${p.id}">${p.title}</option>`;
+        });
+        html += `</optgroup>`;
+      }
+    });
+
+    select.innerHTML = html;
+  }
+
+  selectJavaPattern(patternId) {
+    const banner = document.getElementById('patterns-active-banner');
+    const container = document.getElementById('patterns-cards-container');
+    const select = document.getElementById('patterns-select');
     if (!container) return;
+
+    if (select && patternId) select.value = patternId;
+
+    if (!patternId || patternId === 'all') {
+      if (banner) banner.style.display = 'none';
+      this.renderJavaPatterns('all');
+      return;
+    }
+
+    const patterns = window.REVISION_APP_DATA?.JAVA_PATTERNS || [];
+    const pattern = patterns.find(p => p.id === patternId);
+    if (!pattern) return;
+
+    if (banner) {
+      banner.style.display = 'block';
+      banner.innerHTML = `
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 14px; flex-wrap: wrap; width: 100%;">
+          <div style="flex: 1 1 500px;">
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 5px; flex-wrap: wrap;">
+              <span class="hero-badge-pill highlight" style="font-size: 0.74rem;">Selected Pattern</span>
+              <strong style="color: var(--text-primary); font-size: 1.05rem;">${pattern.title}</strong>
+              <span class="hero-badge-pill" style="font-size: 0.72rem;">${pattern.badge}</span>
+            </div>
+            <div style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.5;">${pattern.whatIsIt}</div>
+          </div>
+          <div style="display: flex; gap: 8px; align-items: center; flex-wrap: nowrap;">
+            <button class="btn-primary" style="font-size: 0.78rem; padding: 6px 12px; background: #8b5cf6;" onclick="app.openJavaPatternModal('${pattern.id}')">🔍 Open Modal Deep Dive</button>
+            <button class="btn-secondary" style="font-size: 0.78rem; padding: 6px 12px; white-space: nowrap;" onclick="app.selectJavaPattern('all')">✕ View All 24</button>
+          </div>
+        </div>
+      `;
+    }
+
+    const formattedTopic = this.formatJavaPatternAsTopic(pattern);
+    container.innerHTML = this.renderTopicCardsHtml([formattedTopic], 'border-patterns');
+
+    setTimeout(() => {
+      const card = container.querySelector('.cheat-card');
+      if (card) {
+        card.classList.add('open');
+        card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+    }, 40);
+  }
+
+  searchJavaPatterns(query) {
+    const container = document.getElementById('patterns-cards-container');
+    const banner = document.getElementById('patterns-active-banner');
+    if (!container) return;
+
+    const qLower = (query || '').trim().toLowerCase();
+    if (!qLower) {
+      if (banner) banner.style.display = 'none';
+      this.renderJavaPatterns('all');
+      return;
+    }
+
+    const patterns = window.REVISION_APP_DATA?.JAVA_PATTERNS || [];
+    const matches = patterns.filter(p =>
+      (p.title || '').toLowerCase().includes(qLower) ||
+      (p.whatIsIt || '').toLowerCase().includes(qLower) ||
+      (p.internalWorking || '').toLowerCase().includes(qLower) ||
+      (p.complexPart || '').toLowerCase().includes(qLower) ||
+      (p.pitfall || '').toLowerCase().includes(qLower) ||
+      (p.interviewTip || '').toLowerCase().includes(qLower) ||
+      (p.category || '').toLowerCase().includes(qLower) ||
+      (p.badge || '').toLowerCase().includes(qLower) ||
+      (p.codeSnippet || '').toLowerCase().includes(qLower) ||
+      (p.keyPoints || []).some(kp => kp.toLowerCase().includes(qLower))
+    );
+
+    if (banner) {
+      banner.style.display = 'block';
+      banner.innerHTML = `
+        <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; width: 100%;">
+          <div>
+            <span class="hero-badge-pill highlight" style="font-size: 0.74rem;">Search Filter</span>
+            <span style="font-size: 0.88rem; color: var(--text-primary); margin-left: 8px;">
+              Found <strong>${matches.length}</strong> pattern${matches.length === 1 ? '' : 's'} matching "<strong>${this.escapeHtml(query)}</strong>"
+            </span>
+          </div>
+          <button class="btn-secondary" style="font-size: 0.74rem; padding: 4px 10px;" onclick="document.getElementById('patterns-search').value = ''; app.searchJavaPatterns('');">✕ Clear Search</button>
+        </div>
+      `;
+    }
+
+    const formattedList = matches.map(item => this.formatJavaPatternAsTopic(item));
+    container.innerHTML = formattedList.length > 0
+      ? this.renderTopicCardsHtml(formattedList, 'border-patterns')
+      : `<div class="empty-state" style="padding: 40px; text-align: center; color: var(--text-muted); grid-column: 1 / -1;">
+          <div style="font-size: 2rem; margin-bottom: 8px;">🔍</div>
+          <div>No Java patterns found matching "<strong>${this.escapeHtml(query)}</strong>". Try searching for <em>Singleton</em>, <em>Builder</em>, <em>Decorator</em>, <em>Strategy</em>, or <em>Observer</em>.</div>
+        </div>`;
+
+    if (formattedList.length > 0) {
+      setTimeout(() => {
+        const firstCard = container.querySelector('.cheat-card');
+        if (firstCard) firstCard.classList.add('open');
+      }, 40);
+    }
+  }
+
+  formatJavaPatternAsTopic(item) {
+    return {
+      id: item.id,
+      title: item.title,
+      category: `Java Pattern: ${item.category}`,
+      badge: item.badge || 'GoF Pattern',
+      oneLiner: item.whatIsIt,
+      visualDiagram: `
+        <!-- 1. What Is It Exactly (Elevator Pitch) -->
+        <div class="callout-box callout-info" style="margin: 0 0 14px 0; background: rgba(139, 92, 246, 0.08); border-left: 4px solid #8b5cf6;">
+          <span class="callout-icon">💡</span>
+          <div>
+            <strong style="color: #a78bfa; display: block; margin-bottom: 4px; font-size: 0.85rem;">What is it exactly? (Elevator Pitch)</strong>
+            <div style="font-size: 0.86rem; color: var(--text-primary); line-height: 1.55;">${this.escapeHtml(item.whatIsIt)}</div>
+          </div>
+        </div>
+
+        <!-- 2. Visual Mental Model / Flow Diagram -->
+        ${item.visualDiagram || ''}
+
+        <!-- 3. Under the Hood Execution Mechanics -->
+        <div style="margin: 14px 0 12px 0;">
+          <div style="font-size: 0.84rem; font-weight: 700; color: var(--accent-patterns, #a78bfa); margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
+            <span>⚙️</span> Under the Hood (Internal Execution Mechanics):
+          </div>
+          <div style="font-size: 0.84rem; line-height: 1.6; color: var(--text-secondary); background: var(--bg-tertiary); padding: 12px 14px; border-radius: var(--radius-sm); border-left: 3px solid #8b5cf6;">
+            ${this.escapeHtml(item.internalWorking)}
+          </div>
+        </div>
+
+        <!-- 4. Complex Part You Must Know (Senior Trap) -->
+        <div class="callout-box callout-danger" style="margin: 14px 0 14px 0; border-left: 4px solid #f87171; background: rgba(239, 68, 68, 0.08);">
+          <span class="callout-icon">🔥</span>
+          <div>
+            <strong style="color: #f87171; display: block; margin-bottom: 4px; font-size: 0.85rem;">Complex Part You Must Know (Senior/Staff Level Trap):</strong>
+            <div style="font-size: 0.84rem; color: var(--text-secondary); line-height: 1.55;">${this.escapeHtml(item.complexPart)}</div>
+          </div>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; margin-bottom: 6px;">
+          <button class="btn-primary" style="font-size: 0.76rem; padding: 5px 12px; background: #6d28d9; border-color: #8b5cf6;" onclick="event.stopPropagation(); app.openJavaPatternModal('${item.id}')">
+            🔍 Open Full-Screen Diagram &amp; Deep Dive Modal
+          </button>
+        </div>
+      `,
+      keyPoints: item.keyPoints || [],
+      codeSnippet: item.codeSnippet,
+      pitfall: item.pitfall,
+      interviewTip: item.interviewTip
+    };
+  }
+
+  openJavaPatternModal(patternId) {
+    const patterns = window.REVISION_APP_DATA?.JAVA_PATTERNS || [];
+    const pattern = patterns.find(p => p.id === patternId);
+    if (!pattern) return;
+
+    this.currentJavaPatternId = patternId;
+
+    const overlay = document.getElementById('patterns-modal-overlay');
+    const catBadge = document.getElementById('pattern-modal-category-badge');
+    const badge = document.getElementById('pattern-modal-badge');
+    const title = document.getElementById('pattern-modal-title');
+    const body = document.getElementById('pattern-modal-body');
+    const footerCount = document.getElementById('pattern-modal-footer-count');
+    if (!overlay || !body) return;
+
+    const currentIndex = patterns.findIndex(p => p.id === patternId);
+    if (catBadge) catBadge.textContent = pattern.category;
+    if (badge) badge.textContent = pattern.badge;
+    if (title) title.textContent = pattern.title;
+    if (footerCount) footerCount.textContent = `Pattern ${currentIndex + 1} of ${patterns.length}: ${pattern.title}`;
+
+    body.innerHTML = `
+      <!-- 1. What Is It Exactly (Elevator Pitch) -->
+      <div class="callout-box callout-info" style="margin: 0; background: rgba(139, 92, 246, 0.08); border-left: 4px solid #8b5cf6;">
+        <span class="callout-icon" style="font-size: 1.3rem;">💡</span>
+        <div>
+          <strong style="color: #a78bfa; display: block; font-size: 0.95rem; margin-bottom: 4px;">What Is It Exactly?</strong>
+          <div style="font-size: 0.92rem; color: var(--text-primary); line-height: 1.6;">${this.escapeHtml(pattern.whatIsIt)}</div>
+        </div>
+      </div>
+
+      <!-- 2. Visual Mental Model / Flow Diagram -->
+      <div style="margin: 2px 0;">
+        ${pattern.visualDiagram || ''}
+      </div>
+
+      <!-- 3. Under the Hood Mechanics -->
+      <div style="background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 16px 18px;">
+        <div style="font-size: 0.92rem; font-weight: 700; color: var(--accent-patterns, #a78bfa); margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">
+          <span style="font-size: 1.15rem;">⚙️</span>
+          <span>Under the Hood (Internal Execution Mechanics):</span>
+        </div>
+        <div style="font-size: 0.88rem; line-height: 1.68; color: var(--text-secondary);">
+          ${this.escapeHtml(pattern.internalWorking)}
+        </div>
+      </div>
+
+      <!-- 4. Complex Part You Must Know (Senior Trap) -->
+      <div class="callout-box callout-danger" style="margin: 0; border-left: 4px solid #f87171; background: rgba(239, 68, 68, 0.08);">
+        <span class="callout-icon" style="font-size: 1.3rem;">🔥</span>
+        <div>
+          <strong style="color: #f87171; display: block; font-size: 0.95rem; margin-bottom: 4px;">Complex Part You Must Know (Senior/Staff Trap):</strong>
+          <div style="font-size: 0.88rem; color: var(--text-secondary); line-height: 1.6;">${this.escapeHtml(pattern.complexPart)}</div>
+        </div>
+      </div>
+
+      <!-- 5. Core Architectural Invariants -->
+      <div style="margin-top: 4px;">
+        <div style="font-size: 0.88rem; font-weight: 700; color: var(--text-link); margin-bottom: 8px;">
+          📌 Core Architectural Invariants:
+        </div>
+        <ul class="key-points-list">
+          ${pattern.keyPoints.map(kp => `
+            <li class="key-point-item">
+              <span class="point-bullet">›</span>
+              <span style="font-size: 0.86rem;">${this.escapeHtml(kp)}</span>
+            </li>
+          `).join('')}
+        </ul>
+      </div>
+
+      <!-- 6. Production Code -->
+      ${pattern.codeSnippet ? `
+        <div class="card-code-preview" style="margin-top: 4px;">
+          <div class="code-header">
+            <span>Production Java 17+ Implementation</span>
+            <button class="copy-btn" onclick="app.copyCode(this)">Copy</button>
+          </div>
+          <pre><code>${this.escapeHtml(pattern.codeSnippet)}</code></pre>
+        </div>
+      ` : ''}
+
+      <!-- 7. Traps and Tips -->
+      ${(pattern.pitfall || pattern.interviewTip) ? `
+        <div class="card-callout-grid" style="margin-top: 4px;">
+          ${pattern.pitfall ? `
+            <div class="callout-box callout-danger" style="margin: 0;">
+              <span class="callout-icon">⚠️</span>
+              <div><strong>Trap to Avoid:</strong> ${this.escapeHtml(pattern.pitfall)}</div>
+            </div>
+          ` : ''}
+          ${pattern.interviewTip ? `
+            <div class="callout-box callout-tip" style="margin: 0;">
+              <span class="callout-icon">💡</span>
+              <div><strong>Interview Strategy:</strong> ${this.escapeHtml(pattern.interviewTip)}</div>
+            </div>
+          ` : ''}
+        </div>
+      ` : ''}
+    `;
+
+    overlay.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  closeJavaPatternModal() {
+    const overlay = document.getElementById('patterns-modal-overlay');
+    if (overlay) overlay.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  navigateJavaPatternModal(direction) {
+    const patterns = window.REVISION_APP_DATA?.JAVA_PATTERNS || [];
+    if (patterns.length === 0) return;
+    let idx = patterns.findIndex(p => p.id === this.currentJavaPatternId);
+    if (idx === -1) idx = 0;
+    const newIdx = (idx + direction + patterns.length) % patterns.length;
+    this.openJavaPatternModal(patterns[newIdx].id);
+  }
+
+  renderJavaPatterns(filterCategory = 'all') {
+    const container = document.getElementById('patterns-cards-container');
+    const banner = document.getElementById('patterns-active-banner');
+    if (!container) return;
+
+    if (banner) {
+      banner.style.display = 'none';
+    }
+
+    const patterns = window.REVISION_APP_DATA?.JAVA_PATTERNS || [];
+    let list = patterns;
+    if (filterCategory !== 'all') {
+      list = patterns.filter(p => p.category.toLowerCase().includes(filterCategory.toLowerCase()));
+    }
+
+    const formattedList = list.map(p => this.formatJavaPatternAsTopic(p));
+    container.innerHTML = this.renderTopicCardsHtml(formattedList, 'border-patterns');
+  }
+
+  filterJavaPatternsCategory(cat) {
+    const container = document.getElementById('section-design-patterns');
+    if (container) {
+      container.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+      event?.target?.classList.add('active');
+    }
+    this.renderJavaPatterns(cat);
+  }
+
+  // -------------------------------------------------------------
+  // Microservices Design Patterns (25 Distributed Architecture Patterns)
+  // -------------------------------------------------------------
+  renderMicroservicesPatternsSelector() {
+    const select = document.getElementById('microservices-select');
+    if (!select) return;
+
+    const patterns = window.REVISION_APP_DATA?.MICROSERVICES_PATTERNS || [];
+    const categories = window.REVISION_APP_DATA?.MICROSERVICES_PATTERN_CATEGORIES || [
+      { id: "decomposition", title: "🧩 Decomposition Patterns (4)" },
+      { id: "data", title: "💾 Data Management & Consistency (7)" },
+      { id: "integration", title: "🚪 Integration & API Management (4)" },
+      { id: "resilience", title: "🛡️ Reliability & Resilience (5)" },
+      { id: "observability", title: "📊 Observability & Deployment (5)" }
+    ];
+
+    let html = '<option value="all">-- Jump to any of the 25 Microservices Patterns --</option>';
+    categories.forEach(cat => {
+      const catPatterns = patterns.filter(p => p.category.toLowerCase().includes(cat.id.toLowerCase()));
+      if (catPatterns.length > 0) {
+        html += `<optgroup label="${cat.title} (${catPatterns.length} Patterns)">`;
+        catPatterns.forEach(p => {
+          html += `<option value="${p.id}">${p.title}</option>`;
+        });
+        html += `</optgroup>`;
+      }
+    });
+
+    select.innerHTML = html;
+  }
+
+  selectMicroservicesPattern(patternId) {
+    const banner = document.getElementById('microservices-active-banner');
+    const container = document.getElementById('microservices-cards-container');
+    const select = document.getElementById('microservices-select');
+    if (!container) return;
+
+    if (select && patternId) select.value = patternId;
+
+    if (!patternId || patternId === 'all') {
+      if (banner) banner.style.display = 'none';
+      this.renderMicroservicesPatterns('all');
+      return;
+    }
+
+    const patterns = window.REVISION_APP_DATA?.MICROSERVICES_PATTERNS || [];
+    const pattern = patterns.find(p => p.id === patternId);
+    if (!pattern) return;
+
+    if (banner) {
+      banner.style.display = 'block';
+      banner.innerHTML = `
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 14px; flex-wrap: wrap; width: 100%;">
+          <div style="flex: 1 1 500px;">
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 5px; flex-wrap: wrap;">
+              <span class="hero-badge-pill highlight" style="font-size: 0.74rem;">Selected Pattern</span>
+              <strong style="color: var(--text-primary); font-size: 1.05rem;">${pattern.title}</strong>
+              <span class="hero-badge-pill" style="font-size: 0.72rem;">${pattern.badge}</span>
+            </div>
+            <div style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.5;">${pattern.whatIsIt}</div>
+          </div>
+          <div style="display: flex; gap: 8px; align-items: center; flex-wrap: nowrap;">
+            <button class="btn-primary" style="font-size: 0.78rem; padding: 6px 12px; background: #0284c7;" onclick="app.openMicroservicesPatternModal('${pattern.id}')">🔍 Open Modal Deep Dive</button>
+            <button class="btn-secondary" style="font-size: 0.78rem; padding: 6px 12px; white-space: nowrap;" onclick="app.selectMicroservicesPattern('all')">✕ View All 25</button>
+          </div>
+        </div>
+      `;
+    }
+
+    const formattedTopic = this.formatMicroservicesPatternAsTopic(pattern);
+    container.innerHTML = this.renderTopicCardsHtml([formattedTopic], 'border-microservices');
+
+    setTimeout(() => {
+      const card = container.querySelector('.cheat-card');
+      if (card) {
+        card.classList.add('open');
+        card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+    }, 40);
+  }
+
+  searchMicroservicesPatterns(query) {
+    const container = document.getElementById('microservices-cards-container');
+    const banner = document.getElementById('microservices-active-banner');
+    if (!container) return;
+
+    const qLower = (query || '').trim().toLowerCase();
+    if (!qLower) {
+      if (banner) banner.style.display = 'none';
+      this.renderMicroservicesPatterns('all');
+      return;
+    }
+
+    const patterns = window.REVISION_APP_DATA?.MICROSERVICES_PATTERNS || [];
+    const matches = patterns.filter(p =>
+      (p.title || '').toLowerCase().includes(qLower) ||
+      (p.whatIsIt || '').toLowerCase().includes(qLower) ||
+      (p.internalWorking || '').toLowerCase().includes(qLower) ||
+      (p.complexPart || '').toLowerCase().includes(qLower) ||
+      (p.pitfall || '').toLowerCase().includes(qLower) ||
+      (p.interviewTip || '').toLowerCase().includes(qLower) ||
+      (p.category || '').toLowerCase().includes(qLower) ||
+      (p.badge || '').toLowerCase().includes(qLower) ||
+      (p.codeSnippet || '').toLowerCase().includes(qLower) ||
+      (p.keyPoints || []).some(kp => kp.toLowerCase().includes(qLower))
+    );
+
+    if (banner) {
+      banner.style.display = 'block';
+      banner.innerHTML = `
+        <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; width: 100%;">
+          <div>
+            <span class="hero-badge-pill highlight" style="font-size: 0.74rem;">Search Filter</span>
+            <span style="font-size: 0.88rem; color: var(--text-primary); margin-left: 8px;">
+              Found <strong>${matches.length}</strong> pattern${matches.length === 1 ? '' : 's'} matching "<strong>${this.escapeHtml(query)}</strong>"
+            </span>
+          </div>
+          <button class="btn-secondary" style="font-size: 0.74rem; padding: 4px 10px;" onclick="document.getElementById('microservices-search').value = ''; app.searchMicroservicesPatterns('');">✕ Clear Search</button>
+        </div>
+      `;
+    }
+
+    const formattedList = matches.map(item => this.formatMicroservicesPatternAsTopic(item));
+    container.innerHTML = formattedList.length > 0
+      ? this.renderTopicCardsHtml(formattedList, 'border-microservices')
+      : `<div class="empty-state" style="padding: 40px; text-align: center; color: var(--text-muted); grid-column: 1 / -1;">
+          <div style="font-size: 2rem; margin-bottom: 8px;">🔍</div>
+          <div>No microservices patterns found matching "<strong>${this.escapeHtml(query)}</strong>". Try searching for <em>Saga</em>, <em>Outbox</em>, <em>CQRS</em>, <em>Circuit Breaker</em>, or <em>Service Mesh</em>.</div>
+        </div>`;
+
+    if (formattedList.length > 0) {
+      setTimeout(() => {
+        const firstCard = container.querySelector('.cheat-card');
+        if (firstCard) firstCard.classList.add('open');
+      }, 40);
+    }
+  }
+
+  formatMicroservicesPatternAsTopic(item) {
+    return {
+      id: item.id,
+      title: item.title,
+      category: `Microservices: ${item.category}`,
+      badge: item.badge || 'Cloud Architecture',
+      oneLiner: item.whatIsIt,
+      visualDiagram: `
+        <!-- 1. What Is It Exactly (Elevator Pitch) -->
+        <div class="callout-box callout-info" style="margin: 0 0 14px 0; background: rgba(14, 165, 233, 0.08); border-left: 4px solid #0ea5e9;">
+          <span class="callout-icon">💡</span>
+          <div>
+            <strong style="color: #38bdf8; display: block; margin-bottom: 4px; font-size: 0.85rem;">What is it exactly? (Elevator Pitch)</strong>
+            <div style="font-size: 0.86rem; color: var(--text-primary); line-height: 1.55;">${this.escapeHtml(item.whatIsIt)}</div>
+          </div>
+        </div>
+
+        <!-- 2. Visual Mental Model / Flow Diagram -->
+        ${item.visualDiagram || ''}
+
+        <!-- 3. Under the Hood Execution Mechanics -->
+        <div style="margin: 14px 0 12px 0;">
+          <div style="font-size: 0.84rem; font-weight: 700; color: var(--accent-microservices, #38bdf8); margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
+            <span>⚙️</span> Under the Hood (Internal Execution Mechanics):
+          </div>
+          <div style="font-size: 0.84rem; line-height: 1.6; color: var(--text-secondary); background: var(--bg-tertiary); padding: 12px 14px; border-radius: var(--radius-sm); border-left: 3px solid #0ea5e9;">
+            ${this.escapeHtml(item.internalWorking)}
+          </div>
+        </div>
+
+        <!-- 4. Complex Part You Must Know (Senior Trap) -->
+        <div class="callout-box callout-danger" style="margin: 14px 0 14px 0; border-left: 4px solid #f87171; background: rgba(239, 68, 68, 0.08);">
+          <span class="callout-icon">🔥</span>
+          <div>
+            <strong style="color: #f87171; display: block; margin-bottom: 4px; font-size: 0.85rem;">Complex Part You Must Know (Senior/Staff Level Trap):</strong>
+            <div style="font-size: 0.84rem; color: var(--text-secondary); line-height: 1.55;">${this.escapeHtml(item.complexPart)}</div>
+          </div>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; margin-bottom: 6px;">
+          <button class="btn-primary" style="font-size: 0.76rem; padding: 5px 12px; background: #0369a1; border-color: #0ea5e9;" onclick="event.stopPropagation(); app.openMicroservicesPatternModal('${item.id}')">
+            🔍 Open Full-Screen Diagram &amp; Deep Dive Modal
+          </button>
+        </div>
+      `,
+      keyPoints: item.keyPoints || [],
+      codeSnippet: item.codeSnippet,
+      pitfall: item.pitfall,
+      interviewTip: item.interviewTip
+    };
+  }
+
+  openMicroservicesPatternModal(patternId) {
+    const patterns = window.REVISION_APP_DATA?.MICROSERVICES_PATTERNS || [];
+    const pattern = patterns.find(p => p.id === patternId);
+    if (!pattern) return;
+
+    this.currentMicroservicesPatternId = patternId;
+
+    const overlay = document.getElementById('microservices-modal-overlay');
+    const catBadge = document.getElementById('ms-modal-category-badge');
+    const badge = document.getElementById('ms-modal-badge');
+    const title = document.getElementById('ms-modal-title');
+    const body = document.getElementById('ms-modal-body');
+    const footerCount = document.getElementById('ms-modal-footer-count');
+    if (!overlay || !body) return;
+
+    const currentIndex = patterns.findIndex(p => p.id === patternId);
+    if (catBadge) catBadge.textContent = pattern.category;
+    if (badge) badge.textContent = pattern.badge;
+    if (title) title.textContent = pattern.title;
+    if (footerCount) footerCount.textContent = `Pattern ${currentIndex + 1} of ${patterns.length}: ${pattern.title}`;
+
+    body.innerHTML = `
+      <!-- 1. What Is It Exactly (Elevator Pitch) -->
+      <div class="callout-box callout-info" style="margin: 0; background: rgba(14, 165, 233, 0.08); border-left: 4px solid #0ea5e9;">
+        <span class="callout-icon" style="font-size: 1.3rem;">💡</span>
+        <div>
+          <strong style="color: #38bdf8; display: block; font-size: 0.95rem; margin-bottom: 4px;">What Is It Exactly?</strong>
+          <div style="font-size: 0.92rem; color: var(--text-primary); line-height: 1.6;">${this.escapeHtml(pattern.whatIsIt)}</div>
+        </div>
+      </div>
+
+      <!-- 2. Visual Mental Model / Flow Diagram -->
+      <div style="margin: 2px 0;">
+        ${pattern.visualDiagram || ''}
+      </div>
+
+      <!-- 3. Under the Hood Mechanics -->
+      <div style="background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 16px 18px;">
+        <div style="font-size: 0.92rem; font-weight: 700; color: var(--accent-microservices, #38bdf8); margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">
+          <span style="font-size: 1.15rem;">⚙️</span>
+          <span>Under the Hood (Internal Execution Mechanics):</span>
+        </div>
+        <div style="font-size: 0.88rem; line-height: 1.68; color: var(--text-secondary);">
+          ${this.escapeHtml(pattern.internalWorking)}
+        </div>
+      </div>
+
+      <!-- 4. Complex Part You Must Know (Senior Trap) -->
+      <div class="callout-box callout-danger" style="margin: 0; border-left: 4px solid #f87171; background: rgba(239, 68, 68, 0.08);">
+        <span class="callout-icon" style="font-size: 1.3rem;">🔥</span>
+        <div>
+          <strong style="color: #f87171; display: block; font-size: 0.95rem; margin-bottom: 4px;">Complex Part You Must Know (Senior/Staff Trap):</strong>
+          <div style="font-size: 0.88rem; color: var(--text-secondary); line-height: 1.6;">${this.escapeHtml(pattern.complexPart)}</div>
+        </div>
+      </div>
+
+      <!-- 5. Core Architectural Invariants -->
+      <div style="margin-top: 4px;">
+        <div style="font-size: 0.88rem; font-weight: 700; color: var(--text-link); margin-bottom: 8px;">
+          📌 Core Architectural Invariants:
+        </div>
+        <ul class="key-points-list">
+          ${pattern.keyPoints.map(kp => `
+            <li class="key-point-item">
+              <span class="point-bullet">›</span>
+              <span style="font-size: 0.86rem;">${this.escapeHtml(kp)}</span>
+            </li>
+          `).join('')}
+        </ul>
+      </div>
+
+      <!-- 6. Production Code -->
+      ${pattern.codeSnippet ? `
+        <div class="card-code-preview" style="margin-top: 4px;">
+          <div class="code-header">
+            <span>Production Java 17+ / Spring Boot 3 Implementation</span>
+            <button class="copy-btn" onclick="app.copyCode(this)">Copy</button>
+          </div>
+          <pre><code>${this.escapeHtml(pattern.codeSnippet)}</code></pre>
+        </div>
+      ` : ''}
+
+      <!-- 7. Traps and Tips -->
+      ${(pattern.pitfall || pattern.interviewTip) ? `
+        <div class="card-callout-grid" style="margin-top: 4px;">
+          ${pattern.pitfall ? `
+            <div class="callout-box callout-danger" style="margin: 0;">
+              <span class="callout-icon">⚠️</span>
+              <div><strong>Trap to Avoid:</strong> ${this.escapeHtml(pattern.pitfall)}</div>
+            </div>
+          ` : ''}
+          ${pattern.interviewTip ? `
+            <div class="callout-box callout-tip" style="margin: 0;">
+              <span class="callout-icon">💡</span>
+              <div><strong>Interview Strategy:</strong> ${this.escapeHtml(pattern.interviewTip)}</div>
+            </div>
+          ` : ''}
+        </div>
+      ` : ''}
+    `;
+
+    overlay.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  closeMicroservicesPatternModal() {
+    const overlay = document.getElementById('microservices-modal-overlay');
+    if (overlay) overlay.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  navigateMicroservicesPatternModal(direction) {
+    const patterns = window.REVISION_APP_DATA?.MICROSERVICES_PATTERNS || [];
+    if (patterns.length === 0) return;
+    let idx = patterns.findIndex(p => p.id === this.currentMicroservicesPatternId);
+    if (idx === -1) idx = 0;
+    const newIdx = (idx + direction + patterns.length) % patterns.length;
+    this.openMicroservicesPatternModal(patterns[newIdx].id);
+  }
+
+  renderMicroservicesPatterns(filterCategory = 'all') {
+    const container = document.getElementById('microservices-cards-container');
+    const banner = document.getElementById('microservices-active-banner');
+    if (!container) return;
+
+    if (banner) {
+      banner.style.display = 'none';
+    }
+
+    const patterns = window.REVISION_APP_DATA?.MICROSERVICES_PATTERNS || [];
+    let list = patterns;
+    if (filterCategory !== 'all') {
+      list = patterns.filter(p => p.category.toLowerCase().includes(filterCategory.toLowerCase()));
+    }
+
+    const formattedList = list.map(p => this.formatMicroservicesPatternAsTopic(p));
+    container.innerHTML = this.renderTopicCardsHtml(formattedList, 'border-microservices');
+  }
+
+  filterMicroservicesCategory(cat) {
+    const container = document.getElementById('section-microservices');
+    if (container) {
+      container.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+      event?.target?.classList.add('active');
+    }
+    this.renderMicroservicesPatterns(cat);
+  }
+
+  // -------------------------------------------------------------
+  // DSA Master Patterns & Blueprints (30 Topics)
+  // -------------------------------------------------------------
+  renderDsaPatternsSelector() {
+    const select = document.getElementById('dsa-select');
+    if (!select) return;
+
     const topics = window.REVISION_APP_DATA?.DSA_TOPICS || [];
-    container.innerHTML = this.renderTopicCardsHtml(topics, 'border-dsa');
+    const categories = window.REVISION_APP_DATA?.DSA_CATEGORIES || [
+      { id: "pointers", title: "👉 Two Pointers & Window (3)" },
+      { id: "stacks", title: "📚 Stacks, Queues & Intervals (4)" },
+      { id: "binary_search", title: "🎯 Binary Search & Heaps (4)" },
+      { id: "graphs", title: "🕸️ Trees, Graphs & DSU (5)" },
+      { id: "dp", title: "⚡ Dynamic Programming & Backtracking (6)" },
+      { id: "advanced", title: "🛠️ Advanced & System Structures (8)" }
+    ];
+
+    const isMatch = (catId, catStr) => {
+      const c = (catStr || '').toLowerCase();
+      if (catId === 'pointers') return c.includes('pointer') || c.includes('window');
+      if (catId === 'stacks') return c.includes('stack') || c.includes('queue') || c.includes('interval');
+      if (catId === 'binary_search') return c.includes('binary') || c.includes('heap');
+      if (catId === 'graphs') return c.includes('graph') || c.includes('tree') || c.includes('dsu');
+      if (catId === 'dp') return c.includes('dynamic') || c.includes('backtrack');
+      if (catId === 'advanced') return c.includes('advanced') || c.includes('system');
+      return false;
+    };
+
+    let html = '<option value="all">-- Jump to any of the 30 DSA Topics --</option>';
+    categories.forEach(cat => {
+      const catTopics = topics.filter(t => isMatch(cat.id, t.category));
+      if (catTopics.length > 0) {
+        html += `<optgroup label="${cat.title}">`;
+        catTopics.forEach(t => {
+          html += `<option value="${t.id}">${t.title}</option>`;
+        });
+        html += `</optgroup>`;
+      }
+    });
+
+    select.innerHTML = html;
+  }
+
+  selectDsaPattern(patternId) {
+    const banner = document.getElementById('dsa-active-banner');
+    const container = document.getElementById('dsa-cards-container');
+    const select = document.getElementById('dsa-select');
+    if (!container) return;
+
+    if (select && patternId) select.value = patternId;
+
+    if (!patternId || patternId === 'all') {
+      if (banner) banner.style.display = 'none';
+      this.renderDsaTopics('all');
+      return;
+    }
+
+    const topics = window.REVISION_APP_DATA?.DSA_TOPICS || [];
+    const item = topics.find(t => t.id === patternId);
+    if (!item) return;
+
+    if (banner) {
+      banner.style.display = 'block';
+      banner.innerHTML = `
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 14px; flex-wrap: wrap; width: 100%;">
+          <div style="flex: 1 1 500px;">
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 5px; flex-wrap: wrap;">
+              <span class="hero-badge-pill highlight" style="font-size: 0.74rem;">Selected Pattern</span>
+              <strong style="color: var(--text-primary); font-size: 1.05rem;">${item.title}</strong>
+              <span class="hero-badge-pill" style="font-size: 0.72rem;">${item.badge || 'DSA Pattern'}</span>
+            </div>
+            <div style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.5;">${item.whatIsIt || item.summary}</div>
+          </div>
+          <div style="display: flex; gap: 8px; align-items: center; flex-wrap: nowrap;">
+            <button class="btn-primary" style="font-size: 0.78rem; padding: 6px 12px; background: #2563eb;" onclick="app.openDsaModal('${item.id}')">🔍 Open Modal Deep Dive</button>
+            <button class="btn-secondary" style="font-size: 0.78rem; padding: 6px 12px; white-space: nowrap;" onclick="app.selectDsaPattern('all')">✕ View All 30</button>
+          </div>
+        </div>
+      `;
+    }
+
+    const formattedTopic = this.formatDsaPatternAsTopic(item);
+    container.innerHTML = this.renderTopicCardsHtml([formattedTopic], 'border-dsa');
+
+    setTimeout(() => {
+      const card = container.querySelector('.cheat-card');
+      if (card) {
+        card.classList.add('open');
+        card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+    }, 40);
+  }
+
+  searchDsaPatterns(query) {
+    const container = document.getElementById('dsa-cards-container');
+    const banner = document.getElementById('dsa-active-banner');
+    if (!container) return;
+
+    const qLower = (query || '').trim().toLowerCase();
+    if (!qLower) {
+      if (banner) banner.style.display = 'none';
+      this.renderDsaTopics('all');
+      return;
+    }
+
+    const topics = window.REVISION_APP_DATA?.DSA_TOPICS || [];
+    const matches = topics.filter(t =>
+      (t.title || '').toLowerCase().includes(qLower) ||
+      (t.whatIsIt || '').toLowerCase().includes(qLower) ||
+      (t.summary || '').toLowerCase().includes(qLower) ||
+      (t.bruteForce || '').toLowerCase().includes(qLower) ||
+      (t.optimalStrategy || '').toLowerCase().includes(qLower) ||
+      (t.internalWorking || '').toLowerCase().includes(qLower) ||
+      (t.complexPart || '').toLowerCase().includes(qLower) ||
+      (t.pitfall || '').toLowerCase().includes(qLower) ||
+      (t.interviewTip || '').toLowerCase().includes(qLower) ||
+      (t.canonicalProblems || '').toLowerCase().includes(qLower) ||
+      (t.category || '').toLowerCase().includes(qLower) ||
+      (t.badge || '').toLowerCase().includes(qLower) ||
+      (t.triggerSignals || []).some(sig => sig.toLowerCase().includes(qLower)) ||
+      (t.keyPoints || []).some(kp => kp.toLowerCase().includes(qLower))
+    );
+
+    if (banner) {
+      banner.style.display = 'block';
+      banner.innerHTML = `
+        <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; width: 100%;">
+          <div>
+            <span class="hero-badge-pill highlight" style="font-size: 0.74rem;">Search Filter</span>
+            <span style="font-size: 0.88rem; color: var(--text-primary); margin-left: 8px;">
+              Found <strong>${matches.length}</strong> DSA topic${matches.length === 1 ? '' : 's'} matching "<strong>${this.escapeHtml(query)}</strong>"
+            </span>
+          </div>
+          <button class="btn-secondary" style="font-size: 0.74rem; padding: 4px 10px;" onclick="document.getElementById('dsa-search').value = ''; app.searchDsaPatterns('');">✕ Clear Search</button>
+        </div>
+      `;
+    }
+
+    const formattedList = matches.map(item => this.formatDsaPatternAsTopic(item));
+    container.innerHTML = formattedList.length > 0
+      ? this.renderTopicCardsHtml(formattedList, 'border-dsa')
+      : `<div class="empty-state" style="padding: 40px; text-align: center; color: var(--text-muted); grid-column: 1 / -1;">
+          <div style="font-size: 2rem; margin-bottom: 8px;">🔍</div>
+          <div>No DSA topics found matching "<strong>${this.escapeHtml(query)}</strong>". Try searching for <em>Sliding Window</em>, <em>Monotonic Stack</em>, <em>Knapsack</em>, <em>Koko</em>, <em>LRU</em>, or <em>Dijkstra</em>.</div>
+        </div>`;
+
+    if (formattedList.length > 0) {
+      setTimeout(() => {
+        const firstCard = container.querySelector('.cheat-card');
+        if (firstCard) firstCard.classList.add('open');
+      }, 40);
+    }
+  }
+
+  formatDsaPatternAsTopic(item) {
+    const triggerSignalsHtml = (item.triggerSignals && item.triggerSignals.length > 0) ? `
+      <!-- Trigger Signals Callout -->
+      <div class="callout-box callout-tip" style="margin: 0 0 12px 0; background: rgba(56, 189, 248, 0.08); border-left: 4px solid #38bdf8;">
+        <span class="callout-icon">🔍</span>
+        <div>
+          <strong style="color: #38bdf8; display: block; margin-bottom: 4px; font-size: 0.85rem;">How to Identify in Problems (Trigger Keywords &amp; Clues):</strong>
+          <ul style="margin: 0; padding-left: 18px; font-size: 0.84rem; color: var(--text-primary); line-height: 1.55;">
+            ${item.triggerSignals.map(sig => `<li>${this.escapeHtml(sig)}</li>`).join('')}
+          </ul>
+        </div>
+      </div>
+    ` : '';
+
+    const bruteForceHtml = item.bruteForce ? `
+      <!-- Step 1: Brute Force & Bottleneck -->
+      <div class="callout-box callout-danger" style="margin: 0 0 12px 0; background: rgba(239, 68, 68, 0.08); border-left: 4px solid #f87171;">
+        <span class="callout-icon">🚨</span>
+        <div>
+          <strong style="color: #f87171; display: block; margin-bottom: 4px; font-size: 0.85rem;">Step 1: Brute Force Formulation &amp; Computational Bottleneck:</strong>
+          <div style="font-size: 0.84rem; color: var(--text-secondary); line-height: 1.55;">${this.escapeHtml(item.bruteForce)}</div>
+        </div>
+      </div>
+    ` : '';
+
+    const optimalHtml = item.optimalStrategy ? `
+      <!-- Step 2: Optimal Invariant Elimination -->
+      <div class="callout-box callout-info" style="margin: 0 0 12px 0; background: rgba(16, 185, 129, 0.08); border-left: 4px solid #10b981;">
+        <span class="callout-icon">⚡</span>
+        <div>
+          <strong style="color: #34d399; display: block; margin-bottom: 4px; font-size: 0.85rem;">Step 2: Optimal Bottleneck Elimination Strategy:</strong>
+          <div style="font-size: 0.84rem; color: var(--text-secondary); line-height: 1.55;">${this.escapeHtml(item.optimalStrategy)}</div>
+        </div>
+      </div>
+    ` : '';
+
+    const problemsHtml = item.canonicalProblems ? `
+      <!-- Classic Problems Solved -->
+      <div style="margin: 12px 0; background: var(--bg-tertiary); padding: 10px 14px; border-radius: var(--radius-sm); border-left: 3px solid #6366f1;">
+        <div style="font-size: 0.82rem; font-weight: 700; color: #a5b4fc; margin-bottom: 4px;">
+          📚 Canonical LeetCode Problems Solved:
+        </div>
+        <div style="font-size: 0.82rem; color: var(--text-secondary); line-height: 1.5; white-space: pre-line;">
+          ${this.escapeHtml(item.canonicalProblems)}
+        </div>
+      </div>
+    ` : '';
+
+    return {
+      id: item.id,
+      title: item.title,
+      category: `DSA: ${item.category}`,
+      badge: item.badge || 'DSA Pattern',
+      oneLiner: item.whatIsIt || item.summary,
+      visualDiagram: `
+        ${triggerSignalsHtml}
+        ${bruteForceHtml}
+        ${optimalHtml}
+
+        <!-- 3. Visual Mental Model / Flow Diagram -->
+        ${item.visualDiagram || ''}
+
+        <!-- 4. Under the Hood Mechanics -->
+        ${item.internalWorking ? `
+          <div style="margin: 14px 0 12px 0;">
+            <div style="font-size: 0.84rem; font-weight: 700; color: var(--accent-dsa, #60a5fa); margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
+              <span>⚙️</span> Algorithm Invariant Maintenance:
+            </div>
+            <div style="font-size: 0.84rem; line-height: 1.6; color: var(--text-secondary); background: var(--bg-tertiary); padding: 12px 14px; border-radius: var(--radius-sm); border-left: 3px solid #3b82f6;">
+              ${this.escapeHtml(item.internalWorking)}
+            </div>
+          </div>
+        ` : ''}
+
+        <!-- 5. Complex Part / Senior Trap -->
+        ${item.complexPart ? `
+          <div class="callout-box callout-danger" style="margin: 14px 0 14px 0; border-left: 4px solid #f87171; background: rgba(239, 68, 68, 0.08);">
+            <span class="callout-icon">🔥</span>
+            <div>
+              <strong style="color: #f87171; display: block; margin-bottom: 4px; font-size: 0.85rem;">Complex Part &amp; Edge Cases (Senior Trap):</strong>
+              <div style="font-size: 0.84rem; color: var(--text-secondary); line-height: 1.55;">${this.escapeHtml(item.complexPart)}</div>
+            </div>
+          </div>
+        ` : ''}
+
+        ${problemsHtml}
+
+        <div style="display: flex; justify-content: flex-end; margin-bottom: 6px;">
+          <button class="btn-primary" style="font-size: 0.76rem; padding: 5px 12px; background: #1d4ed8; border-color: #3b82f6;" onclick="event.stopPropagation(); app.openDsaModal('${item.id}')">
+            🔍 Open Full-Screen Diagram &amp; Deep Dive Modal
+          </button>
+        </div>
+      `,
+      keyPoints: item.keyPoints || [],
+      codeSnippet: item.codeSnippet,
+      pitfall: item.pitfall,
+      interviewTip: item.interviewTip
+    };
+  }
+
+  openDsaModal(patternId) {
+    const topics = window.REVISION_APP_DATA?.DSA_TOPICS || [];
+    const item = topics.find(t => t.id === patternId);
+    if (!item) return;
+
+    this.currentDsaPatternId = patternId;
+
+    const overlay = document.getElementById('dsa-modal-overlay');
+    const catBadge = document.getElementById('dsa-modal-category-badge');
+    const badge = document.getElementById('dsa-modal-badge');
+    const title = document.getElementById('dsa-modal-title');
+    const body = document.getElementById('dsa-modal-body');
+    const footerCount = document.getElementById('dsa-modal-footer-count');
+    if (!overlay || !body) return;
+
+    const currentIndex = topics.findIndex(t => t.id === patternId);
+    if (catBadge) catBadge.textContent = item.category;
+    if (badge) badge.textContent = item.badge || 'DSA Pattern';
+    if (title) title.textContent = item.title;
+    if (footerCount) footerCount.textContent = `Pattern ${currentIndex + 1} of ${topics.length}: ${item.title}`;
+
+    body.innerHTML = `
+      <!-- 1. What Is It & Mental Model -->
+      <div class="callout-box callout-info" style="margin: 0; background: rgba(56, 189, 248, 0.08); border-left: 4px solid #38bdf8;">
+        <span class="callout-icon" style="font-size: 1.3rem;">💡</span>
+        <div>
+          <strong style="color: #38bdf8; display: block; font-size: 0.95rem; margin-bottom: 4px;">What Is It Exactly? (Elevator Pitch)</strong>
+          <div style="font-size: 0.92rem; color: var(--text-primary); line-height: 1.6;">${this.escapeHtml(item.whatIsIt || item.summary)}</div>
+        </div>
+      </div>
+
+      <!-- Trigger Signals -->
+      ${item.triggerSignals && item.triggerSignals.length > 0 ? `
+        <div style="background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 14px 18px;">
+          <div style="font-size: 0.9rem; font-weight: 700; color: #38bdf8; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
+            <span>🔍</span> Trigger Keywords &amp; Signals in Question Statement:
+          </div>
+          <ul style="margin: 0; padding-left: 18px; font-size: 0.88rem; color: var(--text-secondary); line-height: 1.6;">
+            ${item.triggerSignals.map(sig => `<li>${this.escapeHtml(sig)}</li>`).join('')}
+          </ul>
+        </div>
+      ` : ''}
+
+      <!-- Brute Force vs Optimal Grid -->
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 14px;">
+        ${item.bruteForce ? `
+          <div class="callout-box callout-danger" style="margin: 0; border-left: 4px solid #f87171; background: rgba(239, 68, 68, 0.08);">
+            <span class="callout-icon">🚨</span>
+            <div>
+              <strong style="color: #f87171; display: block; font-size: 0.9rem; margin-bottom: 4px;">Step 1: Brute Force &amp; Bottleneck</strong>
+              <div style="font-size: 0.86rem; color: var(--text-secondary); line-height: 1.6;">${this.escapeHtml(item.bruteForce)}</div>
+            </div>
+          </div>
+        ` : ''}
+
+        ${item.optimalStrategy ? `
+          <div class="callout-box callout-info" style="margin: 0; border-left: 4px solid #10b981; background: rgba(16, 185, 129, 0.08);">
+            <span class="callout-icon">⚡</span>
+            <div>
+              <strong style="color: #34d399; display: block; font-size: 0.9rem; margin-bottom: 4px;">Step 2: Optimal Invariant Strategy</strong>
+              <div style="font-size: 0.86rem; color: var(--text-secondary); line-height: 1.6;">${this.escapeHtml(item.optimalStrategy)}</div>
+            </div>
+          </div>
+        ` : ''}
+      </div>
+
+      <!-- 2. Visual Mental Model / Flow Diagram -->
+      <div style="margin: 2px 0;">
+        ${item.visualDiagram || ''}
+      </div>
+
+      <!-- 3. Internal Working -->
+      ${item.internalWorking ? `
+        <div style="background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 16px 18px;">
+          <div style="font-size: 0.92rem; font-weight: 700; color: var(--accent-dsa, #60a5fa); margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">
+            <span style="font-size: 1.15rem;">⚙️</span>
+            <span>Algorithm Invariant Maintenance &amp; Mechanics:</span>
+          </div>
+          <div style="font-size: 0.88rem; line-height: 1.68; color: var(--text-secondary);">
+            ${this.escapeHtml(item.internalWorking)}
+          </div>
+        </div>
+      ` : ''}
+
+      <!-- 4. Complex Part You Must Know -->
+      ${item.complexPart ? `
+        <div class="callout-box callout-danger" style="margin: 0; border-left: 4px solid #f87171; background: rgba(239, 68, 68, 0.08);">
+          <span class="callout-icon" style="font-size: 1.3rem;">🔥</span>
+          <div>
+            <strong style="color: #f87171; display: block; font-size: 0.95rem; margin-bottom: 4px;">Complex Part You Must Know (Senior Trap):</strong>
+            <div style="font-size: 0.88rem; color: var(--text-secondary); line-height: 1.6;">${this.escapeHtml(item.complexPart)}</div>
+          </div>
+        </div>
+      ` : ''}
+
+      <!-- 5. Core Architectural Invariants -->
+      ${item.keyPoints && item.keyPoints.length > 0 ? `
+        <div style="margin-top: 4px;">
+          <div style="font-size: 0.88rem; font-weight: 700; color: var(--text-link); margin-bottom: 8px;">
+            📌 Core Architectural Invariants:
+          </div>
+          <ul class="key-points-list">
+            ${item.keyPoints.map(kp => `
+              <li class="key-point-item">
+                <span class="point-bullet">›</span>
+                <span style="font-size: 0.86rem;">${this.escapeHtml(kp)}</span>
+              </li>
+            `).join('')}
+          </ul>
+        </div>
+      ` : ''}
+
+      <!-- 6. Production Code Template -->
+      ${item.codeSnippet ? `
+        <div class="card-code-preview" style="margin-top: 4px;">
+          <div class="code-header">
+            <span>Canonical Java 17+ Production Template</span>
+            <button class="copy-btn" onclick="app.copyCode(this)">Copy</button>
+          </div>
+          <pre><code>${this.escapeHtml(item.codeSnippet)}</code></pre>
+        </div>
+      ` : ''}
+
+      <!-- 7. Canonical LeetCode Problems -->
+      ${item.canonicalProblems ? `
+        <div style="background: var(--bg-tertiary); padding: 12px 16px; border-radius: var(--radius-md); border-left: 4px solid #6366f1;">
+          <div style="font-size: 0.9rem; font-weight: 700; color: #a5b4fc; margin-bottom: 6px;">
+            📚 Classic LeetCode Problems Solved With This Pattern:
+          </div>
+          <div style="font-size: 0.86rem; color: var(--text-secondary); line-height: 1.6; white-space: pre-line;">
+            ${this.escapeHtml(item.canonicalProblems)}
+          </div>
+        </div>
+      ` : ''}
+
+      <!-- 8. Traps and Tips -->
+      ${(item.pitfall || item.interviewTip) ? `
+        <div class="card-callout-grid" style="margin-top: 4px;">
+          ${item.pitfall ? `
+            <div class="callout-box callout-danger" style="margin: 0;">
+              <span class="callout-icon">⚠️</span>
+              <div><strong>Trap to Avoid:</strong> ${this.escapeHtml(item.pitfall)}</div>
+            </div>
+          ` : ''}
+          ${item.interviewTip ? `
+            <div class="callout-box callout-tip" style="margin: 0;">
+              <span class="callout-icon">💡</span>
+              <div><strong>Interview Strategy:</strong> ${this.escapeHtml(item.interviewTip)}</div>
+            </div>
+          ` : ''}
+        </div>
+      ` : ''}
+    `;
+
+    overlay.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  closeDsaModal() {
+    const overlay = document.getElementById('dsa-modal-overlay');
+    if (overlay) overlay.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  navigateDsaModal(direction) {
+    const topics = window.REVISION_APP_DATA?.DSA_TOPICS || [];
+    if (topics.length === 0) return;
+    let idx = topics.findIndex(t => t.id === this.currentDsaPatternId);
+    if (idx === -1) idx = 0;
+    const newIdx = (idx + direction + topics.length) % topics.length;
+    this.openDsaModal(topics[newIdx].id);
+  }
+
+  renderDsaTopics(filterCategory = 'all') {
+    const container = document.getElementById('dsa-cards-container');
+    const banner = document.getElementById('dsa-active-banner');
+    if (!container) return;
+
+    if (banner) {
+      banner.style.display = 'none';
+    }
+
+    const topics = window.REVISION_APP_DATA?.DSA_TOPICS || [];
+    const isMatch = (catId, catStr) => {
+      const c = (catStr || '').toLowerCase();
+      if (catId === 'pointers') return c.includes('pointer') || c.includes('window');
+      if (catId === 'stacks') return c.includes('stack') || c.includes('queue') || c.includes('interval');
+      if (catId === 'binary_search') return c.includes('binary') || c.includes('heap');
+      if (catId === 'graphs') return c.includes('graph') || c.includes('tree') || c.includes('dsu');
+      if (catId === 'dp') return c.includes('dynamic') || c.includes('backtrack');
+      if (catId === 'advanced') return c.includes('advanced') || c.includes('system');
+      return false;
+    };
+
+    let list = topics;
+    if (filterCategory !== 'all') {
+      list = topics.filter(t => isMatch(filterCategory, t.category));
+    }
+
+    const formattedList = list.map(t => this.formatDsaPatternAsTopic(t));
+    container.innerHTML = this.renderTopicCardsHtml(formattedList, 'border-dsa');
+  }
+
+  filterDsaCategory(cat) {
+    const container = document.getElementById('section-dsa');
+    if (container) {
+      container.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+      event?.target?.classList.add('active');
+    }
+    this.renderDsaTopics(cat);
+  }
+
+  // -------------------------------------------------------------
+  // AWS Cloud Services & IAM Architecture (9 Core Services)
+  // -------------------------------------------------------------
+  renderAwsSelector() {
+    const select = document.getElementById('aws-select');
+    if (!select) return;
+
+    const services = window.REVISION_APP_DATA?.AWS_SERVICES || [];
+    const categories = window.REVISION_APP_DATA?.AWS_CATEGORIES || [
+      "All Categories",
+      "Security & Identity",
+      "Compute & Containers",
+      "Storage & Database",
+      "Networking & Messaging",
+      "Serverless & APIs"
+    ];
+
+    let html = '<option value="all">⚡ Jump to AWS Service / IAM Blueprint (All 9)...</option>';
+
+    categories.forEach(cat => {
+      if (cat === 'All Categories') return;
+      const catServices = services.filter(s => s.category === cat);
+      if (catServices.length === 0) return;
+
+      html += `<optgroup label="☁️ ${cat} (${catServices.length})">`;
+      catServices.forEach(s => {
+        html += `<option value="${s.id}">${s.title}</option>`;
+      });
+      html += '</optgroup>';
+    });
+
+    select.innerHTML = html;
+  }
+
+  selectAwsTopic(serviceId) {
+    const container = document.getElementById('aws-cards-container');
+    const banner = document.getElementById('aws-active-banner');
+    const select = document.getElementById('aws-select');
+    if (!container) return;
+
+    if (select) select.value = serviceId;
+
+    if (serviceId === 'all') {
+      if (banner) banner.style.display = 'none';
+      this.renderAwsTopics('all');
+      return;
+    }
+
+    const services = window.REVISION_APP_DATA?.AWS_SERVICES || [];
+    const item = services.find(s => s.id === serviceId);
+    if (!item) return;
+
+    if (banner) {
+      banner.style.display = 'block';
+      banner.innerHTML = `
+        <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; width: 100%;">
+          <div>
+            <span class="hero-badge-pill highlight" style="font-size: 0.74rem;">Selected AWS Service</span>
+            <strong style="color: var(--text-primary); margin-left: 8px; font-size: 0.95rem;">${this.escapeHtml(item.title)}</strong>
+            <span style="font-size: 0.8rem; color: var(--text-muted); margin-left: 6px;">[${this.escapeHtml(item.category)}]</span>
+          </div>
+          <div style="display: flex; gap: 8px;">
+            <button class="btn-primary" style="font-size: 0.78rem; padding: 6px 12px; background: #ea580c;" onclick="app.openAwsModal('${item.id}')">🔍 Open Modal Deep Dive</button>
+            <button class="btn-secondary" style="font-size: 0.78rem; padding: 6px 12px; white-space: nowrap;" onclick="app.selectAwsTopic('all')">✕ View All 9</button>
+          </div>
+        </div>
+      `;
+    }
+
+    const formatted = this.formatAwsAsTopic(item);
+    container.innerHTML = this.renderTopicCardsHtml([formatted], 'border-aws');
+
+    setTimeout(() => {
+      const card = container.querySelector('.cheat-card');
+      if (card) {
+        card.classList.add('open');
+        card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }, 40);
+  }
+
+  searchAwsTopics(query) {
+    const container = document.getElementById('aws-cards-container');
+    const banner = document.getElementById('aws-active-banner');
+    if (!container) return;
+
+    const q = (query || '').toLowerCase().trim();
+    if (!q) {
+      if (banner) banner.style.display = 'none';
+      this.renderAwsTopics('all');
+      return;
+    }
+
+    const services = window.REVISION_APP_DATA?.AWS_SERVICES || [];
+    const matches = services.filter(s =>
+      s.title.toLowerCase().includes(q) ||
+      s.category.toLowerCase().includes(q) ||
+      (s.whatIsIt && s.whatIsIt.toLowerCase().includes(q)) ||
+      (s.internalWorking && s.internalWorking.toLowerCase().includes(q)) ||
+      (s.iamConfiguration && s.iamConfiguration.toLowerCase().includes(q)) ||
+      (s.realWorldUseCase && s.realWorldUseCase.toLowerCase().includes(q))
+    );
+
+    if (banner) {
+      banner.style.display = 'block';
+      banner.innerHTML = `
+        <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; width: 100%;">
+          <div>
+            <span class="hero-badge-pill highlight" style="font-size: 0.74rem;">Search Filter</span>
+            <span style="font-size: 0.88rem; color: var(--text-primary); margin-left: 8px;">
+              Found <strong>${matches.length}</strong> AWS service${matches.length === 1 ? '' : 's'} matching "<strong>${this.escapeHtml(query)}</strong>"
+            </span>
+          </div>
+          <button class="btn-secondary" style="font-size: 0.74rem; padding: 4px 10px;" onclick="document.getElementById('aws-search').value = ''; app.searchAwsTopics('');">✕ Clear Search</button>
+        </div>
+      `;
+    }
+
+    const formattedList = matches.map(s => this.formatAwsAsTopic(s));
+    container.innerHTML = formattedList.length > 0
+      ? this.renderTopicCardsHtml(formattedList, 'border-aws')
+      : `<div class="empty-state" style="padding: 40px; text-align: center; color: var(--text-muted); grid-column: 1 / -1;">
+          <div style="font-size: 2rem; margin-bottom: 8px;">🔍</div>
+          <div>No AWS services found matching "<strong>${this.escapeHtml(query)}</strong>". Try searching for <em>IAM</em>, <em>S3</em>, <em>Aurora</em>, <em>SnapStart</em>, or <em>IRSA</em>.</div>
+        </div>`;
+
+    if (formattedList.length > 0) {
+      setTimeout(() => {
+        const firstCard = container.querySelector('.cheat-card');
+        if (firstCard) firstCard.classList.add('open');
+      }, 40);
+    }
+  }
+
+  formatAwsAsTopic(item) {
+    const whenAndWhyHtml = item.whenAndWhy ? `
+      <div class="callout-box callout-info" style="margin: 0 0 12px 0; background: rgba(255, 153, 0, 0.08); border-left: 4px solid #ff9900;">
+        <span class="callout-icon">💡</span>
+        <div>
+          <strong style="color: #ff9900; display: block; margin-bottom: 4px; font-size: 0.85rem;">When &amp; Why to Use (vs Alternatives &amp; Cost Model):</strong>
+          <div style="font-size: 0.84rem; color: var(--text-secondary); line-height: 1.55;">${this.escapeHtml(item.whenAndWhy)}</div>
+        </div>
+      </div>
+    ` : '';
+
+    const iamHtml = item.iamConfiguration ? `
+      <div style="margin: 12px 0; background: var(--bg-tertiary); padding: 12px 14px; border-radius: var(--radius-sm); border-left: 3px solid #ff9900;">
+        <div style="font-size: 0.84rem; font-weight: 700; color: #ff9900; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
+          <span>🔐</span> IAM Role &amp; Security Configuration:
+        </div>
+        <div style="font-size: 0.82rem; color: var(--text-secondary); line-height: 1.55; white-space: pre-wrap; font-family: var(--font-mono);">${this.escapeHtml(item.iamConfiguration)}</div>
+      </div>
+    ` : '';
+
+    const useCaseHtml = item.realWorldUseCase ? `
+      <div style="margin: 12px 0; background: var(--bg-primary); border: 1px solid var(--border-color); padding: 12px 14px; border-radius: var(--radius-sm);">
+        <div style="font-size: 0.84rem; font-weight: 700; color: #34d399; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
+          <span>🚀</span> Real-World Project Architecture &amp; Use Case:
+        </div>
+        <div style="font-size: 0.84rem; color: var(--text-secondary); line-height: 1.55; white-space: pre-line;">${this.escapeHtml(item.realWorldUseCase)}</div>
+      </div>
+    ` : '';
+
+    return {
+      id: item.id,
+      title: item.title,
+      category: `AWS: ${item.category}`,
+      badge: item.badge || 'AWS Core',
+      oneLiner: item.whatIsIt,
+      visualDiagram: `
+        ${whenAndWhyHtml}
+
+        <!-- 1. Visual Flow Diagram -->
+        ${item.visualDiagram || ''}
+
+        <!-- 2. Under-the-Hood Engine Mechanics -->
+        ${item.internalWorking ? `
+          <div style="margin: 14px 0 12px 0;">
+            <div style="font-size: 0.84rem; font-weight: 700; color: var(--accent-aws, #ff9900); margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
+              <span>⚙️</span> Under-the-Hood Engine Mechanics:
+            </div>
+            <div style="font-size: 0.84rem; line-height: 1.6; color: var(--text-secondary); background: var(--bg-tertiary); padding: 12px 14px; border-radius: var(--radius-sm); border-left: 3px solid #f97316; white-space: pre-line;">${this.escapeHtml(item.internalWorking)}</div>
+          </div>
+        ` : ''}
+
+        ${iamHtml}
+        ${useCaseHtml}
+
+        <!-- 3. Complex Part / Senior Trap -->
+        ${item.complexPart ? `
+          <div class="callout-box callout-danger" style="margin: 14px 0 14px 0; border-left: 4px solid #f87171; background: rgba(239, 68, 68, 0.08);">
+            <span class="callout-icon">🔥</span>
+            <div>
+              <strong style="color: #f87171; display: block; margin-bottom: 4px; font-size: 0.85rem;">Complex Part &amp; Edge Cases (Staff Trap):</strong>
+              <div style="font-size: 0.84rem; color: var(--text-secondary); line-height: 1.55;">${this.escapeHtml(item.complexPart)}</div>
+            </div>
+          </div>
+        ` : ''}
+
+        <div style="display: flex; justify-content: flex-end; margin-bottom: 6px;">
+          <button class="btn-primary" style="font-size: 0.76rem; padding: 5px 12px; background: #c2410c; border-color: #ea580c;" onclick="event.stopPropagation(); app.openAwsModal('${item.id}')">
+            🔍 Open Full-Screen Architecture &amp; Deep Dive Modal
+          </button>
+        </div>
+      `,
+      keyPoints: item.keyPoints || [],
+      codeSnippet: item.codeSnippet,
+      pitfall: item.pitfall,
+      interviewTip: item.interviewTip
+    };
+  }
+
+  openAwsModal(serviceId) {
+    const services = window.REVISION_APP_DATA?.AWS_SERVICES || [];
+    const item = services.find(s => s.id === serviceId);
+    if (!item) return;
+
+    this.currentAwsServiceId = serviceId;
+
+    const overlay = document.getElementById('aws-modal-overlay');
+    const catBadge = document.getElementById('aws-modal-category-badge');
+    const badge = document.getElementById('aws-modal-badge');
+    const title = document.getElementById('aws-modal-title');
+    const body = document.getElementById('aws-modal-body');
+    const footerCount = document.getElementById('aws-modal-footer-count');
+    if (!overlay || !body) return;
+
+    const currentIndex = services.findIndex(s => s.id === serviceId);
+    if (catBadge) catBadge.textContent = item.category;
+    if (badge) badge.textContent = item.badge || 'AWS Core';
+    if (title) title.textContent = item.title;
+    if (footerCount) footerCount.textContent = `Service ${currentIndex + 1} of ${services.length}: ${item.title}`;
+
+    body.innerHTML = `
+      <!-- 1. What Is It & Architecture -->
+      <div class="callout-box callout-info" style="margin: 0; background: rgba(255, 153, 0, 0.08); border-left: 4px solid #ff9900;">
+        <span class="callout-icon" style="font-size: 1.3rem;">💡</span>
+        <div>
+          <strong style="color: #ff9900; display: block; font-size: 0.95rem; margin-bottom: 4px;">What Is It Exactly? (Elevator Pitch &amp; Core Architecture)</strong>
+          <div style="font-size: 0.92rem; color: var(--text-primary); line-height: 1.6;">${this.escapeHtml(item.whatIsIt)}</div>
+        </div>
+      </div>
+
+      <!-- 2. When & Why to Use -->
+      <div style="background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 14px 18px;">
+        <div style="font-size: 0.9rem; font-weight: 700; color: #ff9900; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
+          <span>🎯</span> When to Use, Why to Use (vs Alternatives) &amp; Cost Model:
+        </div>
+        <div style="font-size: 0.88rem; color: var(--text-secondary); line-height: 1.6;">
+          ${this.escapeHtml(item.whenAndWhy)}
+        </div>
+      </div>
+
+      <!-- 3. Visual Flow Diagram -->
+      <div style="margin: 2px 0;">
+        ${item.visualDiagram || ''}
+      </div>
+
+      <!-- 4. Under-the-Hood Engine Mechanics -->
+      <div style="background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 16px 18px; border-left: 4px solid #f97316;">
+        <div style="font-size: 0.92rem; font-weight: 700; color: #f97316; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+          <span>⚙️</span> Under-the-Hood Engine Mechanics &amp; Execution Flow:
+        </div>
+        <div style="font-size: 0.88rem; color: var(--text-secondary); line-height: 1.65; white-space: pre-line;">
+          ${this.escapeHtml(item.internalWorking)}
+        </div>
+      </div>
+
+      <!-- 5. IAM Role Configuration -->
+      <div style="background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 16px 18px; border-left: 4px solid #ff9900;">
+        <div style="font-size: 0.92rem; font-weight: 700; color: #ff9900; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+          <span>🔐</span> IAM Role, Policy &amp; Trust Relationship Configuration:
+        </div>
+        <div style="font-size: 0.84rem; color: var(--text-secondary); line-height: 1.6; white-space: pre-wrap; font-family: var(--font-mono); background: var(--bg-secondary); padding: 12px 14px; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+          ${this.escapeHtml(item.iamConfiguration)}
+        </div>
+      </div>
+
+      <!-- 6. Real-World Production Project Use Case -->
+      <div style="background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 16px 18px; border-left: 4px solid #10b981;">
+        <div style="font-size: 0.92rem; font-weight: 700; color: #34d399; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+          <span>🚀</span> Real-World Project Scenario &amp; Production Implementation:
+        </div>
+        <div style="font-size: 0.88rem; color: var(--text-secondary); line-height: 1.65; white-space: pre-line;">
+          ${this.escapeHtml(item.realWorldUseCase)}
+        </div>
+      </div>
+
+      <!-- 7. Production Code Snippet / Manifest -->
+      ${item.codeSnippet ? `
+        <div class="card-code-preview" style="margin: 0;">
+          <div class="code-header" style="background: var(--bg-secondary);">
+            <span style="color: #ff9900; font-weight: 600;">💻 Production Java SDK / Manifest</span>
+            <button class="copy-btn" onclick="app.copyCode(this)">Copy Code</button>
+          </div>
+          <pre style="margin: 0; max-height: 380px; overflow-y: auto;"><code>${this.escapeHtml(item.codeSnippet)}</code></pre>
+        </div>
+      ` : ''}
+
+      <!-- 8. Complex Part & Staff Edge Cases -->
+      ${item.complexPart ? `
+        <div class="callout-box callout-danger" style="margin: 0; border-left: 4px solid #f87171; background: rgba(239, 68, 68, 0.08);">
+          <span class="callout-icon" style="font-size: 1.3rem;">🔥</span>
+          <div>
+            <strong style="color: #f87171; display: block; font-size: 0.92rem; margin-bottom: 4px;">Staff-Level Complex Part &amp; Edge Cases:</strong>
+            <div style="font-size: 0.88rem; color: var(--text-secondary); line-height: 1.6;">${this.escapeHtml(item.complexPart)}</div>
+          </div>
+        </div>
+      ` : ''}
+
+      <!-- 9. Key Architectural Points -->
+      ${item.keyPoints && item.keyPoints.length > 0 ? `
+        <div style="background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 14px 18px;">
+          <div style="font-size: 0.9rem; font-weight: 700; color: #a5b4fc; margin-bottom: 6px;">
+            📌 Core Architectural Invariants:
+          </div>
+          <ul style="margin: 0; padding-left: 18px; font-size: 0.88rem; color: var(--text-secondary); line-height: 1.6;">
+            ${item.keyPoints.map(kp => `<li>${this.escapeHtml(kp)}</li>`).join('')}
+          </ul>
+        </div>
+      ` : ''}
+
+      <!-- 10. Trap & Interview Tip Grid -->
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 14px;">
+        ${item.pitfall ? `
+          <div class="callout-box callout-danger" style="margin: 0;">
+            <span class="callout-icon">⚠️</span>
+            <div>
+              <strong style="color: #f87171; display: block; font-size: 0.88rem; margin-bottom: 2px;">Production Trap / Pitfall:</strong>
+              <div style="font-size: 0.84rem; color: var(--text-secondary); line-height: 1.55;">${this.escapeHtml(item.pitfall)}</div>
+            </div>
+          </div>
+        ` : ''}
+
+        ${item.interviewTip ? `
+          <div class="callout-box callout-tip" style="margin: 0;">
+            <span class="callout-icon">💡</span>
+            <div>
+              <strong style="color: #38bdf8; display: block; font-size: 0.88rem; margin-bottom: 2px;">Staff Interview Strategy:</strong>
+              <div style="font-size: 0.84rem; color: var(--text-secondary); line-height: 1.55;">${this.escapeHtml(item.interviewTip)}</div>
+            </div>
+          </div>
+        ` : ''}
+      </div>
+    `;
+
+    overlay.classList.add('open');
+  }
+
+  closeAwsModal() {
+    document.getElementById('aws-modal-overlay')?.classList.remove('open');
+  }
+
+  navigateAwsModal(direction) {
+    const services = window.REVISION_APP_DATA?.AWS_SERVICES || [];
+    if (services.length === 0) return;
+    const idx = services.findIndex(s => s.id === this.currentAwsServiceId);
+    if (idx === -1) return;
+    const newIdx = (idx + direction + services.length) % services.length;
+    this.openAwsModal(services[newIdx].id);
+  }
+
+  renderAwsTopics(filterCategory = 'all') {
+    const container = document.getElementById('aws-cards-container');
+    const banner = document.getElementById('aws-active-banner');
+    if (!container) return;
+
+    if (banner) {
+      banner.style.display = 'none';
+    }
+
+    const services = window.REVISION_APP_DATA?.AWS_SERVICES || [];
+    let list = services;
+    if (filterCategory !== 'all') {
+      list = services.filter(s => s.category === filterCategory);
+    }
+
+    const formattedList = list.map(s => this.formatAwsAsTopic(s));
+    container.innerHTML = this.renderTopicCardsHtml(formattedList, 'border-aws');
+  }
+
+  filterAwsCategory(cat) {
+    const section = document.getElementById('section-aws');
+    if (section) {
+      section.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+      event?.target?.classList.add('active');
+    }
+    this.renderAwsTopics(cat);
+  }
+
+  navigateToAwsTopic(serviceId) {
+    this.switchSection('aws');
+    this.closeMobileSidebar();
+    this.selectAwsTopic(serviceId);
+  }
+
+  // -------------------------------------------------------------
+  // Google Cloud Platform (GCP) Services & IAM Architecture (9 Core Services)
+  // -------------------------------------------------------------
+  renderGcpSelector() {
+    const select = document.getElementById('gcp-select');
+    if (!select) return;
+
+    const services = window.REVISION_APP_DATA?.GCP_SERVICES || [];
+    const categories = window.REVISION_APP_DATA?.GCP_CATEGORIES || [
+      "All Categories",
+      "Security & Identity",
+      "Compute & Containers",
+      "Storage & Database",
+      "Networking & Messaging",
+      "Analytics & Enterprise API"
+    ];
+
+    let html = '<option value="all">⚡ Jump to GCP Service / Workload Identity Blueprint (All 9)...</option>';
+
+    categories.forEach(cat => {
+      if (cat === 'All Categories') return;
+      const catServices = services.filter(s => s.category === cat);
+      if (catServices.length === 0) return;
+
+      html += `<optgroup label="🌐 ${cat} (${catServices.length})">`;
+      catServices.forEach(s => {
+        html += `<option value="${s.id}">${s.title}</option>`;
+      });
+      html += '</optgroup>';
+    });
+
+    select.innerHTML = html;
+  }
+
+  selectGcpTopic(serviceId) {
+    const container = document.getElementById('gcp-cards-container');
+    const banner = document.getElementById('gcp-active-banner');
+    const select = document.getElementById('gcp-select');
+    if (!container) return;
+
+    if (select) select.value = serviceId;
+
+    if (serviceId === 'all') {
+      if (banner) banner.style.display = 'none';
+      this.renderGcpTopics('all');
+      return;
+    }
+
+    const services = window.REVISION_APP_DATA?.GCP_SERVICES || [];
+    const item = services.find(s => s.id === serviceId);
+    if (!item) return;
+
+    if (banner) {
+      banner.style.display = 'block';
+      banner.innerHTML = `
+        <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; width: 100%;">
+          <div>
+            <span class="hero-badge-pill highlight" style="font-size: 0.74rem;">Selected GCP Service</span>
+            <strong style="color: var(--text-primary); margin-left: 8px; font-size: 0.95rem;">${this.escapeHtml(item.title)}</strong>
+            <span style="font-size: 0.8rem; color: var(--text-muted); margin-left: 6px;">[${this.escapeHtml(item.category)}]</span>
+          </div>
+          <div style="display: flex; gap: 8px;">
+            <button class="btn-primary" style="font-size: 0.78rem; padding: 6px 12px; background: #2563eb;" onclick="app.openGcpModal('${item.id}')">🔍 Open Modal Deep Dive</button>
+            <button class="btn-secondary" style="font-size: 0.78rem; padding: 6px 12px; white-space: nowrap;" onclick="app.selectGcpTopic('all')">✕ View All 9</button>
+          </div>
+        </div>
+      `;
+    }
+
+    const formatted = this.formatGcpAsTopic(item);
+    container.innerHTML = this.renderTopicCardsHtml([formatted], 'border-gcp');
+
+    setTimeout(() => {
+      const card = container.querySelector('.cheat-card');
+      if (card) {
+        card.classList.add('open');
+        card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }, 40);
+  }
+
+  searchGcpTopics(query) {
+    const container = document.getElementById('gcp-cards-container');
+    const banner = document.getElementById('gcp-active-banner');
+    if (!container) return;
+
+    const q = (query || '').toLowerCase().trim();
+    if (!q) {
+      if (banner) banner.style.display = 'none';
+      this.renderGcpTopics('all');
+      return;
+    }
+
+    const services = window.REVISION_APP_DATA?.GCP_SERVICES || [];
+    const matches = services.filter(s =>
+      s.title.toLowerCase().includes(q) ||
+      s.category.toLowerCase().includes(q) ||
+      (s.whatIsIt && s.whatIsIt.toLowerCase().includes(q)) ||
+      (s.internalWorking && s.internalWorking.toLowerCase().includes(q)) ||
+      (s.iamConfiguration && s.iamConfiguration.toLowerCase().includes(q)) ||
+      (s.realWorldUseCase && s.realWorldUseCase.toLowerCase().includes(q))
+    );
+
+    if (banner) {
+      banner.style.display = 'block';
+      banner.innerHTML = `
+        <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; width: 100%;">
+          <div>
+            <span class="hero-badge-pill highlight" style="font-size: 0.74rem;">Search Filter</span>
+            <span style="font-size: 0.88rem; color: var(--text-primary); margin-left: 8px;">
+              Found <strong>${matches.length}</strong> GCP service${matches.length === 1 ? '' : 's'} matching "<strong>${this.escapeHtml(query)}</strong>"
+            </span>
+          </div>
+          <button class="btn-secondary" style="font-size: 0.74rem; padding: 4px 10px;" onclick="document.getElementById('gcp-search').value = ''; app.searchGcpTopics('');">✕ Clear Search</button>
+        </div>
+      `;
+    }
+
+    const formattedList = matches.map(s => this.formatGcpAsTopic(s));
+    container.innerHTML = formattedList.length > 0
+      ? this.renderTopicCardsHtml(formattedList, 'border-gcp')
+      : `<div class="empty-state" style="padding: 40px; text-align: center; color: var(--text-muted); grid-column: 1 / -1;">
+          <div style="font-size: 2rem; margin-bottom: 8px;">🔍</div>
+          <div>No GCP services found matching "<strong>${this.escapeHtml(query)}</strong>". Try searching for <em>IAM</em>, <em>GKE</em>, <em>Spanner</em>, <em>Cloud Run</em>, or <em>BigQuery</em>.</div>
+        </div>`;
+
+    if (formattedList.length > 0) {
+      setTimeout(() => {
+        const firstCard = container.querySelector('.cheat-card');
+        if (firstCard) firstCard.classList.add('open');
+      }, 40);
+    }
+  }
+
+  formatGcpAsTopic(item) {
+    const whenAndWhyHtml = item.whenAndWhy ? `
+      <div class="callout-box callout-info" style="margin: 0 0 12px 0; background: rgba(66, 133, 244, 0.08); border-left: 4px solid #4285f4;">
+        <span class="callout-icon">💡</span>
+        <div>
+          <strong style="color: #4285f4; display: block; margin-bottom: 4px; font-size: 0.85rem;">When &amp; Why to Use (vs Alternatives &amp; Cost Model):</strong>
+          <div style="font-size: 0.84rem; color: var(--text-secondary); line-height: 1.55;">${this.escapeHtml(item.whenAndWhy)}</div>
+        </div>
+      </div>
+    ` : '';
+
+    const iamHtml = item.iamConfiguration ? `
+      <div style="margin: 12px 0; background: var(--bg-tertiary); padding: 12px 14px; border-radius: var(--radius-sm); border-left: 3px solid #4285f4;">
+        <div style="font-size: 0.84rem; font-weight: 700; color: #4285f4; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
+          <span>🔐</span> IAM &amp; Workload Identity Configuration:
+        </div>
+        <div style="font-size: 0.82rem; color: var(--text-secondary); line-height: 1.55; white-space: pre-wrap; font-family: var(--font-mono);">${this.escapeHtml(item.iamConfiguration)}</div>
+      </div>
+    ` : '';
+
+    const useCaseHtml = item.realWorldUseCase ? `
+      <div style="margin: 12px 0; background: var(--bg-primary); border: 1px solid var(--border-color); padding: 12px 14px; border-radius: var(--radius-sm);">
+        <div style="font-size: 0.84rem; font-weight: 700; color: #34d399; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
+          <span>🚀</span> Real-World Project Architecture &amp; Use Case:
+        </div>
+        <div style="font-size: 0.84rem; color: var(--text-secondary); line-height: 1.55; white-space: pre-line;">${this.escapeHtml(item.realWorldUseCase)}</div>
+      </div>
+    ` : '';
+
+    return {
+      id: item.id,
+      title: item.title,
+      category: `GCP: ${item.category}`,
+      badge: item.badge || 'GCP Core',
+      oneLiner: item.whatIsIt,
+      visualDiagram: `
+        ${whenAndWhyHtml}
+
+        <!-- 1. Visual Flow Diagram -->
+        ${item.visualDiagram || ''}
+
+        <!-- 2. Under-the-Hood Engine Mechanics -->
+        ${item.internalWorking ? `
+          <div style="margin: 14px 0 12px 0;">
+            <div style="font-size: 0.84rem; font-weight: 700; color: var(--accent-gcp, #4285f4); margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
+              <span>⚙️</span> Under-the-Hood Engine Mechanics:
+            </div>
+            <div style="font-size: 0.84rem; line-height: 1.6; color: var(--text-secondary); background: var(--bg-tertiary); padding: 12px 14px; border-radius: var(--radius-sm); border-left: 3px solid #3b82f6; white-space: pre-line;">${this.escapeHtml(item.internalWorking)}</div>
+          </div>
+        ` : ''}
+
+        ${iamHtml}
+        ${useCaseHtml}
+
+        <!-- 3. Complex Part / Senior Trap -->
+        ${item.complexPart ? `
+          <div class="callout-box callout-danger" style="margin: 14px 0 14px 0; border-left: 4px solid #f87171; background: rgba(239, 68, 68, 0.08);">
+            <span class="callout-icon">🔥</span>
+            <div>
+              <strong style="color: #f87171; display: block; margin-bottom: 4px; font-size: 0.85rem;">Complex Part &amp; Edge Cases (Staff Trap):</strong>
+              <div style="font-size: 0.84rem; color: var(--text-secondary); line-height: 1.55;">${this.escapeHtml(item.complexPart)}</div>
+            </div>
+          </div>
+        ` : ''}
+
+        <div style="display: flex; justify-content: flex-end; margin-bottom: 6px;">
+          <button class="btn-primary" style="font-size: 0.76rem; padding: 5px 12px; background: #1d4ed8; border-color: #3b82f6;" onclick="event.stopPropagation(); app.openGcpModal('${item.id}')">
+            🔍 Open Full-Screen Architecture &amp; Deep Dive Modal
+          </button>
+        </div>
+      `,
+      keyPoints: item.keyPoints || [],
+      codeSnippet: item.codeSnippet,
+      pitfall: item.pitfall,
+      interviewTip: item.interviewTip
+    };
+  }
+
+  openGcpModal(serviceId) {
+    const services = window.REVISION_APP_DATA?.GCP_SERVICES || [];
+    const item = services.find(s => s.id === serviceId);
+    if (!item) return;
+
+    this.currentGcpServiceId = serviceId;
+
+    const overlay = document.getElementById('gcp-modal-overlay');
+    const catBadge = document.getElementById('gcp-modal-category-badge');
+    const badge = document.getElementById('gcp-modal-badge');
+    const title = document.getElementById('gcp-modal-title');
+    const body = document.getElementById('gcp-modal-body');
+    const footerCount = document.getElementById('gcp-modal-footer-count');
+    if (!overlay || !body) return;
+
+    const currentIndex = services.findIndex(s => s.id === serviceId);
+    if (catBadge) catBadge.textContent = item.category;
+    if (badge) badge.textContent = item.badge || 'GCP Core';
+    if (title) title.textContent = item.title;
+    if (footerCount) footerCount.textContent = `Service ${currentIndex + 1} of ${services.length}: ${item.title}`;
+
+    body.innerHTML = `
+      <!-- 1. What Is It & Architecture -->
+      <div class="callout-box callout-info" style="margin: 0; background: rgba(66, 133, 244, 0.08); border-left: 4px solid #4285f4;">
+        <span class="callout-icon" style="font-size: 1.3rem;">💡</span>
+        <div>
+          <strong style="color: #4285f4; display: block; font-size: 0.95rem; margin-bottom: 4px;">What Is It Exactly? (Elevator Pitch &amp; Core Architecture)</strong>
+          <div style="font-size: 0.92rem; color: var(--text-primary); line-height: 1.6;">${this.escapeHtml(item.whatIsIt)}</div>
+        </div>
+      </div>
+
+      <!-- 2. When & Why to Use -->
+      <div style="background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 14px 18px;">
+        <div style="font-size: 0.9rem; font-weight: 700; color: #4285f4; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
+          <span>🎯</span> When to Use, Why to Use (vs Alternatives) &amp; Cost Model:
+        </div>
+        <div style="font-size: 0.88rem; color: var(--text-secondary); line-height: 1.6;">
+          ${this.escapeHtml(item.whenAndWhy)}
+        </div>
+      </div>
+
+      <!-- 3. Visual Flow Diagram -->
+      <div style="margin: 2px 0;">
+        ${item.visualDiagram || ''}
+      </div>
+
+      <!-- 4. Under-the-Hood Engine Mechanics -->
+      <div style="background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 16px 18px; border-left: 4px solid #3b82f6;">
+        <div style="font-size: 0.92rem; font-weight: 700; color: #3b82f6; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+          <span>⚙️</span> Under-the-Hood Engine Mechanics &amp; Execution Flow:
+        </div>
+        <div style="font-size: 0.88rem; color: var(--text-secondary); line-height: 1.65; white-space: pre-line;">
+          ${this.escapeHtml(item.internalWorking)}
+        </div>
+      </div>
+
+      <!-- 5. IAM & Workload Identity Configuration -->
+      <div style="background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 16px 18px; border-left: 4px solid #4285f4;">
+        <div style="font-size: 0.92rem; font-weight: 700; color: #4285f4; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+          <span>🔐</span> IAM Role, Service Account &amp; Workload Identity Configuration:
+        </div>
+        <div style="font-size: 0.84rem; color: var(--text-secondary); line-height: 1.6; white-space: pre-wrap; font-family: var(--font-mono); background: var(--bg-secondary); padding: 12px 14px; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+          ${this.escapeHtml(item.iamConfiguration)}
+        </div>
+      </div>
+
+      <!-- 6. Real-World Production Project Use Case -->
+      <div style="background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 16px 18px; border-left: 4px solid #10b981;">
+        <div style="font-size: 0.92rem; font-weight: 700; color: #34d399; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+          <span>🚀</span> Real-World Project Scenario &amp; Production Implementation:
+        </div>
+        <div style="font-size: 0.88rem; color: var(--text-secondary); line-height: 1.65; white-space: pre-line;">
+          ${this.escapeHtml(item.realWorldUseCase)}
+        </div>
+      </div>
+
+      <!-- 7. Production Code Snippet / Manifest -->
+      ${item.codeSnippet ? `
+        <div class="card-code-preview" style="margin: 0;">
+          <div class="code-header" style="background: var(--bg-secondary);">
+            <span style="color: #4285f4; font-weight: 600;">💻 Production Client Library / Manifest</span>
+            <button class="copy-btn" onclick="app.copyCode(this)">Copy Code</button>
+          </div>
+          <pre style="margin: 0; max-height: 380px; overflow-y: auto;"><code>${this.escapeHtml(item.codeSnippet)}</code></pre>
+        </div>
+      ` : ''}
+
+      <!-- 8. Complex Part & Staff Edge Cases -->
+      ${item.complexPart ? `
+        <div class="callout-box callout-danger" style="margin: 0; border-left: 4px solid #f87171; background: rgba(239, 68, 68, 0.08);">
+          <span class="callout-icon" style="font-size: 1.3rem;">🔥</span>
+          <div>
+            <strong style="color: #f87171; display: block; font-size: 0.92rem; margin-bottom: 4px;">Staff-Level Complex Part &amp; Edge Cases:</strong>
+            <div style="font-size: 0.88rem; color: var(--text-secondary); line-height: 1.6;">${this.escapeHtml(item.complexPart)}</div>
+          </div>
+        </div>
+      ` : ''}
+
+      <!-- 9. Key Architectural Points -->
+      ${item.keyPoints && item.keyPoints.length > 0 ? `
+        <div style="background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 14px 18px;">
+          <div style="font-size: 0.9rem; font-weight: 700; color: #a5b4fc; margin-bottom: 6px;">
+            📌 Core Architectural Invariants:
+          </div>
+          <ul style="margin: 0; padding-left: 18px; font-size: 0.88rem; color: var(--text-secondary); line-height: 1.6;">
+            ${item.keyPoints.map(kp => `<li>${this.escapeHtml(kp)}</li>`).join('')}
+          </ul>
+        </div>
+      ` : ''}
+
+      <!-- 10. Trap & Interview Tip Grid -->
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 14px;">
+        ${item.pitfall ? `
+          <div class="callout-box callout-danger" style="margin: 0;">
+            <span class="callout-icon">⚠️</span>
+            <div>
+              <strong style="color: #f87171; display: block; font-size: 0.88rem; margin-bottom: 2px;">Production Trap / Pitfall:</strong>
+              <div style="font-size: 0.84rem; color: var(--text-secondary); line-height: 1.55;">${this.escapeHtml(item.pitfall)}</div>
+            </div>
+          </div>
+        ` : ''}
+
+        ${item.interviewTip ? `
+          <div class="callout-box callout-tip" style="margin: 0;">
+            <span class="callout-icon">💡</span>
+            <div>
+              <strong style="color: #38bdf8; display: block; font-size: 0.88rem; margin-bottom: 2px;">Staff Interview Strategy:</strong>
+              <div style="font-size: 0.84rem; color: var(--text-secondary); line-height: 1.55;">${this.escapeHtml(item.interviewTip)}</div>
+            </div>
+          </div>
+        ` : ''}
+      </div>
+    `;
+
+    overlay.classList.add('open');
+  }
+
+  closeGcpModal() {
+    document.getElementById('gcp-modal-overlay')?.classList.remove('open');
+  }
+
+  navigateGcpModal(direction) {
+    const services = window.REVISION_APP_DATA?.GCP_SERVICES || [];
+    if (services.length === 0) return;
+    const idx = services.findIndex(s => s.id === this.currentGcpServiceId);
+    if (idx === -1) return;
+    const newIdx = (idx + direction + services.length) % services.length;
+    this.openGcpModal(services[newIdx].id);
+  }
+
+  renderGcpTopics(filterCategory = 'all') {
+    const container = document.getElementById('gcp-cards-container');
+    const banner = document.getElementById('gcp-active-banner');
+    if (!container) return;
+
+    if (banner) {
+      banner.style.display = 'none';
+    }
+
+    const services = window.REVISION_APP_DATA?.GCP_SERVICES || [];
+    let list = services;
+    if (filterCategory !== 'all') {
+      list = services.filter(s => s.category === filterCategory);
+    }
+
+    const formattedList = list.map(s => this.formatGcpAsTopic(s));
+    container.innerHTML = this.renderTopicCardsHtml(formattedList, 'border-gcp');
+  }
+
+  filterGcpCategory(cat) {
+    const section = document.getElementById('section-gcp');
+    if (section) {
+      section.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+      event?.target?.classList.add('active');
+    }
+    this.renderGcpTopics(cat);
+  }
+
+  navigateToGcpTopic(serviceId) {
+    this.switchSection('gcp');
+    this.closeMobileSidebar();
+    this.selectGcpTopic(serviceId);
   }
 
   // -------------------------------------------------------------
@@ -692,6 +3715,195 @@ class RevisionApp {
     this.renderDevopsTopics(cat);
   }
 
+  // -------------------------------------------------------------
+  // Application Lifecycle (Spring Boot to GCP & Apigee)
+  // -------------------------------------------------------------
+  renderLifecycleSection(filterPhase = 'all') {
+    const stepperContainer = document.getElementById('lifecycle-stepper-container');
+    const matrixContainer = document.getElementById('lifecycle-matrix-container');
+    const cheatContainer = document.getElementById('lifecycle-cheat-sheet-container');
+    if (!stepperContainer) return;
+
+    const stages = window.REVISION_APP_DATA?.LIFECYCLE_STAGES || [];
+    const matrix = window.REVISION_APP_DATA?.LIFECYCLE_MATRIX || [];
+    const cheatSheet = window.REVISION_APP_DATA?.LIFECYCLE_CHEAT_SHEET || [];
+
+    // Filter stages if needed
+    const filteredStages = filterPhase === 'all' 
+      ? stages 
+      : stages.filter(s => s.phase === filterPhase);
+
+    // Render stepper cards
+    stepperContainer.innerHTML = filteredStages.map(stage => `
+      <article class="lifecycle-card phase-${stage.phase}" id="${stage.id}" data-phase="${stage.phase}">
+        <div class="lifecycle-header" role="button" tabindex="0" aria-expanded="false" aria-controls="${stage.id}-content" onclick="app.toggleLifecycleStage('${stage.id}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault(); app.toggleLifecycleStage('${stage.id}');}">
+          <div class="lifecycle-header-left">
+            <div class="lifecycle-step-badge" style="background: ${stage.phaseBadgeColor};">
+              <span style="font-size: 0.65rem; opacity: 0.85;">STEP</span>
+              <span>${String(stage.step).padStart(2, '0')}</span>
+            </div>
+            <div class="lifecycle-icon-wrap" style="border-color: ${stage.phaseBadgeColor}55;">
+              ${stage.svgIcon}
+            </div>
+            <div class="lifecycle-title-block">
+              <div class="lifecycle-meta-tags">
+                <span class="hero-badge-pill" style="font-size: 0.68rem; padding: 2px 8px; border-color: ${stage.phaseBadgeColor}66; color: ${stage.phaseBadgeColor};">${stage.phaseLabel}</span>
+                <span style="font-size: 0.72rem; color: var(--text-muted); font-weight: 600;">👤 Owner: ${stage.owner}</span>
+              </div>
+              <h3 class="lifecycle-title">${stage.title}</h3>
+              <div class="lifecycle-subtitle">${stage.subtitle}</div>
+            </div>
+          </div>
+          <svg class="lifecycle-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+        </div>
+
+        <div class="lifecycle-body" id="${stage.id}-content" role="region">
+          <div class="lifecycle-section-title">🔍 (a) What Happens Here</div>
+          <p class="lifecycle-text">${stage.whatHappens}</p>
+
+          <div class="lifecycle-section-title">🛠️ (b) Key Tools &amp; Artifacts Involved</div>
+          <div class="lifecycle-tools-list">
+            ${stage.tools.map(t => `<span class="lifecycle-tool-badge">${this.escapeHtml(t)}</span>`).join('')}
+          </div>
+
+          <div class="callout-dev">
+            <div class="callout-dev-header">
+              <span>👤</span> DEVELOPER RESPONSIBILITY
+            </div>
+            <div style="font-size: 0.85rem; line-height: 1.55; color: var(--text-primary);">${stage.developerResponsibility}</div>
+          </div>
+
+          <div class="callout-pitfall">
+            <div class="callout-pitfall-header">
+              <span>⚠️</span> COMMON PITFALL TO AVOID
+            </div>
+            <div style="font-size: 0.85rem; line-height: 1.55; color: var(--text-secondary);">${stage.commonPitfall}</div>
+          </div>
+
+          ${stage.codeSnippet ? `
+            <div class="lifecycle-section-title" style="margin-top: 14px;">📄 Production Blueprint / Configuration</div>
+            <div class="card-code-preview" style="margin-top: 4px;">
+              <div class="code-header">
+                <span>Configuration / Manifest Blueprint</span>
+                <button class="copy-btn" onclick="app.copyCode(this)">Copy</button>
+              </div>
+              <pre><code>${this.escapeHtml(stage.codeSnippet)}</code></pre>
+            </div>
+          ` : ''}
+        </div>
+      </article>
+    `).join('');
+
+    // Render Matrix Table if present
+    if (matrixContainer && matrix.length > 0) {
+      matrixContainer.innerHTML = `
+        <div class="lifecycle-matrix-wrapper">
+          <table class="lifecycle-matrix-table">
+            <thead>
+              <tr>
+                <th style="width: 18%;">Lifecycle Stage</th>
+                <th style="width: 32%;">👤 Developer Ownership</th>
+                <th style="width: 28%;">🛡️ Platform / DevOps Ownership</th>
+                <th style="width: 22%;">📄 Primary Files &amp; Config</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${matrix.map(row => `
+                <tr>
+                  <td>
+                    <strong style="color: var(--text-primary); display: block; margin-bottom: 4px;">${row.stage}</strong>
+                    <span class="hero-badge-pill" style="font-size: 0.65rem;">${row.phase}</span>
+                  </td>
+                  <td>${row.developer}</td>
+                  <td>${row.platform}</td>
+                  <td><code style="font-size: 0.76rem; background: var(--bg-tertiary); padding: 2px 6px; border-radius: 4px; color: var(--text-link);">${row.files}</code></td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    // Render Cheat Sheet
+    if (cheatContainer && cheatSheet.length > 0) {
+      cheatContainer.innerHTML = `
+        <div class="lifecycle-cheat-sheet">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span style="font-size: 1.3rem;">⚡</span>
+              <strong style="color: var(--text-primary); font-size: 1rem;">60-Second Interview Cheat Sheet: The Full 12-Stage Lifecycle</strong>
+            </div>
+            <span class="hero-badge-pill highlight" style="font-size: 0.72rem;">Memory Anchors</span>
+          </div>
+          <div class="cheat-sheet-grid">
+            ${cheatSheet.map(item => `
+              <div class="cheat-sheet-item">
+                <span class="cheat-sheet-num">${item.step}</span>
+                <div>
+                  <strong style="color: var(--text-primary); font-size: 0.85rem; display: block; margin-bottom: 2px;">${item.name}</strong>
+                  <span style="color: var(--text-secondary); font-size: 0.82rem;">${item.rule}</span>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
+  }
+
+  toggleLifecycleStage(stageId) {
+    const card = document.getElementById(stageId);
+    if (!card) return;
+    const isOpen = card.classList.contains('open');
+    card.classList.toggle('open', !isOpen);
+    const header = card.querySelector('.lifecycle-header');
+    if (header) {
+      header.setAttribute('aria-expanded', String(!isOpen));
+    }
+  }
+
+  expandAllLifecycleStages(expand) {
+    document.querySelectorAll('.lifecycle-card').forEach(card => {
+      card.classList.toggle('open', expand);
+      const header = card.querySelector('.lifecycle-header');
+      if (header) {
+        header.setAttribute('aria-expanded', String(expand));
+      }
+    });
+  }
+
+  jumpToLifecycleStage(stepNum) {
+    const card = document.querySelector(`.lifecycle-card[id^="stage-${stepNum}-"]`) || document.getElementById(`stage-${stepNum}`);
+    if (card) {
+      card.classList.add('open');
+      const header = card.querySelector('.lifecycle-header');
+      if (header) header.setAttribute('aria-expanded', 'true');
+      card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      card.style.boxShadow = '0 0 0 3px rgba(88, 166, 255, 0.4)';
+      setTimeout(() => card.style.boxShadow = '', 2000);
+    }
+  }
+
+  filterLifecyclePhase(phaseKey) {
+    const container = document.getElementById('section-lifecycle');
+    if (container) {
+      container.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+      if (typeof event !== 'undefined' && event?.target?.classList?.contains('filter-chip')) {
+        event.target.classList.add('active');
+      }
+    }
+    this.renderLifecycleSection(phaseKey);
+  }
+
+  navigateToLifecycleStage(stepNum) {
+    this.switchSection('lifecycle');
+    this.closeMobileSidebar();
+    setTimeout(() => {
+      this.jumpToLifecycleStage(stepNum);
+    }, 120);
+  }
+
   renderRedisTopics(filterCategory = 'all') {
     const container = document.getElementById('redis-cards-container');
     if (!container) return;
@@ -806,24 +4018,28 @@ class RevisionApp {
 
   formatQuestionAsTopic(q, defaultCategory) {
     const keyPoints = [];
-    if (q.problem) keyPoints.push(`🚨 Production Scenario: ${q.problem}`);
-    if (q.innerWorking) keyPoints.push(`⚙️ Under the Hood / Inner Mechanics: ${q.innerWorking}`);
+    if (q.question && q.question !== q.title) keyPoints.push(`❓ Tricky Question: ${q.question}`);
+    if (q.problem) keyPoints.push(`🚨 Production Dilemma / Trap: ${q.problem}`);
+    if (q.innerWorking) keyPoints.push(`⚙️ Under the Hood / JVM Mechanics: ${q.innerWorking}`);
     if (Array.isArray(q.seniorAnswer)) {
       q.seniorAnswer.forEach(pt => keyPoints.push(`🎯 Staff-Level Resolution: ${pt}`));
+    } else if (typeof q.seniorAnswer === 'string') {
+      keyPoints.push(`🎯 Staff-Level Resolution: ${q.seniorAnswer}`);
     } else if (q.explanation) {
       keyPoints.push(`🎯 Senior Architectural Answer: ${q.explanation}`);
     }
+    if (q.juniorTrap) keyPoints.push(`⚠️ Junior Trap to Avoid: ${q.juniorTrap}`);
     if (q.warStory) keyPoints.push(`🔥 Real Production War Story: ${q.warStory}`);
 
     return {
       id: q.id,
-      title: q.title,
-      category: q.category || defaultCategory,
-      badge: q.difficulty || "Senior Scenario",
-      oneLiner: q.summary || q.problem,
-      summary: q.problem,
+      title: q.title || q.question,
+      category: q.topicTitle ? `Java: ${q.topicTitle}` : (q.category || defaultCategory),
+      badge: q.difficulty || "Senior Trap",
+      oneLiner: q.question || q.summary || q.problem,
+      summary: q.problem || q.question,
       keyPoints: keyPoints.length > 0 ? keyPoints : [
-        `Scenario / Problem: ${q.problem}`,
+        `Scenario / Problem: ${q.problem || q.question}`,
         `Senior Architectural Answer: ${q.explanation || ''}`
       ],
       codeSnippet: q.codeSnippet || q.solution || '',
@@ -1052,10 +4268,13 @@ class RevisionApp {
 
   updateStats() {
     const totalCount = (window.REVISION_APP_DATA?.JAVA_TOPICS?.length || 0) +
+                       (window.REVISION_APP_DATA?.JAVA_460_QUESTIONS?.length || window.REVISION_APP_DATA?.JAVA_QUESTIONS?.length || 0) +
+                       (window.REVISION_APP_DATA?.JAVA_INTERNALS?.length || 0) +
                        (window.REVISION_APP_DATA?.STREAMS_TOPICS?.length || 0) +
                        (window.REVISION_APP_DATA?.STREAM_QUESTIONS?.length || 0) +
                        (window.REVISION_APP_DATA?.SPRING_TOPICS?.length || 0) +
                        (window.REVISION_APP_DATA?.SPRING_QUESTIONS?.length || 0) +
+                       (window.REVISION_APP_DATA?.SPRING_INTERNALS?.length || 0) +
                        (window.REVISION_APP_DATA?.SQL_TOPICS?.length || 0) +
                        (window.REVISION_APP_DATA?.SQL_QUESTIONS?.length || 0) +
                        (window.REVISION_APP_DATA?.KAFKA_TOPICS?.length || 0) +
@@ -1064,6 +4283,7 @@ class RevisionApp {
                        (window.REVISION_APP_DATA?.REACT_QUESTIONS?.length || 0) +
                        (window.REVISION_APP_DATA?.DEVOPS_TOPICS?.length || 0) +
                        (window.REVISION_APP_DATA?.DEVOPS_QUESTIONS?.length || 0) +
+                       (window.REVISION_APP_DATA?.LIFECYCLE_STAGES?.length || 0) +
                        (window.REVISION_APP_DATA?.REDIS_TOPICS?.length || 0) +
                        (window.REVISION_APP_DATA?.REDIS_QUESTIONS?.length || 0) +
                        (window.REVISION_APP_DATA?.CONCURRENCY_TOPICS?.length || 0) +
@@ -1072,7 +4292,11 @@ class RevisionApp {
                        (window.REVISION_APP_DATA?.HLD_QUESTIONS?.length || 0) +
                        (window.REVISION_APP_DATA?.LLD_TOPICS?.length || 0) +
                        (window.REVISION_APP_DATA?.LLD_QUESTIONS?.length || 0) +
+                       (window.REVISION_APP_DATA?.JAVA_PATTERNS?.length || 0) +
+                       (window.REVISION_APP_DATA?.MICROSERVICES_PATTERNS?.length || 0) +
                        (window.REVISION_APP_DATA?.DSA_TOPICS?.length || 0) +
+                       (window.REVISION_APP_DATA?.AWS_SERVICES?.length || 0) +
+                       (window.REVISION_APP_DATA?.GCP_SERVICES?.length || 0) +
                        (window.REVISION_APP_DATA?.QUESTIONS?.length || 0);
     const masteredCount = this.masteredItems.size;
     const percentage = totalCount > 0 ? Math.round((masteredCount / totalCount) * 100) : 0;
@@ -1089,14 +4313,37 @@ class RevisionApp {
   buildSearchIndex() {
     this.searchIndex = [];
 
-    // Java Core
+    // Java Core Architecture
     (window.REVISION_APP_DATA?.JAVA_TOPICS || []).forEach(t => {
       this.searchIndex.push({
         id: t.id,
         section: 'java',
         title: t.title,
-        category: 'Java Core',
+        category: 'Java Architecture',
         snippet: t.oneLiner || t.summary
+      });
+    });
+
+    // Java 55 Core Internals Deep Dives
+    (window.REVISION_APP_DATA?.JAVA_INTERNALS || []).forEach(t => {
+      this.searchIndex.push({
+        id: t.id,
+        section: 'java',
+        title: t.title,
+        category: `Java Internals: ${t.category}`,
+        snippet: (t.whatIsIt || t.oneLiner || t.internalWorking || '').slice(0, 160)
+      });
+    });
+
+    // Java 460 Tricky Questions across 46 Subtopics
+    const javaQuestions = window.REVISION_APP_DATA?.JAVA_460_QUESTIONS || window.REVISION_APP_DATA?.JAVA_QUESTIONS || [];
+    javaQuestions.forEach(q => {
+      this.searchIndex.push({
+        id: q.id,
+        section: 'java',
+        title: q.title || q.question,
+        category: q.topicTitle ? `Java: ${q.topicTitle}` : (q.category || 'Java Tricky Q&A'),
+        snippet: (q.summary || q.problem || q.question || '').slice(0, 160)
       });
     });
 
@@ -1119,6 +4366,17 @@ class RevisionApp {
         title: q.title,
         category: 'Streams Coding',
         snippet: q.summary || q.problem
+      });
+    });
+
+    // Spring Boot 29 Internal Working Deep Dives
+    (window.REVISION_APP_DATA?.SPRING_INTERNALS || []).forEach(t => {
+      this.searchIndex.push({
+        id: t.id,
+        section: 'spring',
+        title: t.title,
+        category: `Spring Internals: ${t.category}`,
+        snippet: (t.whatIsIt || t.oneLiner || t.internalWorking || '').slice(0, 160)
       });
     });
 
@@ -1232,6 +4490,17 @@ class RevisionApp {
       });
     });
 
+    // Application Lifecycle (Spring Boot to GCP & Apigee)
+    (window.REVISION_APP_DATA?.LIFECYCLE_STAGES || []).forEach(s => {
+      this.searchIndex.push({
+        id: s.id,
+        section: 'lifecycle',
+        title: `${s.step}. ${s.title}`,
+        category: `App Lifecycle: ${s.phaseLabel}`,
+        snippet: (s.subtitle + ' ' + s.whatHappens).slice(0, 160)
+      });
+    });
+
     // Redis Architecture
     (window.REVISION_APP_DATA?.REDIS_TOPICS || []).forEach(t => {
       this.searchIndex.push({
@@ -1320,14 +4589,58 @@ class RevisionApp {
       });
     });
 
+    // Java Design Patterns (24 GoF & Modern Patterns)
+    (window.REVISION_APP_DATA?.JAVA_PATTERNS || []).forEach(p => {
+      this.searchIndex.push({
+        id: p.id,
+        section: 'design-patterns',
+        title: p.title,
+        category: `Java Pattern: ${p.category}`,
+        snippet: (p.whatIsIt || p.internalWorking || '').slice(0, 160)
+      });
+    });
+
+    // Microservices Architecture Patterns (25 Distributed Patterns)
+    (window.REVISION_APP_DATA?.MICROSERVICES_PATTERNS || []).forEach(p => {
+      this.searchIndex.push({
+        id: p.id,
+        section: 'microservices',
+        title: p.title,
+        category: `Microservices: ${p.category}`,
+        snippet: (p.whatIsIt || p.internalWorking || '').slice(0, 160)
+      });
+    });
+
+    // AWS Cloud Services & IAM Architecture
+    (window.REVISION_APP_DATA?.AWS_SERVICES || []).forEach(s => {
+      this.searchIndex.push({
+        id: s.id,
+        section: 'aws',
+        title: s.title,
+        category: `AWS: ${s.category}`,
+        snippet: (s.whatIsIt || s.whenAndWhy || '').slice(0, 160)
+      });
+    });
+
+    // Google Cloud Platform (GCP) Services & IAM Architecture
+    (window.REVISION_APP_DATA?.GCP_SERVICES || []).forEach(s => {
+      this.searchIndex.push({
+        id: s.id,
+        section: 'gcp',
+        title: s.title,
+        category: `GCP: ${s.category}`,
+        snippet: (s.whatIsIt || s.whenAndWhy || '').slice(0, 160)
+      });
+    });
+
     // DSA
     (window.REVISION_APP_DATA?.DSA_TOPICS || []).forEach(t => {
       this.searchIndex.push({
         id: t.id,
         section: 'dsa',
         title: t.title,
-        category: 'DSA',
-        snippet: t.oneLiner || t.summary
+        category: `DSA: ${t.category}`,
+        snippet: ((t.triggerSignals ? t.triggerSignals.join(', ') + ' | ' : '') + (t.whatIsIt || t.summary || '')).slice(0, 160)
       });
     });
 
@@ -1499,6 +4812,7 @@ class RevisionApp {
       } else if (type === 'devops') {
         window.REVISION_APP_DATA.DEVOPS_TOPICS.unshift(newTopic);
         this.renderDevopsTopics();
+    this.renderLifecycleSection();
       } else if (type === 'redis') {
         window.REVISION_APP_DATA.REDIS_TOPICS.unshift(newTopic);
         this.renderRedisTopics();
@@ -1557,8 +4871,50 @@ class RevisionApp {
       if (e.key === 'Escape') {
         this.closeSearchModal();
         this.closeCreatorModal();
+        this.closeSpringInternalModal();
+        this.closeJavaInternalModal();
+        this.closeJavaPatternModal();
+        this.closeMicroservicesPatternModal();
+        this.closeDsaModal();
+        this.closeAwsModal();
+        this.closeGcpModal();
         this.closeMobileSidebar();
         this.mindmapViz?.closeDrawer();
+      }
+      const awsModal = document.getElementById('aws-modal-overlay');
+      if (awsModal && awsModal.classList.contains('open')) {
+        if (e.key === 'ArrowLeft') this.navigateAwsModal(-1);
+        if (e.key === 'ArrowRight') this.navigateAwsModal(1);
+      }
+      const gcpModal = document.getElementById('gcp-modal-overlay');
+      if (gcpModal && gcpModal.classList.contains('open')) {
+        if (e.key === 'ArrowLeft') this.navigateGcpModal(-1);
+        if (e.key === 'ArrowRight') this.navigateGcpModal(1);
+      }
+      const jvModal = document.getElementById('java-internals-modal-overlay');
+      if (jvModal && jvModal.classList.contains('open')) {
+        if (e.key === 'ArrowLeft') this.navigateJavaInternalModal(-1);
+        if (e.key === 'ArrowRight') this.navigateJavaInternalModal(1);
+      }
+      const sbModal = document.getElementById('spring-internals-modal-overlay');
+      if (sbModal && sbModal.classList.contains('open')) {
+        if (e.key === 'ArrowLeft') this.navigateSpringInternalModal(-1);
+        if (e.key === 'ArrowRight') this.navigateSpringInternalModal(1);
+      }
+      const patModal = document.getElementById('patterns-modal-overlay');
+      if (patModal && patModal.classList.contains('open')) {
+        if (e.key === 'ArrowLeft') this.navigateJavaPatternModal(-1);
+        if (e.key === 'ArrowRight') this.navigateJavaPatternModal(1);
+      }
+      const msModal = document.getElementById('microservices-modal-overlay');
+      if (msModal && msModal.classList.contains('open')) {
+        if (e.key === 'ArrowLeft') this.navigateMicroservicesPatternModal(-1);
+        if (e.key === 'ArrowRight') this.navigateMicroservicesPatternModal(1);
+      }
+      const dsaModal = document.getElementById('dsa-modal-overlay');
+      if (dsaModal && dsaModal.classList.contains('open')) {
+        if (e.key === 'ArrowLeft') this.navigateDsaModal(-1);
+        if (e.key === 'ArrowRight') this.navigateDsaModal(1);
       }
     });
 
@@ -1580,8 +4936,14 @@ class RevisionApp {
     if (hash === 'multithreading' || hash === 'threads') hash = 'concurrency';
     if (hash === 'systemdesign' || hash === 'system-design' || hash === 'system') hash = 'hld';
     if (hash === 'machinecoding' || hash === 'machine-coding' || hash === 'ood') hash = 'lld';
+    if (hash === 'app-lifecycle') hash = 'lifecycle';
+    if (hash === 'patterns' || hash === 'java-patterns' || hash === 'design-pattern' || hash === 'designpatterns' || hash === 'java-design-patterns') hash = 'design-patterns';
+    if (hash === 'ms' || hash === 'microservice' || hash === 'ms-patterns' || hash === 'microservice-patterns' || hash === 'microservices-patterns') hash = 'microservices';
 
-    if (['mindmap', 'java', 'streams', 'spring', 'sql', 'kafka', 'react', 'devops', 'redis', 'concurrency', 'hld', 'lld', 'dsa', 'questions'].includes(hash)) {
+    if (hash === 'aws-cloud' || hash === 'amazon' || hash === 'aws-services') hash = 'aws';
+    if (hash === 'gcp-cloud' || hash === 'google' || hash === 'google-cloud' || hash === 'gcp-services') hash = 'gcp';
+
+    if (['mindmap', 'java', 'streams', 'spring', 'sql', 'kafka', 'react', 'devops', 'lifecycle', 'redis', 'concurrency', 'hld', 'lld', 'dsa', 'questions', 'design-patterns', 'microservices', 'aws', 'gcp'].includes(hash)) {
       this.switchSection(hash);
     } else {
       // Find which section it belongs to

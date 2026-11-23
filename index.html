@@ -56,6 +56,21 @@
       <button class="nav-tab-btn" data-target="devops" onclick="app.switchSection('devops')">
         <span>☸️ K8s &amp; DevOps</span>
       </button>
+      <button class="nav-tab-btn" data-target="lifecycle" onclick="app.switchSection('lifecycle')">
+        <span>🚀 App Lifecycle</span>
+      </button>
+      <button class="nav-tab-btn" data-target="aws" onclick="app.switchSection('aws')">
+        <span>☁️ AWS Cloud</span>
+      </button>
+      <button class="nav-tab-btn" data-target="gcp" onclick="app.switchSection('gcp')">
+        <span>🌐 Google Cloud (GCP)</span>
+      </button>
+      <button class="nav-tab-btn" data-target="design-patterns" onclick="app.switchSection('design-patterns')">
+        <span>📐 Java Design Patterns</span>
+      </button>
+      <button class="nav-tab-btn" data-target="microservices" onclick="app.switchSection('microservices')">
+        <span>🌐 Microservices Patterns</span>
+      </button>
       <button class="nav-tab-btn" data-target="redis" onclick="app.switchSection('redis')">
         <span>🟥 Redis &amp; Caching</span>
       </button>
@@ -196,16 +211,20 @@
            ===================================================================== -->
       <section class="content-section" id="section-java">
         <div class="hero-banner">
-          <h1 class="hero-title">Core & Advanced Java Internals</h1>
+          <h1 class="hero-title">☕ Core &amp; Advanced Java Engine Internals</h1>
           <p class="hero-subtitle">
-            Staff-level notes on JVM architecture, Happens-Before memory barriers, AQS locks, Java 21 Virtual Threads, and HotSpot GC tuning. Click any card to expand its visual mindmap and deep dive.
+            Master the complete internal mechanics of the JVM with 55 visual under-the-hood engine deep dives, JMM memory barriers, HotSpot Tiered Compilation, AQS &amp; CAS primitives, Java 21 Virtual Threads, Collections internals, and 460 senior interview questions across 46 subtopics.
           </p>
           <div class="hero-badges">
-            <span class="hero-badge-pill highlight">JMM & Volatile</span>
-            <span class="hero-badge-pill">AQS & Locks</span>
+            <span class="hero-badge-pill highlight">⚙️ 55 Core Internals Deep Dives</span>
+            <span class="hero-badge-pill highlight">👁️ Visual Flow Diagrams</span>
+            <span class="hero-badge-pill">JVM Memory &amp; GC (G1/ZGC)</span>
+            <span class="hero-badge-pill">Class Loading &amp; JIT</span>
+            <span class="hero-badge-pill">JMM, Volatile &amp; Synchronized</span>
+            <span class="hero-badge-pill">AQS, CAS &amp; Locks</span>
             <span class="hero-badge-pill">Java 21 Loom</span>
-            <span class="hero-badge-pill">G1 / ZGC Safepoints</span>
-            <span class="hero-badge-pill">HashMap Treeification</span>
+            <span class="hero-badge-pill">Collections &amp; NIO</span>
+            <span class="hero-badge-pill highlight">460 Tricky Q&amp;A</span>
           </div>
         </div>
 
@@ -214,9 +233,47 @@
           <div class="toolbar-title">
             <span>☕ Core Java Topics:</span>
           </div>
+          <div class="toolbar-filters">
+            <button class="filter-chip active highlight" onclick="app.filterJavaCategory('internals')">⚙️ Core Internals (55)</button>
+            <button class="filter-chip" onclick="app.filterJavaCategory('all')">All (<span id="java-total-count">522</span>)</button>
+            <button class="filter-chip" onclick="app.filterJavaCategory('jvm_memory')">☕ JVM &amp; GC (6)</button>
+            <button class="filter-chip" onclick="app.filterJavaCategory('classloading')">⚙️ Class Loading &amp; JIT (8)</button>
+            <button class="filter-chip" onclick="app.filterJavaCategory('jmm')">🧵 JMM &amp; Threads (7)</button>
+            <button class="filter-chip" onclick="app.filterJavaCategory('concurrency')">⚡ Concurrency &amp; AQS (10)</button>
+            <button class="filter-chip" onclick="app.filterJavaCategory('collections')">📦 Collections (9)</button>
+            <button class="filter-chip" onclick="app.filterJavaCategory('strings')">🔤 Strings &amp; Object (9)</button>
+            <button class="filter-chip" onclick="app.filterJavaCategory('io_nio')">💾 I/O &amp; NIO (6)</button>
+            <button class="filter-chip" onclick="app.filterJavaCategory('tricky-questions')">🔥 460 Tricky Q&amp;A</button>
+            <button class="filter-chip" onclick="app.filterJavaCategory('architecture')">Architecture (7)</button>
+          </div>
           <div style="display: flex; gap: 6px; margin-left: auto;">
             <button class="btn-secondary" style="font-size: 0.75rem; padding: 4px 10px;" onclick="app.toggleAllCardsInSection('java-cards-container', true)">Expand All Visuals</button>
             <button class="btn-secondary" style="font-size: 0.75rem; padding: 4px 10px;" onclick="app.toggleAllCardsInSection('java-cards-container', false)">Collapse All</button>
+          </div>
+        </div>
+
+        <!-- Java Internals Explorer Navigator Box -->
+        <div class="java-internals-navigator" style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 16px 20px; margin-bottom: 22px; box-shadow: var(--shadow-sm);">
+          <div style="display: flex; flex-wrap: wrap; gap: 14px; align-items: center; justify-content: space-between;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <span style="font-size: 1.6rem;">☕</span>
+              <div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <strong style="font-size: 1rem; color: var(--text-primary);">Core Java Internal Working Explorer (55 Engine Topics):</strong>
+                  <span class="hero-badge-pill highlight" style="font-size: 0.7rem; padding: 2px 8px;">Visual Diagrams + Modal Deep Dive</span>
+                </div>
+                <span style="font-size: 0.8rem; color: var(--text-muted); margin-top: 2px; display: block;">Select any of the 55 core internal topics below to inspect its visual execution flow, under-the-hood JVM mechanics, and staff traps.</span>
+              </div>
+            </div>
+            <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
+              <input type="text" id="java-internals-search" placeholder="🔍 Search 55 internal topics (e.g. AQS, ZGC, JMM, ClassLoader, NIO)..." oninput="app.searchJavaInternals(this.value)" style="padding: 8px 14px; font-size: 0.84rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); background: var(--bg-primary); color: var(--text-primary); min-width: 260px;">
+              <select id="java-internals-select" onchange="app.selectJavaInternalTopic(this.value)" style="padding: 8px 14px; font-size: 0.84rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); background: var(--bg-primary); color: var(--text-primary); max-width: 360px; font-weight: 600;">
+                <option value="all">-- Jump to any of the 55 Java Internals --</option>
+              </select>
+            </div>
+          </div>
+          <div id="java-active-internal-banner" style="display: none; padding: 12px 16px; background: rgba(56, 189, 248, 0.08); border-left: 4px solid var(--primary-color); border-radius: var(--radius-sm); margin-top: 14px;">
+            <!-- Populated dynamically when a specific internal topic is selected -->
           </div>
         </div>
 
@@ -272,17 +329,18 @@
            ===================================================================== -->
       <section class="content-section" id="section-spring">
         <div class="hero-banner">
-          <h1 class="hero-title">🌱 Spring Boot, Transactions, JPA, Hibernate &amp; Security</h1>
+          <h1 class="hero-title">🌱 Spring Boot 3 Engine Internals, Architecture &amp; Scenarios</h1>
           <p class="hero-subtitle">
-            Master Spring AOP proxy interception, transaction propagation (REQUIRED vs REQUIRES_NEW), Hibernate First-Level Cache &amp; Dirty Checking, Spring Security filter chains, and 15 staff-level scenario runbooks.
+            Master the complete internal mechanics of Spring Boot with 29 visual under-the-hood engine deep dives, the Three-Level Cache, CGLIB proxies, Auto-Configuration DeferredImportSelector, SpringApplication.run() startup pipeline, and 15 staff-level scenario runbooks.
           </p>
           <div class="hero-badges">
-            <span class="hero-badge-pill highlight">@Transactional Proxy Trap</span>
-            <span class="hero-badge-pill">Propagation &amp; Rollback-Only</span>
-            <span class="hero-badge-pill">Hibernate Dirty Checking</span>
-            <span class="hero-badge-pill">Security Filter Chains</span>
-            <span class="hero-badge-pill">Auto-Config Internals</span>
-            <span class="hero-badge-pill">Three-Level Cache</span>
+            <span class="hero-badge-pill highlight">⚙️ 29 Internal Working Deep Dives</span>
+            <span class="hero-badge-pill highlight">👁️ Visual Flow Diagrams</span>
+            <span class="hero-badge-pill">SpringApplication.run() Startup</span>
+            <span class="hero-badge-pill">Three-Level Cache &amp; Circular Deps</span>
+            <span class="hero-badge-pill">Auto-Config &amp; DeferredImportSelector</span>
+            <span class="hero-badge-pill">CGLIB vs JDK Dynamic Proxies</span>
+            <span class="hero-badge-pill">DispatcherServlet MVC Pipeline</span>
             <span class="hero-badge-pill highlight">15 Staff Scenarios</span>
           </div>
         </div>
@@ -293,13 +351,44 @@
             <span>🌱 Spring Boot Topics:</span>
           </div>
           <div class="toolbar-filters">
-            <button class="filter-chip active" onclick="app.filterSpringCategory('all')">All (23)</button>
-            <button class="filter-chip" onclick="app.filterSpringCategory('architecture')">Architecture &amp; Internals (8)</button>
+            <button class="filter-chip active highlight" onclick="app.filterSpringCategory('internals')">⚙️ Internal Working (29)</button>
+            <button class="filter-chip" onclick="app.filterSpringCategory('all')">All (<span id="spring-total-count">52</span>)</button>
+            <button class="filter-chip" onclick="app.filterSpringCategory('bootstrap')">🚀 Bootstrap &amp; Engine (8)</button>
+            <button class="filter-chip" onclick="app.filterSpringCategory('dependencies')">🧩 Auto-Config &amp; Starters (3)</button>
+            <button class="filter-chip" onclick="app.filterSpringCategory('ioc')">🔄 Core IoC &amp; Proxies (6)</button>
+            <button class="filter-chip" onclick="app.filterSpringCategory('config')">⚙️ Config &amp; Properties (4)</button>
+            <button class="filter-chip" onclick="app.filterSpringCategory('web')">🌐 Web, Server &amp; Test (8)</button>
+            <button class="filter-chip" onclick="app.filterSpringCategory('architecture')">Architecture &amp; Core (8)</button>
             <button class="filter-chip" onclick="app.filterSpringCategory('scenarios')">Scenario Runbooks (15)</button>
           </div>
           <div style="display: flex; gap: 6px; margin-left: auto;">
             <button class="btn-secondary" style="font-size: 0.75rem; padding: 4px 10px;" onclick="app.toggleAllCardsInSection('spring-cards-container', true)">Expand All Visuals</button>
             <button class="btn-secondary" style="font-size: 0.75rem; padding: 4px 10px;" onclick="app.toggleAllCardsInSection('spring-cards-container', false)">Collapse All</button>
+          </div>
+        </div>
+
+        <!-- Spring Boot Internals Navigator Box -->
+        <div class="spring-internals-navigator" style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 16px 20px; margin-bottom: 22px; box-shadow: var(--shadow-sm);">
+          <div style="display: flex; flex-wrap: wrap; gap: 14px; align-items: center; justify-content: space-between;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <span style="font-size: 1.6rem;">⚙️</span>
+              <div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <strong style="font-size: 1rem; color: var(--text-primary);">Spring Boot Internal Working Explorer (29 Engine Topics):</strong>
+                  <span class="hero-badge-pill highlight" style="font-size: 0.7rem; padding: 2px 8px;">Visual Diagrams + Modal Deep Dive</span>
+                </div>
+                <span style="font-size: 0.8rem; color: var(--text-muted); margin-top: 2px; display: block;">Select any of the 29 internal mechanisms below to inspect its visual execution flow, under-the-hood engine mechanics, and senior staff traps.</span>
+              </div>
+            </div>
+            <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
+              <input type="text" id="spring-internals-search" placeholder="🔍 Search 29 internal topics (e.g. three-level cache, CGLIB, BOM)..." oninput="app.searchSpringInternals(this.value)" style="padding: 8px 14px; font-size: 0.84rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); background: var(--bg-primary); color: var(--text-primary); min-width: 250px;">
+              <select id="spring-internals-select" onchange="app.selectSpringInternalTopic(this.value)" style="padding: 8px 14px; font-size: 0.84rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); background: var(--bg-primary); color: var(--text-primary); max-width: 360px; font-weight: 600;">
+                <option value="all">-- Jump to any of the 29 Internal Mechanics --</option>
+              </select>
+            </div>
+          </div>
+          <div id="spring-active-topic-banner" style="display: none; padding: 12px 16px; background: rgba(56, 189, 248, 0.08); border-left: 4px solid var(--primary-color); border-radius: var(--radius-sm); margin-top: 14px;">
+            <!-- Populated dynamically when a specific internal topic is selected -->
           </div>
         </div>
 
@@ -463,6 +552,7 @@
             <button class="filter-chip active" onclick="app.filterDevopsCategory('all')">All (25)</button>
             <button class="filter-chip" onclick="app.filterDevopsCategory('architecture')">Architecture &amp; Mechanics (5)</button>
             <button class="filter-chip" onclick="app.filterDevopsCategory('scenarios')">Scenario Runbooks (20)</button>
+            <button class="filter-chip highlight" style="background: rgba(56, 189, 248, 0.15); border-color: var(--border-highlight);" onclick="app.switchSection('lifecycle')">🚀 Spring Boot to GCP/Apigee Lifecycle</button>
           </div>
           <div style="display: flex; gap: 6px; margin-left: auto;">
             <button class="btn-secondary" style="font-size: 0.75rem; padding: 4px 10px;" onclick="app.toggleAllCardsInSection('devops-cards-container', true)">Expand All Visuals</button>
@@ -472,6 +562,399 @@
 
         <!-- Content Cards Grid -->
         <div class="card-grid-2" id="devops-cards-container">
+          <!-- Rendered by app.js -->
+        </div>
+      </section>
+
+      <!-- =====================================================================
+           Section: Application Lifecycle (Spring Boot to GCP & Apigee)
+           ===================================================================== -->
+      <section class="content-section" id="section-lifecycle">
+        <a id="app-lifecycle"></a>
+        <div class="hero-banner">
+          <h1 class="hero-title">🚀 Spring Boot Application Lifecycle: Code to Production on GCP</h1>
+          <p class="hero-subtitle">
+            A comprehensive, end-to-end delivery journey for Java 17+ Spring Boot microservices on Google Cloud Platform — from local IDE bootstrapping, Git branching &amp; Jenkins declarative CI, through multi-stage containerization, Artifact Registry, Helm &amp; GKE deployment, to Apigee API Gateway governance, Ingress, Observability, and automated incident rollback.
+          </p>
+          <div class="hero-badges">
+            <span class="hero-badge-pill highlight">12 Ordered Stages</span>
+            <span class="hero-badge-pill">Java 17+ &amp; Spring Boot 3</span>
+            <span class="hero-badge-pill">Jenkinsfile Declarative CI</span>
+            <span class="hero-badge-pill">Layered JAR Containerization</span>
+            <span class="hero-badge-pill">Google Artifact Registry</span>
+            <span class="hero-badge-pill">Helm 3 &amp; GKE Workload Identity</span>
+            <span class="hero-badge-pill highlight">Apigee X API Management</span>
+            <span class="hero-badge-pill">Cloud Monitoring &amp; Logging</span>
+            <span class="hero-badge-pill">Zero-Downtime Rollback</span>
+          </div>
+        </div>
+
+        <div class="lifecycle-container">
+          <!-- Phase Legend -->
+          <div class="lifecycle-phase-legend">
+            <span style="font-weight: 700; font-size: 0.8rem; color: var(--text-primary); margin-right: 4px;">Lifecycle Phases:</span>
+            <div class="legend-item"><span class="legend-dot" style="background: #3b82f6;"></span> <strong>Phase 1:</strong> Local &amp; Git Collaboration (Stages 1–2)</div>
+            <div class="legend-item"><span class="legend-dot" style="background: #8b5cf6;"></span> <strong>Phase 2:</strong> CI/CD &amp; Image Governance (Stages 3–6)</div>
+            <div class="legend-item"><span class="legend-dot" style="background: #10b981;"></span> <strong>Phase 3:</strong> Helm Manifests &amp; GKE Deploy (Stages 7–8)</div>
+            <div class="legend-item"><span class="legend-dot" style="background: #f97316;"></span> <strong>Phase 4:</strong> Apigee, Ingress, Ops &amp; Rollback (Stages 9–12)</div>
+          </div>
+
+          <!-- Sticky Stage Mini-Nav & Controls -->
+          <div class="lifecycle-sticky-nav">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="font-size: 0.95rem;">⚡</span>
+                <strong style="font-size: 0.84rem; color: var(--text-primary);">Jump to Stage:</strong>
+              </div>
+              <div style="display: flex; gap: 6px;">
+                <button class="btn-secondary" style="font-size: 0.72rem; padding: 3px 8px;" onclick="app.expandAllLifecycleStages(true)">Expand All (12)</button>
+                <button class="btn-secondary" style="font-size: 0.72rem; padding: 3px 8px;" onclick="app.expandAllLifecycleStages(false)">Collapse All</button>
+              </div>
+            </div>
+            <div class="lifecycle-stepper-pills">
+              <button class="stepper-pill-btn" onclick="app.jumpToLifecycleStage(1)"><span class="stepper-pill-num">1</span> Local Dev</button>
+              <button class="stepper-pill-btn" onclick="app.jumpToLifecycleStage(2)"><span class="stepper-pill-num">2</span> Git Review</button>
+              <button class="stepper-pill-btn" onclick="app.jumpToLifecycleStage(3)"><span class="stepper-pill-num">3</span> Jenkins CI</button>
+              <button class="stepper-pill-btn" onclick="app.jumpToLifecycleStage(4)"><span class="stepper-pill-num">4</span> Maven Build</button>
+              <button class="stepper-pill-btn" onclick="app.jumpToLifecycleStage(5)"><span class="stepper-pill-num">5</span> Dockerfile</button>
+              <button class="stepper-pill-btn" onclick="app.jumpToLifecycleStage(6)"><span class="stepper-pill-num">6</span> Artifact Reg</button>
+              <button class="stepper-pill-btn" onclick="app.jumpToLifecycleStage(7)"><span class="stepper-pill-num">7</span> Helm Values</button>
+              <button class="stepper-pill-btn" onclick="app.jumpToLifecycleStage(8)"><span class="stepper-pill-num">8</span> GKE Deploy</button>
+              <button class="stepper-pill-btn" onclick="app.jumpToLifecycleStage(9)"><span class="stepper-pill-num">9</span> Apigee X</button>
+              <button class="stepper-pill-btn" onclick="app.jumpToLifecycleStage(10)"><span class="stepper-pill-num">10</span> Ingress &amp; TLS</button>
+              <button class="stepper-pill-btn" onclick="app.jumpToLifecycleStage(11)"><span class="stepper-pill-num">11</span> Observability</button>
+              <button class="stepper-pill-btn" onclick="app.jumpToLifecycleStage(12)"><span class="stepper-pill-num">12</span> Rollback</button>
+            </div>
+          </div>
+
+          <!-- Section Controls Toolbar / Phase Filters -->
+          <div class="revision-toolbar" style="margin-bottom: 18px;">
+            <div class="toolbar-title">
+              <span>Filter Pipeline:</span>
+            </div>
+            <div class="toolbar-filters">
+              <button class="filter-chip active" onclick="app.filterLifecyclePhase('all')">All 12 Stages</button>
+              <button class="filter-chip" onclick="app.filterLifecyclePhase('dev')">Phase 1: Local &amp; Git (2)</button>
+              <button class="filter-chip" onclick="app.filterLifecyclePhase('cicd')">Phase 2: CI/CD &amp; Image (4)</button>
+              <button class="filter-chip" onclick="app.filterLifecyclePhase('deploy')">Phase 3: Helm &amp; GKE (2)</button>
+              <button class="filter-chip" onclick="app.filterLifecyclePhase('ops')">Phase 4: Apigee &amp; Ops (4)</button>
+            </div>
+          </div>
+
+          <!-- Stepper Cards Pipeline -->
+          <div class="lifecycle-pipeline-flow" id="lifecycle-stepper-container">
+            <!-- Populated dynamically by app.js -->
+          </div>
+
+          <!-- Who Owns What Matrix -->
+          <div style="margin-top: 36px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-bottom: 12px;">
+              <div>
+                <h2 style="font-size: 1.15rem; font-weight: 700; color: var(--text-primary); margin: 0;">
+                  📋 "Who Owns What" Responsibility Matrix
+                </h2>
+                <span style="font-size: 0.8rem; color: var(--text-secondary);">Clear demarcation between Developer ownership and Platform / DevOps infrastructure responsibilities across all 12 stages.</span>
+              </div>
+              <span class="hero-badge-pill highlight" style="font-size: 0.72rem;">RACIOwnership</span>
+            </div>
+            <div id="lifecycle-matrix-container">
+              <!-- Populated dynamically by app.js -->
+            </div>
+          </div>
+
+          <!-- Cheat Sheet Summary -->
+          <div id="lifecycle-cheat-sheet-container">
+            <!-- Populated dynamically by app.js -->
+          </div>
+        </div>
+      </section>
+
+      <!-- =====================================================================
+           Section: AWS Cloud & IAM Architecture
+           ===================================================================== -->
+      <section class="content-section" id="section-aws">
+        <a id="aws-cloud"></a>
+        <div class="hero-banner">
+          <h1 class="hero-title">☁️ Amazon Web Services (AWS) Architecture &amp; IAM Mastery</h1>
+          <p class="hero-subtitle">
+            Master the most critical AWS enterprise services under the hood: IAM Role architecture (AssumeRole, STS, EC2 Instance Profiles, EKS IRSA), Nitro compute, S3 object storage &amp; presigned URLs, Aurora distributed quorum engine, DynamoDB single-table hashing, Lambda SnapStart CRaC microVMs, EKS VPC CNI networking, SQS/SNS fan-out pipelines, and API Gateway token bucket throttling.
+          </p>
+          <div class="hero-badges">
+            <span class="hero-badge-pill highlight">9 Core Enterprise Services</span>
+            <span class="hero-badge-pill">IAM AssumeRole &amp; EKS IRSA</span>
+            <span class="hero-badge-pill">EC2 Nitro &amp; IMDSv2</span>
+            <span class="hero-badge-pill">Aurora 6-Way Storage Quorum</span>
+            <span class="hero-badge-pill">DynamoDB Single-Table Design</span>
+            <span class="hero-badge-pill highlight">Lambda SnapStart CRaC</span>
+            <span class="hero-badge-pill">VPC CNI Native Pod IPs</span>
+            <span class="hero-badge-pill">SNS-SQS Fan-Out Decoupling</span>
+            <span class="hero-badge-pill">API Gateway Token Bucket</span>
+          </div>
+        </div>
+
+        <!-- Section Controls Toolbar -->
+        <div class="revision-toolbar">
+          <div class="toolbar-title">
+            <span>☁️ Filter AWS Services:</span>
+          </div>
+          <div class="toolbar-filters">
+            <button class="filter-chip active highlight" onclick="app.filterAwsCategory('all')">All Services (9)</button>
+            <button class="filter-chip" onclick="app.filterAwsCategory('Security & Identity')">🔐 Security &amp; IAM (1)</button>
+            <button class="filter-chip" onclick="app.filterAwsCategory('Compute & Containers')">🖥️ Compute &amp; Containers (3)</button>
+            <button class="filter-chip" onclick="app.filterAwsCategory('Storage & Database')">🗄️ Storage &amp; Database (3)</button>
+            <button class="filter-chip" onclick="app.filterAwsCategory('Networking & Messaging')">📨 Messaging &amp; Queues (1)</button>
+            <button class="filter-chip" onclick="app.filterAwsCategory('Serverless & APIs')">⚡ Serverless &amp; APIs (2)</button>
+          </div>
+          <div style="display: flex; gap: 6px; margin-left: auto;">
+            <button class="btn-secondary" style="font-size: 0.75rem; padding: 4px 10px;" onclick="app.toggleAllCardsInSection('aws-cards-container', true)">Expand All Visuals</button>
+            <button class="btn-secondary" style="font-size: 0.75rem; padding: 4px 10px;" onclick="app.toggleAllCardsInSection('aws-cards-container', false)">Collapse All</button>
+          </div>
+        </div>
+
+        <!-- AWS Services Explorer Navigator Box -->
+        <div class="java-internals-navigator" style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 16px 20px; margin-bottom: 22px; box-shadow: var(--shadow-sm);">
+          <div style="display: flex; flex-wrap: wrap; gap: 14px; align-items: center; justify-content: space-between;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <span style="font-size: 1.6rem;">☁️</span>
+              <div>
+                <h3 style="font-size: 1.02rem; font-weight: 700; color: var(--text-primary); margin: 0 0 3px 0;">AWS Core Services &amp; Role Blueprint Explorer</h3>
+                <p style="font-size: 0.82rem; color: var(--text-muted); margin: 0;">Select any AWS service to inspect its under-the-hood engine, IAM role config, Java SDK code, and staff-level traps.</p>
+              </div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+              <div class="search-input-wrapper" style="min-width: 240px; margin: 0; padding: 6px 12px; background: var(--bg-primary);">
+                <span>🔍</span>
+                <input type="text" id="aws-search" placeholder="Search AWS service, IAM, S3, RDS..." oninput="app.searchAwsTopics(this.value)">
+              </div>
+              <select id="aws-select" class="form-select" style="min-width: 260px; padding: 8px 12px; font-size: 0.84rem; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: var(--radius-sm); color: var(--text-primary);" onchange="app.selectAwsTopic(this.value)">
+                <option value="all">⚡ Jump to AWS Service...</option>
+              </select>
+            </div>
+          </div>
+          <div id="aws-active-banner" style="display: none; padding: 12px 16px; background: rgba(255, 153, 0, 0.08); border-left: 4px solid var(--accent-aws, #ff9900); border-radius: var(--radius-sm); margin-top: 14px;">
+            <!-- Populated dynamically when an AWS service is selected -->
+          </div>
+        </div>
+
+        <!-- Content Cards Grid -->
+        <div class="card-grid-2" id="aws-cards-container">
+          <!-- Rendered by app.js -->
+        </div>
+      </section>
+
+      <!-- =====================================================================
+           Section: Google Cloud Platform (GCP) & IAM Architecture
+           ===================================================================== -->
+      <section class="content-section" id="section-gcp">
+        <a id="gcp-cloud"></a>
+        <div class="hero-banner">
+          <h1 class="hero-title">🌐 Google Cloud Platform (GCP) Architecture &amp; IAM Mastery</h1>
+          <p class="hero-subtitle">
+            Master the most critical Google Cloud enterprise services under the hood: IAM Resource Hierarchy &amp; Workload Identity Federation (zero static JSON keys), GCE Live Migration with zero downtime, GCS strong global consistency on Colossus, Cloud Spanner TrueTime atomic clock synchronization, GKE Autopilot eBPF Dataplane V2, Cloud Run 250-concurrency containers, Cloud Pub/Sub exactly-once streaming, BigQuery Dremel tree &amp; Capacitor columnar engine, and Apigee API Management enterprise policy pipelines.
+          </p>
+          <div class="hero-badges">
+            <span class="hero-badge-pill highlight">9 Core Enterprise Services</span>
+            <span class="hero-badge-pill">GKE Workload Identity (Keyless)</span>
+            <span class="hero-badge-pill">Workload Identity Federation</span>
+            <span class="hero-badge-pill">GCE Live Migration (Zero Reboot)</span>
+            <span class="hero-badge-pill">Spanner TrueTime GPS Clocks</span>
+            <span class="hero-badge-pill highlight">GKE Autopilot &amp; eBPF</span>
+            <span class="hero-badge-pill">Cloud Run 250x Concurrency</span>
+            <span class="hero-badge-pill">Pub/Sub BigQuery Streaming</span>
+            <span class="hero-badge-pill">BigQuery Dremel &amp; Slots</span>
+            <span class="hero-badge-pill">Apigee SpikeArrest &amp; Quotas</span>
+          </div>
+        </div>
+
+        <!-- Section Controls Toolbar -->
+        <div class="revision-toolbar">
+          <div class="toolbar-title">
+            <span>🌐 Filter GCP Services:</span>
+          </div>
+          <div class="toolbar-filters">
+            <button class="filter-chip active highlight" onclick="app.filterGcpCategory('all')">All Services (9)</button>
+            <button class="filter-chip" onclick="app.filterGcpCategory('Security & Identity')">🔐 Security &amp; IAM (1)</button>
+            <button class="filter-chip" onclick="app.filterGcpCategory('Compute & Containers')">🖥️ Compute &amp; Containers (3)</button>
+            <button class="filter-chip" onclick="app.filterGcpCategory('Storage & Database')">🗄️ Storage &amp; Database (2)</button>
+            <button class="filter-chip" onclick="app.filterGcpCategory('Networking & Messaging')">📨 Streaming &amp; Messaging (1)</button>
+            <button class="filter-chip" onclick="app.filterGcpCategory('Analytics & Enterprise API')">📊 BigQuery &amp; Apigee (2)</button>
+          </div>
+          <div style="display: flex; gap: 6px; margin-left: auto;">
+            <button class="btn-secondary" style="font-size: 0.75rem; padding: 4px 10px;" onclick="app.toggleAllCardsInSection('gcp-cards-container', true)">Expand All Visuals</button>
+            <button class="btn-secondary" style="font-size: 0.75rem; padding: 4px 10px;" onclick="app.toggleAllCardsInSection('gcp-cards-container', false)">Collapse All</button>
+          </div>
+        </div>
+
+        <!-- GCP Services Explorer Navigator Box -->
+        <div class="java-internals-navigator" style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 16px 20px; margin-bottom: 22px; box-shadow: var(--shadow-sm);">
+          <div style="display: flex; flex-wrap: wrap; gap: 14px; align-items: center; justify-content: space-between;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <span style="font-size: 1.6rem;">🌐</span>
+              <div>
+                <h3 style="font-size: 1.02rem; font-weight: 700; color: var(--text-primary); margin: 0 0 3px 0;">Google Cloud Services &amp; IAM Blueprint Explorer</h3>
+                <p style="font-size: 0.82rem; color: var(--text-muted); margin: 0;">Select any GCP service to inspect its under-the-hood engine, Workload Identity role config, Java SDK code, and staff-level traps.</p>
+              </div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+              <div class="search-input-wrapper" style="min-width: 240px; margin: 0; padding: 6px 12px; background: var(--bg-primary);">
+                <span>🔍</span>
+                <input type="text" id="gcp-search" placeholder="Search GCP service, IAM, GKE, Spanner..." oninput="app.searchGcpTopics(this.value)">
+              </div>
+              <select id="gcp-select" class="form-select" style="min-width: 260px; padding: 8px 12px; font-size: 0.84rem; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: var(--radius-sm); color: var(--text-primary);" onchange="app.selectGcpTopic(this.value)">
+                <option value="all">⚡ Jump to GCP Service...</option>
+              </select>
+            </div>
+          </div>
+          <div id="gcp-active-banner" style="display: none; padding: 12px 16px; background: rgba(66, 133, 244, 0.08); border-left: 4px solid var(--accent-gcp, #4285f4); border-radius: var(--radius-sm); margin-top: 14px;">
+            <!-- Populated dynamically when a GCP service is selected -->
+          </div>
+        </div>
+
+        <!-- Content Cards Grid -->
+        <div class="card-grid-2" id="gcp-cards-container">
+          <!-- Rendered by app.js -->
+        </div>
+      </section>
+
+      <!-- =====================================================================
+           Section: Java Design Patterns (Gang of Four & Modern Java)
+           ===================================================================== -->
+      <section class="content-section" id="section-design-patterns">
+        <a id="java-design-patterns"></a>
+        <div class="hero-banner">
+          <h1 class="hero-title">📐 Gang of Four (GoF) &amp; Modern Java Design Patterns</h1>
+          <p class="hero-subtitle">
+            Master all 24 Creational, Structural, Behavioral, and Modern Java design patterns with visual execution flows, HotSpot JVM implementation mechanics, production-grade Java 17+ code, and senior staff traps.
+          </p>
+          <div class="hero-badges">
+            <span class="hero-badge-pill highlight">24 Core Patterns</span>
+            <span class="hero-badge-pill">Creational (5)</span>
+            <span class="hero-badge-pill">Structural (7)</span>
+            <span class="hero-badge-pill">Behavioral (11)</span>
+            <span class="hero-badge-pill">Modern Idioms (1)</span>
+            <span class="hero-badge-pill highlight">Visual Flow Diagrams</span>
+            <span class="hero-badge-pill">Production Java 17+ Code</span>
+            <span class="hero-badge-pill">Staff-Level Traps</span>
+          </div>
+        </div>
+
+        <!-- Section Controls Toolbar -->
+        <div class="revision-toolbar">
+          <div class="toolbar-title">
+            <span>📐 Filter Patterns:</span>
+          </div>
+          <div class="toolbar-filters">
+            <button class="filter-chip active highlight" onclick="app.filterJavaPatternsCategory('all')">All (24)</button>
+            <button class="filter-chip" onclick="app.filterJavaPatternsCategory('creational')">🏗️ Creational (5)</button>
+            <button class="filter-chip" onclick="app.filterJavaPatternsCategory('structural')">🧩 Structural (7)</button>
+            <button class="filter-chip" onclick="app.filterJavaPatternsCategory('behavioral')">🔄 Behavioral (11)</button>
+            <button class="filter-chip" onclick="app.filterJavaPatternsCategory('modern')">⚡ Modern Idioms (1)</button>
+          </div>
+          <div style="display: flex; gap: 6px; margin-left: auto;">
+            <button class="btn-secondary" style="font-size: 0.75rem; padding: 4px 10px;" onclick="app.toggleAllCardsInSection('patterns-cards-container', true)">Expand All Visuals</button>
+            <button class="btn-secondary" style="font-size: 0.75rem; padding: 4px 10px;" onclick="app.toggleAllCardsInSection('patterns-cards-container', false)">Collapse All</button>
+          </div>
+        </div>
+
+        <!-- Patterns Explorer Navigator Box -->
+        <div class="java-internals-navigator" style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 16px 20px; margin-bottom: 22px; box-shadow: var(--shadow-sm);">
+          <div style="display: flex; flex-wrap: wrap; gap: 14px; align-items: center; justify-content: space-between;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <span style="font-size: 1.6rem;">📐</span>
+              <div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <strong style="font-size: 1rem; color: var(--text-primary);">Java Design Patterns Explorer (24 GoF &amp; Modern Patterns):</strong>
+                  <span class="hero-badge-pill highlight" style="font-size: 0.7rem; padding: 2px 8px;">Visual Diagrams + Deep Dive Modal</span>
+                </div>
+                <span style="font-size: 0.8rem; color: var(--text-muted); margin-top: 2px; display: block;">Select any pattern below to view its visual interaction flow, production Java code, and interview traps.</span>
+              </div>
+            </div>
+            <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
+              <input type="text" id="patterns-search" placeholder="🔍 Search patterns (e.g. DCL Singleton, Decorator, Strategy)..." oninput="app.searchJavaPatterns(this.value)" style="padding: 8px 14px; font-size: 0.84rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); background: var(--bg-primary); color: var(--text-primary); min-width: 260px;">
+              <select id="patterns-select" onchange="app.selectJavaPattern(this.value)" style="padding: 8px 14px; font-size: 0.84rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); background: var(--bg-primary); color: var(--text-primary); max-width: 360px; font-weight: 600;">
+                <option value="all">-- Jump to any of the 24 Design Patterns --</option>
+              </select>
+            </div>
+          </div>
+          <div id="patterns-active-banner" style="display: none; padding: 12px 16px; background: rgba(56, 189, 248, 0.08); border-left: 4px solid var(--primary-color); border-radius: var(--radius-sm); margin-top: 14px;">
+            <!-- Populated dynamically when a specific pattern is selected -->
+          </div>
+        </div>
+
+        <!-- Content Cards Grid -->
+        <div class="card-grid-2" id="patterns-cards-container">
+          <!-- Rendered by app.js -->
+        </div>
+      </section>
+
+      <!-- =====================================================================
+           Section: Microservices Design Patterns (Distributed Architecture)
+           ===================================================================== -->
+      <section class="content-section" id="section-microservices">
+        <a id="microservices-patterns"></a>
+        <div class="hero-banner">
+          <h1 class="hero-title">🌐 Microservices Architecture &amp; Distributed System Patterns</h1>
+          <p class="hero-subtitle">
+            Master all 25 cloud-native microservice design patterns covering Decomposition, Distributed Sagas, Transactional Outbox, CQRS, Event Sourcing, Circuit Breakers, API Gateways, Distributed Tracing, and Service Mesh.
+          </p>
+          <div class="hero-badges">
+            <span class="hero-badge-pill highlight">25 Distributed Patterns</span>
+            <span class="hero-badge-pill">Decomposition &amp; Strangler (4)</span>
+            <span class="hero-badge-pill">Data &amp; Sagas (7)</span>
+            <span class="hero-badge-pill">Gateways &amp; BFF (4)</span>
+            <span class="hero-badge-pill">Resilience &amp; Circuit Breakers (5)</span>
+            <span class="hero-badge-pill">Observability &amp; SRE (5)</span>
+            <span class="hero-badge-pill highlight">Dual-Write Solutions</span>
+            <span class="hero-badge-pill">Zero-Downtime Releases</span>
+          </div>
+        </div>
+
+        <!-- Section Controls Toolbar -->
+        <div class="revision-toolbar">
+          <div class="toolbar-title">
+            <span>🌐 Filter Microservices:</span>
+          </div>
+          <div class="toolbar-filters">
+            <button class="filter-chip active highlight" onclick="app.filterMicroservicesCategory('all')">All (25)</button>
+            <button class="filter-chip" onclick="app.filterMicroservicesCategory('decomposition')">🧩 Decomposition (4)</button>
+            <button class="filter-chip" onclick="app.filterMicroservicesCategory('data')">💾 Data &amp; Sagas (7)</button>
+            <button class="filter-chip" onclick="app.filterMicroservicesCategory('integration')">🚪 Gateways &amp; BFF (4)</button>
+            <button class="filter-chip" onclick="app.filterMicroservicesCategory('resilience')">🛡️ Resilience &amp; Breakers (5)</button>
+            <button class="filter-chip" onclick="app.filterMicroservicesCategory('observability')">📊 Observability &amp; Mesh (5)</button>
+          </div>
+          <div style="display: flex; gap: 6px; margin-left: auto;">
+            <button class="btn-secondary" style="font-size: 0.75rem; padding: 4px 10px;" onclick="app.toggleAllCardsInSection('microservices-cards-container', true)">Expand All Visuals</button>
+            <button class="btn-secondary" style="font-size: 0.75rem; padding: 4px 10px;" onclick="app.toggleAllCardsInSection('microservices-cards-container', false)">Collapse All</button>
+          </div>
+        </div>
+
+        <!-- Microservices Explorer Navigator Box -->
+        <div class="java-internals-navigator" style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 16px 20px; margin-bottom: 22px; box-shadow: var(--shadow-sm);">
+          <div style="display: flex; flex-wrap: wrap; gap: 14px; align-items: center; justify-content: space-between;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <span style="font-size: 1.6rem;">🌐</span>
+              <div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <strong style="font-size: 1rem; color: var(--text-primary);">Microservices Patterns Explorer (25 Distributed Architecture Patterns):</strong>
+                  <span class="hero-badge-pill highlight" style="font-size: 0.7rem; padding: 2px 8px;">Visual Diagrams + Deep Dive Modal</span>
+                </div>
+                <span style="font-size: 0.8rem; color: var(--text-muted); margin-top: 2px; display: block;">Select any pattern below to view its distributed architecture flow, failure modes, and production code.</span>
+              </div>
+            </div>
+            <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
+              <input type="text" id="microservices-search" placeholder="🔍 Search microservices (e.g. Saga, Outbox, CQRS, Circuit Breaker)..." oninput="app.searchMicroservicesPatterns(this.value)" style="padding: 8px 14px; font-size: 0.84rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); background: var(--bg-primary); color: var(--text-primary); min-width: 260px;">
+              <select id="microservices-select" onchange="app.selectMicroservicesPattern(this.value)" style="padding: 8px 14px; font-size: 0.84rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); background: var(--bg-primary); color: var(--text-primary); max-width: 360px; font-weight: 600;">
+                <option value="all">-- Jump to any of the 25 Microservices Patterns --</option>
+              </select>
+            </div>
+          </div>
+          <div id="microservices-active-banner" style="display: none; padding: 12px 16px; background: rgba(56, 189, 248, 0.08); border-left: 4px solid var(--primary-color); border-radius: var(--radius-sm); margin-top: 14px;">
+            <!-- Populated dynamically when a specific pattern is selected -->
+          </div>
+        </div>
+
+        <!-- Content Cards Grid -->
+        <div class="card-grid-2" id="microservices-cards-container">
           <!-- Rendered by app.js -->
         </div>
       </section>
@@ -645,26 +1128,320 @@
       </section>
 
       <!-- =====================================================================
-           Section 4: DSA & System Patterns
+           Section 4: DSA Patterns & System-Oriented Data Structures
            ===================================================================== -->
       <section class="content-section" id="section-dsa">
+        <a id="dsa-patterns"></a>
         <div class="hero-banner">
-          <h1 class="hero-title">DSA & System-Oriented Data Structures</h1>
+          <h1 class="hero-title">⚡ DSA Pattern Mastery &amp; Problem Finding Blueprints</h1>
           <p class="hero-subtitle">
-            Master algorithmic skeleton templates and real-world system data structures (LRU, LFU, Rate Limiters, Monotonic Deques, and Disjoint Sets).
+            Master the art of algorithmic pattern matching: how to extract trigger signals from problem statements, formulate the brute-force approach first, identify its computational bottleneck, and transition step-by-step to the optimal solution using Big-O constraint analysis and production templates.
           </p>
           <div class="hero-badges">
-            <span class="hero-badge-pill highlight">O(1) LRU & LFU Cache</span>
-            <span class="hero-badge-pill">Token Bucket Rate Limiter</span>
-            <span class="hero-badge-pill">Monotonic Amortized O(N)</span>
-            <span class="hero-badge-pill">Union-Find Path Compression</span>
+            <span class="hero-badge-pill highlight">30 Master Patterns &amp; Structures</span>
+            <span class="hero-badge-pill">Brute Force ➔ Optimal Strategy</span>
+            <span class="hero-badge-pill">Pattern Finding Decision Matrix</span>
+            <span class="hero-badge-pill">N-to-Big-O Complexity Guide</span>
+            <span class="hero-badge-pill highlight">Visual Mental Models</span>
+            <span class="hero-badge-pill">Production Java 17+ Templates</span>
+            <span class="hero-badge-pill">System Cache &amp; Rate Limiters</span>
+          </div>
+        </div>
+
+        <!-- Master Strategy & Decision Matrices Box (Collapsible / Scannable) -->
+        <div class="cheat-card border-dsa" style="margin-bottom: 24px;">
+          <div class="card-header" style="padding: 16px 20px 0 20px; margin-bottom: 6px;">
+            <div>
+              <div class="card-title" style="font-size: 1.08rem; display: flex; align-items: center; gap: 8px;">
+                <span>🎯</span> The Master DSA Pattern Finding Framework (How to Identify Any Problem)
+              </div>
+              <div style="font-size: 0.82rem; color: var(--text-muted); margin-top: 4px;">
+                Follow the 3-step senior engineer interview formula: <strong>1. Classify by Keywords &amp; Signals ➔ 2. Bound by Input Constraint N ➔ 3. Formulate Brute Force then Eliminate Bottleneck</strong>
+              </div>
+            </div>
+            <span class="hero-badge-pill highlight">Interview Formula</span>
+          </div>
+
+          <div class="card-body" style="padding: 0 20px 20px 20px;">
+            <!-- Tabbed or Grouped Matrices -->
+            <div style="margin-top: 14px; display: flex; flex-direction: column; gap: 18px;">
+
+              <!-- Step 1 & 2 Explanation Callout -->
+              <div class="callout-box callout-info" style="margin: 0; background: rgba(56, 189, 248, 0.08); border-left: 4px solid #38bdf8;">
+                <span class="callout-icon">💡</span>
+                <div>
+                  <strong style="color: #38bdf8; display: block; margin-bottom: 4px; font-size: 0.88rem;">How to Attack Any DSA Question in an Interview:</strong>
+                  <div style="font-size: 0.84rem; color: var(--text-secondary); line-height: 1.6;">
+                    <strong>Step 1: State the Brute Force First</strong> — Never stay silent or jump straight to complex code. Clearly articulate: <em>"A naive brute-force approach would check every pair/permutation in O(N²) time by running nested loops. The bottleneck here is that we re-scan elements we've already compared."</em> This proves algorithmic awareness and establishes a working baseline.<br>
+                    <strong>Step 2: Inspect Input Constraints (N)</strong> — The maximum value of N immediately reveals the required Big-O time complexity (see Table below). If N = 10⁵, an O(N²) solution will exceed the 1-second limit (~10⁸ ops); you MUST find an O(N log N) or O(N) approach.<br>
+                    <strong>Step 3: Extract Trigger Keywords</strong> — "Contiguous subarray" ➔ Sliding Window; "Next greater" ➔ Monotonic Stack; "Sorted array pair" ➔ Two Pointers; "Minimize maximum" ➔ Binary Search on Answer; "Prerequisites" ➔ Topological Sort.
+                  </div>
+                </div>
+              </div>
+
+              <!-- Table 1: Constraint to Big-O Mapping -->
+              <div>
+                <h3 style="font-size: 0.92rem; font-weight: 700; color: var(--accent-cyan); margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+                  <span>⏱️</span> 1. Input Size (N) to Target Big-O Complexity Mapping (1-Second CPU Limit ≈ 10⁸ Ops)
+                </h3>
+                <div style="overflow-x: auto; max-width: 100%;">
+                  <table style="width: 100%; min-width: 620px; border-collapse: collapse; font-size: 0.82rem; text-align: left;">
+                    <thead>
+                      <tr style="border-bottom: 2px solid var(--border-color); color: var(--text-link);">
+                        <th style="padding: 8px;">Constraint (N)</th>
+                        <th style="padding: 8px;">Target Complexity</th>
+                        <th style="padding: 8px;">Eligible Algorithmic Patterns</th>
+                        <th style="padding: 8px;">Typical Problem Archetypes</th>
+                      </tr>
+                    </thead>
+                    <tbody style="color: var(--text-secondary);">
+                      <tr style="border-bottom: 1px solid var(--border-subtle);">
+                        <td style="padding: 8px; font-weight: bold; color: #f87171;">N ≤ 10</td>
+                        <td style="padding: 8px; color: #f87171; font-weight: 600;">O(N!)</td>
+                        <td style="padding: 8px;">Backtracking, Permutations, Exact Brute Force</td>
+                        <td style="padding: 8px;">Traveling Salesperson, TSP, Generating Permutations</td>
+                      </tr>
+                      <tr style="border-bottom: 1px solid var(--border-subtle);">
+                        <td style="padding: 8px; font-weight: bold; color: #fb923c;">N ≤ 20</td>
+                        <td style="padding: 8px; color: #fb923c; font-weight: 600;">O(2ᴺ · N) or O(2ᴺ)</td>
+                        <td style="padding: 8px;">Bitmask Dynamic Programming, Subsets Backtracking</td>
+                        <td style="padding: 8px;">Smallest Sufficient Team, Matchsticks to Square, Subsets</td>
+                      </tr>
+                      <tr style="border-bottom: 1px solid var(--border-subtle);">
+                        <td style="padding: 8px; font-weight: bold; color: #facc15;">N ≤ 100</td>
+                        <td style="padding: 8px; color: #facc15; font-weight: 600;">O(N³)</td>
+                        <td style="padding: 8px;">Floyd-Warshall (All-Pairs Shortest), Matrix Mult, 3-Loop DP</td>
+                        <td style="padding: 8px;">Burst Balloons, Matrix Chain Multiplication</td>
+                      </tr>
+                      <tr style="border-bottom: 1px solid var(--border-subtle);">
+                        <td style="padding: 8px; font-weight: bold; color: #38bdf8;">N ≤ 1,000</td>
+                        <td style="padding: 8px; color: #38bdf8; font-weight: 600;">O(N²)</td>
+                        <td style="padding: 8px;">2D Matrix DP (LCS, Edit Distance, Knapsack), Nested Two Loops</td>
+                        <td style="padding: 8px;">Longest Common Subsequence, 0/1 Knapsack, Coin Change</td>
+                      </tr>
+                      <tr style="border-bottom: 1px solid var(--border-subtle);">
+                        <td style="padding: 8px; font-weight: bold; color: #34d399;">N ≤ 100,000 (10⁵)</td>
+                        <td style="padding: 8px; color: #34d399; font-weight: 600;">O(N log N)</td>
+                        <td style="padding: 8px;">Sorting, Heaps (Top K), Binary Search on Answer, Segment Tree</td>
+                        <td style="padding: 8px;">Merge Intervals, Koko Eating Bananas, Top K Frequent</td>
+                      </tr>
+                      <tr style="border-bottom: 1px solid var(--border-subtle);">
+                        <td style="padding: 8px; font-weight: bold; color: #34d399;">N ≤ 1,000,000 (10⁶)</td>
+                        <td style="padding: 8px; color: #34d399; font-weight: 600;">O(N) Linear</td>
+                        <td style="padding: 8px;">Two Pointers, Sliding Window, Monotonic Stack/Deque, DSU, BFS/DFS</td>
+                        <td style="padding: 8px;">Daily Temperatures, Sliding Window Max, Rotting Oranges</td>
+                      </tr>
+                      <tr>
+                        <td style="padding: 8px; font-weight: bold; color: #a78bfa;">N ≥ 10⁹</td>
+                        <td style="padding: 8px; color: #a78bfa; font-weight: 600;">O(log N) or O(1)</td>
+                        <td style="padding: 8px;">Binary Search, Euclidean GCD, Fast Exponentiation, Math/Bits</td>
+                        <td style="padding: 8px;">Pow(x, n), Sqrt(x), Single Number XOR, Bit Manipulation</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <!-- Table 2: Pattern Identification Decision Matrix -->
+              <div>
+                <h3 style="font-size: 0.92rem; font-weight: 700; color: var(--accent-cyan); margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+                  <span>🧭</span> 2. Problem Keyword &amp; Signal Decision Matrix (Which Pattern to Use &amp; Why)
+                </h3>
+                <div style="overflow-x: auto; max-width: 100%;">
+                  <table style="width: 100%; min-width: 740px; border-collapse: collapse; font-size: 0.81rem; text-align: left;">
+                    <thead>
+                      <tr style="border-bottom: 2px solid var(--border-color); color: var(--text-link);">
+                        <th style="padding: 8px;">Pattern Name</th>
+                        <th style="padding: 8px;">Trigger Keywords &amp; Signals in Question</th>
+                        <th style="padding: 8px;">Brute Force Bottleneck</th>
+                        <th style="padding: 8px;">Optimal Elimination Strategy</th>
+                        <th style="padding: 8px;">Go-To Data Structure</th>
+                      </tr>
+                    </thead>
+                    <tbody style="color: var(--text-secondary);">
+                      <tr style="border-bottom: 1px solid var(--border-subtle);">
+                        <td style="padding: 8px; font-weight: bold; color: var(--text-primary);">Two Pointers</td>
+                        <td style="padding: 8px;">Sorted array, pair sum, palindromes, container width</td>
+                        <td style="padding: 8px; color: #f87171;">O(N²) pairwise nested loops</td>
+                        <td style="padding: 8px; color: #34d399;">O(N) collision; sorted monotonicity prunes quadrants</td>
+                        <td style="padding: 8px;">Two index pointers (left, right)</td>
+                      </tr>
+                      <tr style="border-bottom: 1px solid var(--border-subtle);">
+                        <td style="padding: 8px; font-weight: bold; color: var(--text-primary);">Sliding Window</td>
+                        <td style="padding: 8px;"><strong>Contiguous</strong> subarray or substring, longest/shortest with constraint</td>
+                        <td style="padding: 8px; color: #f87171;">O(N²) scanning all subarrays</td>
+                        <td style="padding: 8px; color: #34d399;">Amortized O(N) expand right, shrink left on violation</td>
+                        <td style="padding: 8px;">int[] frequency map / count variables</td>
+                      </tr>
+                      <tr style="border-bottom: 1px solid var(--border-subtle);">
+                        <td style="padding: 8px; font-weight: bold; color: var(--text-primary);">Fast &amp; Slow Pointers</td>
+                        <td style="padding: 8px;">Linked list cycle, middle of list, array cycle (LC 287)</td>
+                        <td style="padding: 8px; color: #f87171;">O(N) HashSet memory overhead</td>
+                        <td style="padding: 8px; color: #34d399;">O(1) space collision via 1-step vs 2-step speed delta</td>
+                        <td style="padding: 8px;">Two node pointers (slow, fast)</td>
+                      </tr>
+                      <tr style="border-bottom: 1px solid var(--border-subtle);">
+                        <td style="padding: 8px; font-weight: bold; color: var(--text-primary);">Monotonic Stack</td>
+                        <td style="padding: 8px;">"Next Greater Element", "Previous Smaller", histogram rectangle, daily temperatures</td>
+                        <td style="padding: 8px; color: #f87171;">O(N²) inner loop forward search</td>
+                        <td style="padding: 8px; color: #34d399;">Amortized O(N) stack pops resolve elements immediately</td>
+                        <td style="padding: 8px;">ArrayDeque&lt;Integer&gt; (index stack)</td>
+                      </tr>
+                      <tr style="border-bottom: 1px solid var(--border-subtle);">
+                        <td style="padding: 8px; font-weight: bold; color: var(--text-primary);">Monotonic Deque</td>
+                        <td style="padding: 8px;">Sliding window maximum or minimum of size K</td>
+                        <td style="padding: 8px; color: #f87171;">O(N·K) re-scanning window or O(N log K) PQ</td>
+                        <td style="padding: 8px; color: #34d399;">Amortized O(N) head is always max, tail drops smaller</td>
+                        <td style="padding: 8px;">ArrayDeque&lt;Integer&gt; (index deque)</td>
+                      </tr>
+                      <tr style="border-bottom: 1px solid var(--border-subtle);">
+                        <td style="padding: 8px; font-weight: bold; color: var(--text-primary);">Merge Intervals</td>
+                        <td style="padding: 8px;">Interval ranges [start, end], meeting rooms, overlapping slots</td>
+                        <td style="padding: 8px; color: #f87171;">O(N²) pairwise comparison</td>
+                        <td style="padding: 8px; color: #34d399;">O(N log N) sort by start; adjacent overlap check</td>
+                        <td style="padding: 8px;">Sorted 2D Array / Sweep-line list</td>
+                      </tr>
+                      <tr style="border-bottom: 1px solid var(--border-subtle);">
+                        <td style="padding: 8px; font-weight: bold; color: var(--text-primary);">Cyclic Sort</td>
+                        <td style="padding: 8px;">Array of length N with values in range [1..N], find missing/duplicate in O(1) space</td>
+                        <td style="padding: 8px; color: #f87171;">O(N log N) sorting or O(N) space set</td>
+                        <td style="padding: 8px; color: #34d399;">O(N) time &amp; O(1) space: in-place swap nums[i] to index nums[i]-1</td>
+                        <td style="padding: 8px;">In-place primitive array</td>
+                      </tr>
+                      <tr style="border-bottom: 1px solid var(--border-subtle);">
+                        <td style="padding: 8px; font-weight: bold; color: var(--text-primary);">Binary Search on Answer</td>
+                        <td style="padding: 8px;">"Minimize maximum", "maximize minimum", monotonic condition check(mid)</td>
+                        <td style="padding: 8px; color: #f87171;">O(range · N) sequential checking</td>
+                        <td style="padding: 8px; color: #34d399;">O(N log(range)) halving search domain</td>
+                        <td style="padding: 8px;">Scalar bounds [low, high] + greedy check()</td>
+                      </tr>
+                      <tr style="border-bottom: 1px solid var(--border-subtle);">
+                        <td style="padding: 8px; font-weight: bold; color: var(--text-primary);">Top 'K' Elements</td>
+                        <td style="padding: 8px;">K largest, K smallest, K most frequent, K closest points</td>
+                        <td style="padding: 8px; color: #f87171;">O(N log N) full array sort</td>
+                        <td style="padding: 8px; color: #34d399;">O(N log K) Min-Heap of size K as sieve</td>
+                        <td style="padding: 8px;">PriorityQueue&lt;T&gt; (size K)</td>
+                      </tr>
+                      <tr style="border-bottom: 1px solid var(--border-subtle);">
+                        <td style="padding: 8px; font-weight: bold; color: var(--text-primary);">Two Heaps</td>
+                        <td style="padding: 8px;">Continuous streaming median, partition stream into two halves</td>
+                        <td style="padding: 8px; color: #f87171;">O(N) insertion sort shifting per element</td>
+                        <td style="padding: 8px; color: #34d399;">O(log N) insert, O(1) median query via balanced heaps</td>
+                        <td style="padding: 8px;">Max-Heap (small) + Min-Heap (large)</td>
+                      </tr>
+                      <tr style="border-bottom: 1px solid var(--border-subtle);">
+                        <td style="padding: 8px; font-weight: bold; color: var(--text-primary);">K-Way Merge</td>
+                        <td style="padding: 8px;">Merge K sorted arrays/lists, find smallest range covering K lists</td>
+                        <td style="padding: 8px; color: #f87171;">O(KN log(KN)) full sorting</td>
+                        <td style="padding: 8px; color: #34d399;">O(N log K) tournament heap of size K</td>
+                        <td style="padding: 8px;">PriorityQueue of K head pointers</td>
+                      </tr>
+                      <tr style="border-bottom: 1px solid var(--border-subtle);">
+                        <td style="padding: 8px; font-weight: bold; color: var(--text-primary);">BFS &amp; Multi-Source</td>
+                        <td style="padding: 8px;">Shortest path in unweighted graph/grid, simultaneous spreading</td>
+                        <td style="padding: 8px; color: #f87171;">O(4^(RC)) DFS exploring long detours</td>
+                        <td style="padding: 8px; color: #34d399;">O(V + E) level-order wave; first visit == shortest path</td>
+                        <td style="padding: 8px;">ArrayDeque Queue + visited array</td>
+                      </tr>
+                      <tr style="border-bottom: 1px solid var(--border-subtle);">
+                        <td style="padding: 8px; font-weight: bold; color: var(--text-primary);">Topological Sort</td>
+                        <td style="padding: 8px;">Course prerequisites, compilation order, cycle detection in DAG</td>
+                        <td style="padding: 8px; color: #f87171;">O(V!) factorial permutation checks</td>
+                        <td style="padding: 8px; color: #34d399;">O(V + E) Kahn's zero in-degree queue peeling</td>
+                        <td style="padding: 8px;">inDegree[] array + Queue</td>
+                      </tr>
+                      <tr style="border-bottom: 1px solid var(--border-subtle);">
+                        <td style="padding: 8px; font-weight: bold; color: var(--text-primary);">Union-Find (DSU)</td>
+                        <td style="padding: 8px;">Dynamic connectivity, redundant edge cycle detection, connected components</td>
+                        <td style="padding: 8px; color: #f87171;">O(Q · (V+E)) BFS queries per edge</td>
+                        <td style="padding: 8px; color: #34d399;">O(α(N)) ≈ O(1) per query via path compression</td>
+                        <td style="padding: 8px;">parent[] and rank[] arrays</td>
+                      </tr>
+                      <tr style="border-bottom: 1px solid var(--border-subtle);">
+                        <td style="padding: 8px; font-weight: bold; color: var(--text-primary);">Dijkstra's Algorithm</td>
+                        <td style="padding: 8px;">Shortest path in weighted graph with non-negative edge weights</td>
+                        <td style="padding: 8px; color: #f87171;">O(V!) exponential DFS exploration</td>
+                        <td style="padding: 8px; color: #34d399;">O((V + E) log V) greedy priority queue relaxation</td>
+                        <td style="padding: 8px;">distTo[] array + Min-Heap</td>
+                      </tr>
+                      <tr style="border-bottom: 1px solid var(--border-subtle);">
+                        <td style="padding: 8px; font-weight: bold; color: var(--text-primary);">Backtracking</td>
+                        <td style="padding: 8px;">Generate all subsets, permutations, combinations, N-Queens, Sudoku</td>
+                        <td style="padding: 8px; color: #f87171;">O(N^N) generate-and-test</td>
+                        <td style="padding: 8px; color: #34d399;">Pruned state-space tree (Choose ➔ Recurse ➔ Unchoose)</td>
+                        <td style="padding: 8px;">Recursion call stack + path list</td>
+                      </tr>
+                      <tr style="border-bottom: 1px solid var(--border-subtle);">
+                        <td style="padding: 8px; font-weight: bold; color: var(--text-primary);">1D DP (Kadane)</td>
+                        <td style="padding: 8px;">Max subarray, house robber, coin change, LIS</td>
+                        <td style="padding: 8px; color: #f87171;">O(2ᴺ) overlapping recursive calls</td>
+                        <td style="padding: 8px; color: #34d399;">O(N) prefix state; O(1) space scalar variables</td>
+                        <td style="padding: 8px;">1D array or scalar registers (prev1, prev2)</td>
+                      </tr>
+                      <tr style="border-bottom: 1px solid var(--border-subtle);">
+                        <td style="padding: 8px; font-weight: bold; color: var(--text-primary);">2D DP (Knapsack)</td>
+                        <td style="padding: 8px;">Subset sum, target sum, bounded resource allocation</td>
+                        <td style="padding: 8px; color: #f87171;">O(2ᴺ) evaluate all subsets</td>
+                        <td style="padding: 8px; color: #34d399;">O(N·W) pseudo-polynomial; 1D backwards loop for 0/1</td>
+                        <td style="padding: 8px;">1D/2D DP table</td>
+                      </tr>
+                      <tr style="border-bottom: 1px solid var(--border-subtle);">
+                        <td style="padding: 8px; font-weight: bold; color: var(--text-primary);">2D String DP (LCS)</td>
+                        <td style="padding: 8px;">Longest Common Subsequence, Edit Distance, String Alignment</td>
+                        <td style="padding: 8px; color: #f87171;">O(2ᴹ · N) subsequence generation</td>
+                        <td style="padding: 8px; color: #34d399;">O(M·N) matrix; diagonal match vs top/left penalty</td>
+                        <td style="padding: 8px;">dp[m+1][n+1] or rolling 2-row array</td>
+                      </tr>
+                      <tr style="border-bottom: 1px solid var(--border-subtle);">
+                        <td style="padding: 8px; font-weight: bold; color: var(--text-primary);">Bitmask DP</td>
+                        <td style="padding: 8px;">Small N ≤ 18, TSP, assign N tasks to N workers</td>
+                        <td style="padding: 8px; color: #f87171;">O(N!) permutation checks</td>
+                        <td style="padding: 8px; color: #34d399;">O(2ᴺ · N²) subset integer compression</td>
+                        <td style="padding: 8px;">dp[1 &lt;&lt; N][N] matrix</td>
+                      </tr>
+                      <tr style="border-bottom: 1px solid var(--border-subtle);">
+                        <td style="padding: 8px; font-weight: bold; color: var(--text-primary);">Trie (Prefix Tree)</td>
+                        <td style="padding: 8px;">Autocomplete, prefix search, Word Search II in grid, maximum XOR</td>
+                        <td style="padding: 8px; color: #f87171;">O(N · L) string scanning</td>
+                        <td style="padding: 8px; color: #34d399;">Strict O(L) traversal along shared prefix nodes</td>
+                        <td style="padding: 8px;">26-ary TrieNode / Binary Trie</td>
+                      </tr>
+                      <tr style="border-bottom: 1px solid var(--border-subtle);">
+                        <td style="padding: 8px; font-weight: bold; color: var(--text-primary);">Bit Manipulation</td>
+                        <td style="padding: 8px;">Single number among duplicates, power of two, bit count</td>
+                        <td style="padding: 8px; color: #f87171;">O(N) HashSet memory allocation</td>
+                        <td style="padding: 8px; color: #34d399;">O(1) ALU operations: x ^ x = 0, x &amp; (x - 1)</td>
+                        <td style="padding: 8px;">Bitwise machine registers</td>
+                      </tr>
+                      <tr>
+                        <td style="padding: 8px; font-weight: bold; color: var(--text-primary);">Segment / Fenwick Tree</td>
+                        <td style="padding: 8px;">Range sum/min/max with frequent point/range updates in O(log N)</td>
+                        <td style="padding: 8px; color: #f87171;">O(N) range scan or O(N) prefix update</td>
+                        <td style="padding: 8px; color: #34d399;">O(log N) query &amp; update via binary index responsibility</td>
+                        <td style="padding: 8px;">int[] tree array</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+            </div>
           </div>
         </div>
 
         <!-- Section Controls Toolbar -->
         <div class="revision-toolbar">
           <div class="toolbar-title">
-            <span>⚡ System DSA Patterns:</span>
+            <span>⚡ Filter DSA Patterns:</span>
+          </div>
+          <div class="toolbar-filters">
+            <button class="filter-chip active highlight" onclick="app.filterDsaCategory('all')">All (30)</button>
+            <button class="filter-chip" onclick="app.filterDsaCategory('pointers')">👉 Two Pointers &amp; Window (3)</button>
+            <button class="filter-chip" onclick="app.filterDsaCategory('stacks')">📚 Stacks, Queues &amp; Intervals (4)</button>
+            <button class="filter-chip" onclick="app.filterDsaCategory('binary_search')">🎯 Binary Search &amp; Heaps (4)</button>
+            <button class="filter-chip" onclick="app.filterDsaCategory('graphs')">🕸️ Trees, Graphs &amp; DSU (5)</button>
+            <button class="filter-chip" onclick="app.filterDsaCategory('dp')">⚡ Dynamic Programming &amp; Backtracking (6)</button>
+            <button class="filter-chip" onclick="app.filterDsaCategory('advanced')">🛠️ Advanced &amp; System Structures (8)</button>
           </div>
           <div style="display: flex; gap: 6px; margin-left: auto;">
             <button class="btn-secondary" style="font-size: 0.75rem; padding: 4px 10px;" onclick="app.toggleAllCardsInSection('dsa-cards-container', true)">Expand All Visuals</button>
@@ -672,69 +1449,28 @@
           </div>
         </div>
 
-        <!-- Complexity Matrix Quick Box -->
-        <div class="cheat-card border-dsa" style="margin-bottom: 24px;">
-          <div class="card-header" style="padding: 16px 18px 0 18px; margin-bottom: 8px;">
-            <div class="card-title">📊 Time Complexity Cheat Matrix (Quick Memory Anchor)</div>
-            <span class="hero-badge-pill highlight">Big-O Reference</span>
-          </div>
-          <div class="card-body" style="padding: 0 18px 18px 18px;">
-            <div style="overflow-x: auto; max-width: 100%;">
-              <table style="width: 100%; min-width: 540px; border-collapse: collapse; font-size: 0.84rem; text-align: left;">
-                <thead>
-                  <tr style="border-bottom: 2px solid var(--border-color); color: var(--text-link);">
-                    <th style="padding: 8px;">Structure</th>
-                    <th style="padding: 8px;">Access</th>
-                    <th style="padding: 8px;">Search</th>
-                    <th style="padding: 8px;">Insertion</th>
-                    <th style="padding: 8px;">Deletion</th>
-                    <th style="padding: 8px;">Key Mechanical Tradeoff</th>
-                  </tr>
-                </thead>
-                <tbody style="color: var(--text-secondary);">
-                  <tr style="border-bottom: 1px solid var(--border-subtle);">
-                    <td style="padding: 8px; font-weight: bold; color: var(--text-primary);">Array / ArrayList</td>
-                    <td style="padding: 8px; color: #34d399;">O(1)</td>
-                    <td style="padding: 8px; color: #f87171;">O(N)</td>
-                    <td style="padding: 8px;">O(1) amortized</td>
-                    <td style="padding: 8px; color: #f87171;">O(N) shift</td>
-                    <td style="padding: 8px;">Contiguous CPU cache line prefetching</td>
-                  </tr>
-                  <tr style="border-bottom: 1px solid var(--border-subtle);">
-                    <td style="padding: 8px; font-weight: bold; color: var(--text-primary);">HashMap (Java 8+)</td>
-                    <td style="padding: 8px;">N/A</td>
-                    <td style="padding: 8px; color: #34d399;">O(1) avg / O(log N) tree</td>
-                    <td style="padding: 8px; color: #34d399;">O(1) avg</td>
-                    <td style="padding: 8px; color: #34d399;">O(1) avg</td>
-                    <td style="padding: 8px;">Load factor 0.75, resize doubles buckets</td>
-                  </tr>
-                  <tr style="border-bottom: 1px solid var(--border-subtle);">
-                    <td style="padding: 8px; font-weight: bold; color: var(--text-primary);">TreeMap (Red-Black)</td>
-                    <td style="padding: 8px;">N/A</td>
-                    <td style="padding: 8px; color: #60a5fa;">O(log N)</td>
-                    <td style="padding: 8px; color: #60a5fa;">O(log N)</td>
-                    <td style="padding: 8px; color: #60a5fa;">O(log N)</td>
-                    <td style="padding: 8px;">Strictly sorted keys, self-balancing tree</td>
-                  </tr>
-                  <tr style="border-bottom: 1px solid var(--border-subtle);">
-                    <td style="padding: 8px; font-weight: bold; color: var(--text-primary);">PriorityQueue (Binary Heap)</td>
-                    <td style="padding: 8px; color: #34d399;">O(1) peek</td>
-                    <td style="padding: 8px; color: #f87171;">O(N)</td>
-                    <td style="padding: 8px; color: #60a5fa;">O(log N)</td>
-                    <td style="padding: 8px; color: #60a5fa;">O(log N) poll</td>
-                    <td style="padding: 8px;">Array-backed complete binary tree</td>
-                  </tr>
-                  <tr>
-                    <td style="padding: 8px; font-weight: bold; color: var(--text-primary);">Monotonic Deque</td>
-                    <td style="padding: 8px; color: #34d399;">O(1) extremum</td>
-                    <td style="padding: 8px; color: #f87171;">O(N)</td>
-                    <td style="padding: 8px; color: #34d399;">O(1) amortized</td>
-                    <td style="padding: 8px; color: #34d399;">O(1) amortized</td>
-                    <td style="padding: 8px;">Each element entered & popped at most once</td>
-                  </tr>
-                </tbody>
-              </table>
+        <!-- DSA Patterns Explorer Navigator Box -->
+        <div class="java-internals-navigator" style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 16px 20px; margin-bottom: 22px; box-shadow: var(--shadow-sm);">
+          <div style="display: flex; flex-wrap: wrap; gap: 14px; align-items: center; justify-content: space-between;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <span style="font-size: 1.6rem;">⚡</span>
+              <div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <strong style="font-size: 1rem; color: var(--text-primary);">DSA Pattern &amp; Strategy Navigator (30 Master Topics):</strong>
+                  <span class="hero-badge-pill highlight" style="font-size: 0.7rem; padding: 2px 8px;">Brute Force ➔ Optimal + Deep Dive Modal</span>
+                </div>
+                <span style="font-size: 0.8rem; color: var(--text-muted); margin-top: 2px; display: block;">Select any pattern below to view its keyword trigger signals, brute-force bottleneck elimination, visual flow, and Java 17+ template.</span>
+              </div>
             </div>
+            <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
+              <input type="text" id="dsa-search" placeholder="🔍 Search patterns (e.g. Sliding Window, Monotonic Stack, Knapsack, Koko)..." oninput="app.searchDsaPatterns(this.value)" style="padding: 8px 14px; font-size: 0.84rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); background: var(--bg-primary); color: var(--text-primary); min-width: 260px;">
+              <select id="dsa-select" onchange="app.selectDsaPattern(this.value)" style="padding: 8px 14px; font-size: 0.84rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); background: var(--bg-primary); color: var(--text-primary); max-width: 360px; font-weight: 600;">
+                <option value="all">-- Jump to any of the 30 DSA Topics --</option>
+              </select>
+            </div>
+          </div>
+          <div id="dsa-active-banner" style="display: none; padding: 12px 16px; background: rgba(56, 189, 248, 0.08); border-left: 4px solid var(--primary-color); border-radius: var(--radius-sm); margin-top: 14px;">
+            <!-- Populated dynamically when a specific pattern is selected -->
           </div>
         </div>
 
@@ -883,22 +1619,282 @@
   </div>
 
   <!-- =========================================================================
+       Java Core Internals Deep-Dive Modal (Visual Flow & Complex Parts)
+       ========================================================================= -->
+  <div class="modal-overlay" id="java-internals-modal-overlay" onclick="if(event.target === this) app.closeJavaInternalModal()">
+    <div class="creator-modal" style="max-width: 940px; width: 95%; max-height: 90vh;">
+      <div class="creator-modal-header" style="background: var(--bg-primary); padding: 14px 20px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <span style="font-size: 1.4rem;">☕</span>
+          <div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span id="java-modal-category-badge" class="hero-badge-pill highlight" style="font-size: 0.72rem;">Category</span>
+              <span id="java-modal-badge" class="hero-badge-pill" style="font-size: 0.72rem;">Badge</span>
+            </div>
+            <h2 id="java-modal-title" style="font-size: 1.15rem; font-weight: 700; color: var(--text-primary); margin: 4px 0 0 0;">Topic Title</h2>
+          </div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <button class="btn-secondary" style="font-size: 0.78rem; padding: 4px 10px;" onclick="app.navigateJavaInternalModal(-1)">◀ Prev</button>
+          <button class="btn-secondary" style="font-size: 0.78rem; padding: 4px 10px;" onclick="app.navigateJavaInternalModal(1)">Next ▶</button>
+          <button class="drawer-close-btn" onclick="app.closeJavaInternalModal()">&times;</button>
+        </div>
+      </div>
+
+      <div class="creator-modal-body" id="java-modal-body" style="padding: 20px; gap: 16px;">
+        <!-- Populated dynamically by app.openJavaInternalModal() -->
+      </div>
+
+      <div class="creator-modal-footer" style="padding: 12px 20px; justify-content: space-between; align-items: center;">
+        <span id="java-modal-footer-count" style="font-size: 0.78rem; color: var(--text-muted);">Topic 1 of 55</span>
+        <div style="display: flex; gap: 10px;">
+          <button class="btn-secondary" onclick="app.closeJavaInternalModal()">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       Spring Boot Internals Deep-Dive Modal (Visual Flow & Complex Parts)
+       ========================================================================= -->
+  <div class="modal-overlay" id="spring-internals-modal-overlay" onclick="if(event.target === this) app.closeSpringInternalModal()">
+    <div class="creator-modal" style="max-width: 940px; width: 95%; max-height: 90vh;">
+      <div class="creator-modal-header" style="background: var(--bg-primary); padding: 14px 20px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <span style="font-size: 1.4rem;">⚙️</span>
+          <div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span id="sb-modal-category-badge" class="hero-badge-pill highlight" style="font-size: 0.72rem;">Category</span>
+              <span id="sb-modal-badge" class="hero-badge-pill" style="font-size: 0.72rem;">Badge</span>
+            </div>
+            <h2 id="sb-modal-title" style="font-size: 1.15rem; font-weight: 700; color: var(--text-primary); margin: 4px 0 0 0;">Topic Title</h2>
+          </div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <button class="btn-secondary" style="font-size: 0.78rem; padding: 4px 10px;" onclick="app.navigateSpringInternalModal(-1)">◀ Prev</button>
+          <button class="btn-secondary" style="font-size: 0.78rem; padding: 4px 10px;" onclick="app.navigateSpringInternalModal(1)">Next ▶</button>
+          <button class="drawer-close-btn" onclick="app.closeSpringInternalModal()">&times;</button>
+        </div>
+      </div>
+
+      <div class="creator-modal-body" id="sb-modal-body" style="padding: 20px; gap: 16px;">
+        <!-- Populated dynamically by app.openSpringInternalModal() -->
+      </div>
+
+      <div class="creator-modal-footer" style="padding: 12px 20px; justify-content: space-between; align-items: center;">
+        <span id="sb-modal-footer-count" style="font-size: 0.78rem; color: var(--text-muted);">Topic 1 of 29</span>
+        <div style="display: flex; gap: 10px;">
+          <button class="btn-secondary" onclick="app.closeSpringInternalModal()">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       Java Design Patterns Deep-Dive Modal (Visual Flow & Complex Parts)
+       ========================================================================= -->
+  <div class="modal-overlay" id="patterns-modal-overlay" onclick="if(event.target === this) app.closeJavaPatternModal()">
+    <div class="creator-modal" style="max-width: 960px; width: 95%; max-height: 90vh;">
+      <div class="creator-modal-header" style="background: var(--bg-primary); padding: 14px 20px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <span style="font-size: 1.4rem;">📐</span>
+          <div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span id="pattern-modal-category-badge" class="hero-badge-pill highlight" style="font-size: 0.72rem;">Category</span>
+              <span id="pattern-modal-badge" class="hero-badge-pill" style="font-size: 0.72rem;">Pattern</span>
+            </div>
+            <h2 id="pattern-modal-title" style="font-size: 1.15rem; font-weight: 700; color: var(--text-primary); margin: 4px 0 0 0;">Pattern Title</h2>
+          </div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <button class="btn-secondary" style="font-size: 0.78rem; padding: 4px 10px;" onclick="app.navigateJavaPatternModal(-1)">◀ Prev</button>
+          <button class="btn-secondary" style="font-size: 0.78rem; padding: 4px 10px;" onclick="app.navigateJavaPatternModal(1)">Next ▶</button>
+          <button class="drawer-close-btn" onclick="app.closeJavaPatternModal()">&times;</button>
+        </div>
+      </div>
+
+      <div class="creator-modal-body" id="pattern-modal-body" style="padding: 20px; gap: 16px;">
+        <!-- Populated dynamically by app.openJavaPatternModal() -->
+      </div>
+
+      <div class="creator-modal-footer" style="padding: 12px 20px; justify-content: space-between; align-items: center;">
+        <span id="pattern-modal-footer-count" style="font-size: 0.78rem; color: var(--text-muted);">Pattern 1 of 24</span>
+        <div style="display: flex; gap: 10px;">
+          <button class="btn-secondary" onclick="app.closeJavaPatternModal()">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       Microservices Patterns Deep-Dive Modal (Visual Flow & Complex Parts)
+       ========================================================================= -->
+  <div class="modal-overlay" id="microservices-modal-overlay" onclick="if(event.target === this) app.closeMicroservicesPatternModal()">
+    <div class="creator-modal" style="max-width: 960px; width: 95%; max-height: 90vh;">
+      <div class="creator-modal-header" style="background: var(--bg-primary); padding: 14px 20px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <span style="font-size: 1.4rem;">🌐</span>
+          <div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span id="ms-modal-category-badge" class="hero-badge-pill highlight" style="font-size: 0.72rem;">Category</span>
+              <span id="ms-modal-badge" class="hero-badge-pill" style="font-size: 0.72rem;">Pattern</span>
+            </div>
+            <h2 id="ms-modal-title" style="font-size: 1.15rem; font-weight: 700; color: var(--text-primary); margin: 4px 0 0 0;">Pattern Title</h2>
+          </div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <button class="btn-secondary" style="font-size: 0.78rem; padding: 4px 10px;" onclick="app.navigateMicroservicesPatternModal(-1)">◀ Prev</button>
+          <button class="btn-secondary" style="font-size: 0.78rem; padding: 4px 10px;" onclick="app.navigateMicroservicesPatternModal(1)">Next ▶</button>
+          <button class="drawer-close-btn" onclick="app.closeMicroservicesPatternModal()">&times;</button>
+        </div>
+      </div>
+
+      <div class="creator-modal-body" id="ms-modal-body" style="padding: 20px; gap: 16px;">
+        <!-- Populated dynamically by app.openMicroservicesPatternModal() -->
+      </div>
+
+      <div class="creator-modal-footer" style="padding: 12px 20px; justify-content: space-between; align-items: center;">
+        <span id="ms-modal-footer-count" style="font-size: 0.78rem; color: var(--text-muted);">Pattern 1 of 25</span>
+        <div style="display: flex; gap: 10px;">
+          <button class="btn-secondary" onclick="app.closeMicroservicesPatternModal()">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       DSA Patterns & System Structures Deep-Dive Modal
+       ========================================================================= -->
+  <div class="modal-overlay" id="dsa-modal-overlay" onclick="if(event.target === this) app.closeDsaModal()">
+    <div class="creator-modal" style="max-width: 960px; width: 95%; max-height: 90vh;">
+      <div class="creator-modal-header" style="background: var(--bg-primary); padding: 14px 20px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <span style="font-size: 1.4rem;">⚡</span>
+          <div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span id="dsa-modal-category-badge" class="hero-badge-pill highlight" style="font-size: 0.72rem;">Category</span>
+              <span id="dsa-modal-badge" class="hero-badge-pill" style="font-size: 0.72rem;">Pattern</span>
+            </div>
+            <h2 id="dsa-modal-title" style="font-size: 1.15rem; font-weight: 700; color: var(--text-primary); margin: 4px 0 0 0;">Pattern Title</h2>
+          </div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <button class="btn-secondary" style="font-size: 0.78rem; padding: 4px 10px;" onclick="app.navigateDsaModal(-1)">◀ Prev</button>
+          <button class="btn-secondary" style="font-size: 0.78rem; padding: 4px 10px;" onclick="app.navigateDsaModal(1)">Next ▶</button>
+          <button class="drawer-close-btn" onclick="app.closeDsaModal()">&times;</button>
+        </div>
+      </div>
+
+      <div class="creator-modal-body" id="dsa-modal-body" style="padding: 20px; gap: 16px;">
+        <!-- Populated dynamically by app.openDsaModal() -->
+      </div>
+
+      <div class="creator-modal-footer" style="padding: 12px 20px; justify-content: space-between; align-items: center;">
+        <span id="dsa-modal-footer-count" style="font-size: 0.78rem; color: var(--text-muted);">Pattern 1 of 30</span>
+        <div style="display: flex; gap: 10px;">
+          <button class="btn-secondary" onclick="app.closeDsaModal()">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       AWS Cloud Services Deep-Dive Modal (Architecture, IAM & Flow)
+       ========================================================================= -->
+  <div class="modal-overlay" id="aws-modal-overlay" onclick="if(event.target === this) app.closeAwsModal()">
+    <div class="creator-modal" style="max-width: 960px; width: 95%; max-height: 90vh;">
+      <div class="creator-modal-header" style="background: var(--bg-primary); padding: 14px 20px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <span style="font-size: 1.4rem;">☁️</span>
+          <div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span id="aws-modal-category-badge" class="hero-badge-pill highlight" style="font-size: 0.72rem;">Category</span>
+              <span id="aws-modal-badge" class="hero-badge-pill" style="font-size: 0.72rem;">AWS Service</span>
+            </div>
+            <h2 id="aws-modal-title" style="font-size: 1.15rem; font-weight: 700; color: var(--text-primary); margin: 4px 0 0 0;">Service Title</h2>
+          </div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <button class="btn-secondary" style="font-size: 0.78rem; padding: 4px 10px;" onclick="app.navigateAwsModal(-1)">◀ Prev</button>
+          <button class="btn-secondary" style="font-size: 0.78rem; padding: 4px 10px;" onclick="app.navigateAwsModal(1)">Next ▶</button>
+          <button class="drawer-close-btn" onclick="app.closeAwsModal()">&times;</button>
+        </div>
+      </div>
+
+      <div class="creator-modal-body" id="aws-modal-body" style="padding: 20px; gap: 16px;">
+        <!-- Populated dynamically by app.openAwsModal() -->
+      </div>
+
+      <div class="creator-modal-footer" style="padding: 12px 20px; justify-content: space-between; align-items: center;">
+        <span id="aws-modal-footer-count" style="font-size: 0.78rem; color: var(--text-muted);">Service 1 of 9</span>
+        <div style="display: flex; gap: 10px;">
+          <button class="btn-secondary" onclick="app.closeAwsModal()">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       Google Cloud Platform (GCP) Services Deep-Dive Modal (Architecture, IAM & Flow)
+       ========================================================================= -->
+  <div class="modal-overlay" id="gcp-modal-overlay" onclick="if(event.target === this) app.closeGcpModal()">
+    <div class="creator-modal" style="max-width: 960px; width: 95%; max-height: 90vh;">
+      <div class="creator-modal-header" style="background: var(--bg-primary); padding: 14px 20px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <span style="font-size: 1.4rem;">🌐</span>
+          <div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span id="gcp-modal-category-badge" class="hero-badge-pill highlight" style="font-size: 0.72rem;">Category</span>
+              <span id="gcp-modal-badge" class="hero-badge-pill" style="font-size: 0.72rem;">GCP Service</span>
+            </div>
+            <h2 id="gcp-modal-title" style="font-size: 1.15rem; font-weight: 700; color: var(--text-primary); margin: 4px 0 0 0;">Service Title</h2>
+          </div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <button class="btn-secondary" style="font-size: 0.78rem; padding: 4px 10px;" onclick="app.navigateGcpModal(-1)">◀ Prev</button>
+          <button class="btn-secondary" style="font-size: 0.78rem; padding: 4px 10px;" onclick="app.navigateGcpModal(1)">Next ▶</button>
+          <button class="drawer-close-btn" onclick="app.closeGcpModal()">&times;</button>
+        </div>
+      </div>
+
+      <div class="creator-modal-body" id="gcp-modal-body" style="padding: 20px; gap: 16px;">
+        <!-- Populated dynamically by app.openGcpModal() -->
+      </div>
+
+      <div class="creator-modal-footer" style="padding: 12px 20px; justify-content: space-between; align-items: center;">
+        <span id="gcp-modal-footer-count" style="font-size: 0.78rem; color: var(--text-muted);">Service 1 of 9</span>
+        <div style="display: flex; gap: 10px;">
+          <button class="btn-secondary" onclick="app.closeGcpModal()">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
        Scripts - Modular Data & Application Engine
        ========================================================================= -->
   <script src="js/data/topics.js"></script>
   <script src="js/data/mindmaps-data.js"></script>
   <script src="js/data/java-data.js"></script>
+  <script src="js/data/java-topic-questions.js"></script>
+  <script src="js/data/java-internals-data.js"></script>
+  <script src="js/data/java-patterns-data.js"></script>
   <script src="js/data/streams-data.js"></script>
   <script src="js/data/springboot-data.js"></script>
+  <script src="js/data/springboot-internals-data.js"></script>
+  <script src="js/data/microservices-patterns-data.js"></script>
   <script src="js/data/sql-data.js"></script>
   <script src="js/data/kafka-data.js"></script>
   <script src="js/data/react-data.js"></script>
   <script src="js/data/devops-data.js"></script>
+  <script src="js/data/lifecycle-data.js"></script>
   <script src="js/data/redis-data.js"></script>
   <script src="js/data/concurrency-data.js"></script>
   <script src="js/data/hld-data.js"></script>
   <script src="js/data/lld-data.js"></script>
   <script src="js/data/dsa-data.js"></script>
+  <script src="js/data/aws-data.js"></script>
+  <script src="js/data/gcp-data.js"></script>
   <script src="js/data/questions-data.js"></script>
   <script src="js/mindmap.js"></script>
   <script src="js/app.js"></script>
