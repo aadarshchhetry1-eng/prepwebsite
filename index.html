@@ -89,6 +89,9 @@
       <button class="nav-tab-btn" data-target="questions" onclick="app.switchSection('questions')">
         <span>🔥 Tricky Q&A</span>
       </button>
+      <button class="nav-tab-btn" data-target="rapidfire" onclick="app.switchSection('rapidfire')" style="border-left: 2px solid var(--accent-orange); color: var(--accent-orange); font-weight: 700;">
+        <span>⚡ 140 Rapid-Fire</span>
+      </button>
     </nav>
 
     <!-- Header Actions -->
@@ -1521,6 +1524,59 @@
         </div>
       </section>
 
+      <!-- =====================================================================
+           Section 20: 140 Rapid-Fire Multi-Skill Interview Rubric
+           ===================================================================== -->
+      <section class="content-section" id="section-rapidfire">
+        <div class="hero-banner" style="background: linear-gradient(135deg, rgba(249, 115, 22, 0.12) 0%, rgba(30, 41, 59, 0.9) 100%); border-left: 4px solid var(--accent-orange);">
+          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px; flex-wrap: wrap;">
+            <span class="hero-badge-pill highlight" style="background: var(--accent-orange); color: #fff;">IamInterviewed Panelist Hat</span>
+            <span class="hero-badge-pill">Onix Networking Corp Rubric</span>
+            <span class="hero-badge-pill">30-Minute Speed Screen</span>
+          </div>
+          <h1 class="hero-title" style="color: #fb923c;">140-Question Rapid-Fire Multi-Skill Rubric</h1>
+          <p class="hero-subtitle">
+            Zero textbook fluff. Direct scenario-based prompts, tricky compiler/runtime edge cases, and output code snippets designed to test if you've actually debugged these in production. 20 crisp questions per technical domain across all 7 interview skills.
+          </p>
+          <div class="hero-badges" style="flex-wrap: wrap;">
+            <span class="hero-badge-pill">☕ 20 Core Java</span>
+            <span class="hero-badge-pill">🍃 20 Spring Boot</span>
+            <span class="hero-badge-pill">🌐 20 Microservices</span>
+            <span class="hero-badge-pill">📜 20 JS &amp; TypeScript</span>
+            <span class="hero-badge-pill">⚛️ 20 React</span>
+            <span class="hero-badge-pill">🗄️ 20 RDBMS &amp; NoSQL</span>
+            <span class="hero-badge-pill">🚀 20 DevOps &amp; Frontend</span>
+          </div>
+        </div>
+
+        <!-- Toolbar & Filter -->
+        <div class="revision-toolbar" style="flex-wrap: wrap; gap: 10px;">
+          <div class="toolbar-title">
+            <span>Skill Domain:</span>
+          </div>
+          <div class="toolbar-filters" id="rapidfire-filter-chips">
+            <button class="filter-chip active" onclick="app.filterRapidFireByCategory('all')">All 140 (140)</button>
+            <button class="filter-chip" onclick="app.filterRapidFireByCategory('java')">☕ Java (20)</button>
+            <button class="filter-chip" onclick="app.filterRapidFireByCategory('spring')">🍃 Spring &amp; JPA (20)</button>
+            <button class="filter-chip" onclick="app.filterRapidFireByCategory('microservices')">🌐 Microservices (20)</button>
+            <button class="filter-chip" onclick="app.filterRapidFireByCategory('javascript')">📜 JS &amp; TS (20)</button>
+            <button class="filter-chip" onclick="app.filterRapidFireByCategory('react')">⚛️ React (20)</button>
+            <button class="filter-chip" onclick="app.filterRapidFireByCategory('database')">🗄️ DB &amp; NoSQL (20)</button>
+            <button class="filter-chip" onclick="app.filterRapidFireByCategory('devops')">🚀 DevOps &amp; CSS (20)</button>
+          </div>
+          <div style="display: flex; gap: 8px; align-items: center; margin-left: auto; flex-wrap: wrap;">
+            <input type="text" id="rapidfire-search-input" placeholder="🔍 Search 140 scenarios (e.g. intern, var vs let, Saga, N+1, Fiber)..." oninput="app.searchRapidFire(this.value)" style="padding: 7px 12px; font-size: 0.82rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); background: var(--bg-primary); color: var(--text-primary); min-width: 250px;">
+            <button class="btn-secondary" style="font-size: 0.75rem; padding: 5px 10px;" onclick="app.toggleAllRapidFire(true)">Expand All</button>
+            <button class="btn-secondary" style="font-size: 0.75rem; padding: 5px 10px;" onclick="app.toggleAllRapidFire(false)">Collapse All</button>
+          </div>
+        </div>
+
+        <!-- Rapid-Fire Container -->
+        <div id="rapidfire-container" style="display: flex; flex-direction: column; gap: 12px; margin-top: 14px;">
+          <!-- Rendered by app.js -->
+        </div>
+      </section>
+
     </main>
   </div>
 
@@ -1895,6 +1951,7 @@
   <script src="js/data/dsa-data.js"></script>
   <script src="js/data/aws-data.js"></script>
   <script src="js/data/gcp-data.js"></script>
+  <script src="js/data/rapidfire-rubric-data.js"></script>
   <script src="js/data/questions-data.js"></script>
   <script src="js/mindmap.js"></script>
   <script src="js/app.js"></script>

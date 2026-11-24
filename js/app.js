@@ -43,6 +43,7 @@ class RevisionApp {
     this.renderGcpSelector();
     this.renderGcpTopics('all');
     this.renderQuestions();
+    this.renderRapidFire();
     this.initMindMap();
     this.setupEventListeners();
     this.updateStats();
@@ -645,6 +646,23 @@ class RevisionApp {
           <a href="#q-dual-write-kafka-outbox" class="compact-mini-pill" onclick="app.navigateToTopic('questions', 'q-dual-write-kafka-outbox'); return false;">Kafka Outbox</a>
         </div>
       </div>
+
+      <!-- 20. 140 Rapid-Fire Multi-Skill Rubric Group -->
+      <div class="compact-section-card">
+        <button class="compact-section-header" onclick="app.switchSection('rapidfire')" style="border-left: 2px solid var(--accent-orange);">
+          <span style="color: #fb923c;">⚡ 140 Rapid-Fire</span>
+          <span class="badge-count" style="background: rgba(249, 115, 22, 0.2); color: #fb923c;">140</span>
+        </button>
+        <div class="compact-pills-row">
+          <a href="#rf-java-1" class="compact-mini-pill" onclick="app.filterRapidFireByCategory('java'); app.switchSection('rapidfire'); return false;">☕ Java (20)</a>
+          <a href="#rf-spring-1" class="compact-mini-pill" onclick="app.filterRapidFireByCategory('spring'); app.switchSection('rapidfire'); return false;">🍃 Spring (20)</a>
+          <a href="#rf-micro-1" class="compact-mini-pill" onclick="app.filterRapidFireByCategory('microservices'); app.switchSection('rapidfire'); return false;">🌐 Microservices (20)</a>
+          <a href="#rf-js-1" class="compact-mini-pill" onclick="app.filterRapidFireByCategory('javascript'); app.switchSection('rapidfire'); return false;">📜 JS/TS (20)</a>
+          <a href="#rf-react-1" class="compact-mini-pill" onclick="app.filterRapidFireByCategory('react'); app.switchSection('rapidfire'); return false;">⚛️ React (20)</a>
+          <a href="#rf-db-1" class="compact-mini-pill" onclick="app.filterRapidFireByCategory('database'); app.switchSection('rapidfire'); return false;">🗄️ DB/NoSQL (20)</a>
+          <a href="#rf-devops-1" class="compact-mini-pill" onclick="app.filterRapidFireByCategory('devops'); app.switchSection('rapidfire'); return false;">🚀 DevOps (20)</a>
+        </div>
+      </div>
     `;
 
     html += '</div>';
@@ -710,6 +728,21 @@ class RevisionApp {
           el.classList.add('open');
           const header = el.querySelector('.lifecycle-header');
           if (header) header.setAttribute('aria-expanded', 'true');
+        }
+      }, 120);
+      return;
+    }
+    if (sectionId === 'rapidfire' || topicId.startsWith('rf-')) {
+      this.switchSection('rapidfire');
+      this.closeMobileSidebar();
+      this.filterRapidFireByCategory('all');
+      setTimeout(() => {
+        const el = document.getElementById(topicId);
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          el.classList.add('open');
+          el.style.boxShadow = '0 0 0 3px rgba(249, 115, 22, 0.4)';
+          setTimeout(() => el.style.boxShadow = '', 2000);
         }
       }, 120);
       return;
@@ -4255,6 +4288,162 @@ class RevisionApp {
   }
 
   // -------------------------------------------------------------
+  // 140 Rapid-Fire Multi-Skill Rubric (Onix Networking)
+  // -------------------------------------------------------------
+  renderRapidFire(filterCategory = 'all', searchQuery = '') {
+    const container = document.getElementById('rapidfire-container');
+    if (!container) return;
+
+    let questions = window.REVISION_APP_DATA?.RAPIDFIRE_QUESTIONS || [];
+
+    if (filterCategory && filterCategory !== 'all') {
+      questions = questions.filter(q => q.category === filterCategory);
+    }
+
+    if (searchQuery && searchQuery.trim()) {
+      const qLower = searchQuery.toLowerCase().trim();
+      questions = questions.filter(q =>
+        (q.title || '').toLowerCase().includes(qLower) ||
+        (q.question || '').toLowerCase().includes(qLower) ||
+        (q.answer || '').toLowerCase().includes(qLower) ||
+        (q.codeSnippet && q.codeSnippet.toLowerCase().includes(qLower)) ||
+        (q.takeaway && q.takeaway.toLowerCase().includes(qLower)) ||
+        (q.categoryName || '').toLowerCase().includes(qLower)
+      );
+    }
+
+    if (questions.length === 0) {
+      container.innerHTML = `
+        <div class="empty-state" style="padding: 40px; text-align: center; color: var(--text-muted); background: var(--bg-card); border-radius: var(--radius-lg); border: 1px dashed var(--border-color);">
+          <div style="font-size: 2.2rem; margin-bottom: 8px;">🔍</div>
+          <div style="font-size: 1.05rem; font-weight: 700; color: var(--text-primary);">No Rapid-Fire Questions Found</div>
+          <div style="font-size: 0.85rem; margin-top: 4px; color: var(--text-secondary);">No questions matched your current filter or search query.</div>
+          <button class="btn-secondary" style="margin-top: 14px; font-size: 0.8rem; padding: 6px 14px;" onclick="document.getElementById('rapidfire-search-input').value = ''; app.filterRapidFireByCategory('all');">✕ Reset Filters</button>
+        </div>
+      `;
+      return;
+    }
+
+    container.innerHTML = questions.map((q) => {
+      const isMastered = this.masteredItems.has(q.id);
+      return `
+        <div class="question-item rapidfire-card" id="${q.id}" data-category="${q.category}" style="border-left: 3px solid var(--accent-orange); background: var(--bg-card); border-radius: var(--radius-md); border-top: 1px solid var(--border-color); border-right: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color); transition: all 0.2s ease;">
+          <div class="question-header" onclick="app.toggleRapidFire('${q.id}')" style="cursor: pointer; padding: 14px 18px; display: flex; justify-content: space-between; align-items: flex-start; gap: 12px;">
+            <div class="question-title-area" style="flex: 1;">
+              <div class="question-tags-row" style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap; margin-bottom: 6px;">
+                <span class="tag-badge tag-senior" style="background: rgba(249, 115, 22, 0.15); color: #fb923c; border-color: rgba(249, 115, 22, 0.3); font-size: 0.72rem; padding: 2px 7px; border-radius: 4px; font-weight: 700;">Skill ${q.skillNum} • ${q.categoryName}</span>
+                <span class="tag-badge" style="background: rgba(56, 189, 248, 0.12); color: #38bdf8; font-size: 0.72rem; padding: 2px 7px; border-radius: 4px; font-weight: 700;">Q${q.qNum}</span>
+                <span class="tag-badge" style="background: rgba(148, 163, 184, 0.12); color: #94a3b8; font-size: 0.72rem; padding: 2px 7px; border-radius: 4px;">${q.status}</span>
+                ${isMastered ? '<span class="tag-badge" style="background: rgba(16,185,129,0.2); color: #34d399; font-size: 0.72rem; padding: 2px 7px; border-radius: 4px;">Mastered ✓</span>' : ''}
+              </div>
+              <div class="question-title" style="color: var(--text-primary); font-size: 0.98rem; font-weight: 700; line-height: 1.4;">${q.qNum}. ${q.title}</div>
+            </div>
+            <div class="question-toggle-icon" style="color: var(--text-muted); font-size: 0.85rem; transition: transform 0.2s ease;">▼</div>
+          </div>
+
+          <div class="question-details" style="display: none; padding: 0 18px 18px 18px;">
+            <!-- Prompt / Problem Box -->
+            <div style="padding: 12px 14px; background: rgba(30, 41, 59, 0.6); border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 12px;">
+              <div style="font-size: 0.75rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Scenario / Output Prompt</div>
+              <div style="font-size: 0.9rem; color: var(--text-primary); line-height: 1.5; font-weight: 500;">${this.escapeHtml(q.question)}</div>
+              ${q.codeSnippet ? `
+                <div class="card-code-preview" style="margin-top: 10px; background: #0f172a; border-radius: 6px; border: 1px solid #334155;">
+                  <div class="code-header" style="display: flex; justify-content: space-between; align-items: center; padding: 6px 12px; background: #1e293b; border-bottom: 1px solid #334155; font-size: 0.74rem; color: #94a3b8;">
+                    <span>Code Demonstration</span>
+                    <button class="copy-btn" style="font-size: 0.7rem; padding: 2px 8px;" onclick="app.copyCode(this)">Copy</button>
+                  </div>
+                  <pre style="margin: 0; padding: 12px; overflow-x: auto; font-family: monospace; font-size: 0.84rem; color: #e2e8f0;"><code>${this.escapeHtml(q.codeSnippet)}</code></pre>
+                </div>
+              ` : ''}
+            </div>
+
+            <!-- Rubric Answer Box -->
+            <div style="padding: 14px 16px; background: rgba(16, 185, 129, 0.08); border-radius: 8px; border: 1px solid rgba(16, 185, 129, 0.25); margin-bottom: 12px;">
+              <div style="display: flex; align-items: center; gap: 6px; font-size: 0.78rem; font-weight: 700; color: #34d399; text-transform: uppercase; margin-bottom: 6px;">
+                <span>🎯</span> Panelist Rubric Answer
+              </div>
+              <div style="font-size: 0.9rem; color: #e2e8f0; line-height: 1.6;">${this.escapeHtml(q.answer)}</div>
+            </div>
+
+            <!-- Senior Debugging Takeaway -->
+            ${q.takeaway ? `
+              <div class="callout-box" style="background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.25); padding: 10px 14px; border-radius: 8px; margin-bottom: 12px; display: flex; align-items: flex-start; gap: 10px;">
+                <span class="callout-icon" style="font-size: 1.1rem; line-height: 1;">💡</span>
+                <div style="font-size: 0.84rem; color: #cbd5e1; line-height: 1.45;"><strong style="color: #38bdf8;">Production Takeaway:</strong> ${this.escapeHtml(q.takeaway)}</div>
+              </div>
+            ` : ''}
+
+            <!-- Card Footer -->
+            <div class="card-footer" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border-color);">
+              <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                <a href="#${q.targetAnchor}" class="btn-primary" style="font-size: 0.74rem; padding: 5px 12px; text-decoration: none; background: #2563eb; color: #fff; border-radius: 4px; display: inline-flex; align-items: center; gap: 4px;" onclick="app.navigateToTopic('${q.targetSection}', '${q.targetAnchor}'); return false;">🔍 Open Deep Dive in ${q.targetSection.toUpperCase()}</a>
+                <button class="btn-secondary" style="font-size: 0.74rem; padding: 5px 10px;" onclick="app.quickShareTopic('${q.id}')">Copy Q&A</button>
+              </div>
+              <label class="mastered-checkbox-label" style="font-size: 0.76rem; color: var(--text-muted); display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                <input type="checkbox" class="mastered-checkbox" data-item-id="${q.id}" ${isMastered ? 'checked' : ''} onchange="app.toggleMastered('${q.id}')">
+                <span>Mark as Evaluated</span>
+              </label>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  toggleRapidFire(id) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.classList.toggle('open');
+    const details = el.querySelector('.question-details');
+    const icon = el.querySelector('.question-toggle-icon');
+    if (details) {
+      const isOpen = el.classList.contains('open');
+      details.style.display = isOpen ? 'block' : 'none';
+      if (icon) icon.style.transform = isOpen ? 'rotate(180deg)' : '';
+    }
+  }
+
+  toggleAllRapidFire(expand) {
+    document.querySelectorAll('#rapidfire-container .question-item').forEach(q => {
+      const details = q.querySelector('.question-details');
+      const icon = q.querySelector('.question-toggle-icon');
+      if (expand) {
+        q.classList.add('open');
+        if (details) details.style.display = 'block';
+        if (icon) icon.style.transform = 'rotate(180deg)';
+      } else {
+        q.classList.remove('open');
+        if (details) details.style.display = 'none';
+        if (icon) icon.style.transform = '';
+      }
+    });
+  }
+
+  filterRapidFireByCategory(catId) {
+    this.rapidFireActiveCategory = catId;
+    document.querySelectorAll('#rapidfire-filter-chips .filter-chip').forEach(btn => {
+      const text = btn.textContent.toLowerCase();
+      let isMatch = false;
+      if (catId === 'all') isMatch = text.includes('all');
+      else if (catId === 'java') isMatch = text.includes('java');
+      else if (catId === 'spring') isMatch = text.includes('spring');
+      else if (catId === 'microservices') isMatch = text.includes('microservices');
+      else if (catId === 'javascript') isMatch = text.includes('js');
+      else if (catId === 'react') isMatch = text.includes('react');
+      else if (catId === 'database') isMatch = text.includes('db');
+      else if (catId === 'devops') isMatch = text.includes('devops');
+      btn.classList.toggle('active', isMatch);
+    });
+    const searchVal = document.getElementById('rapidfire-search-input')?.value || '';
+    this.renderRapidFire(catId, searchVal);
+  }
+
+  searchRapidFire(query) {
+    const cat = this.rapidFireActiveCategory || 'all';
+    this.renderRapidFire(cat, query);
+  }
+
+  // -------------------------------------------------------------
   // Progress & Mastery Tracking
   // -------------------------------------------------------------
   toggleMastered(id) {
@@ -4298,6 +4487,7 @@ class RevisionApp {
                        (window.REVISION_APP_DATA?.DSA_TOPICS?.length || 0) +
                        (window.REVISION_APP_DATA?.AWS_SERVICES?.length || 0) +
                        (window.REVISION_APP_DATA?.GCP_SERVICES?.length || 0) +
+                       (window.REVISION_APP_DATA?.RAPIDFIRE_QUESTIONS?.length || 0) +
                        (window.REVISION_APP_DATA?.QUESTIONS?.length || 0);
     const masteredCount = this.masteredItems.size;
     const percentage = totalCount > 0 ? Math.round((masteredCount / totalCount) * 100) : 0;
@@ -4656,6 +4846,17 @@ class RevisionApp {
       });
     });
 
+    // 140 Rapid-Fire Multi-Skill Rubric (Onix Networking)
+    (window.REVISION_APP_DATA?.RAPIDFIRE_QUESTIONS || []).forEach(q => {
+      this.searchIndex.push({
+        id: q.id,
+        section: 'rapidfire',
+        title: `${q.qNum}. [${q.categoryName}] ${q.title}`,
+        category: `Rapid-Fire: ${q.categoryName}`,
+        snippet: (q.question + ' ' + q.answer).slice(0, 160)
+      });
+    });
+
     // Mind maps
     const mindmaps = window.REVISION_APP_DATA?.MINDMAPS || {};
     Object.values(mindmaps).forEach(map => {
@@ -4766,6 +4967,7 @@ class RevisionApp {
       };
       window.REVISION_APP_DATA.QUESTIONS.unshift(newQuestion);
       this.renderQuestions();
+    this.renderRapidFire();
     } else {
       const newTopic = {
         id: newId,
