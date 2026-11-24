@@ -20,6 +20,7 @@ class RevisionApp {
     this.renderJavaSubtopicSelector();
     this.renderJavaInternalsSelector();
     this.renderJavaTopics('internals');
+    this.renderJavaVersions();
     this.renderJavaPatternsSelector();
     this.renderJavaPatterns('all');
     this.renderStreamsTopics();
@@ -148,14 +149,16 @@ class RevisionApp {
     const javaTopics = window.REVISION_APP_DATA?.JAVA_TOPICS || [];
     const javaQuestions = window.REVISION_APP_DATA?.JAVA_460_QUESTIONS || window.REVISION_APP_DATA?.JAVA_QUESTIONS || [];
     const javaInternals = window.REVISION_APP_DATA?.JAVA_INTERNALS || [];
+    const javaVersions = window.REVISION_APP_DATA?.JAVA_VERSIONS || [];
     html += `
       <div class="compact-section-card">
         <button class="compact-section-header" onclick="app.switchSection('java')">
           <span>☕ Core Java</span>
-          <span class="badge-count">${javaTopics.length + javaQuestions.length + javaInternals.length}</span>
+          <span class="badge-count">${javaTopics.length + javaQuestions.length + javaInternals.length + javaVersions.length}</span>
         </button>
         <div class="compact-pills-row">
           <a href="#java" class="compact-mini-pill" style="color: var(--accent-cyan); font-weight: 700; background: rgba(56, 189, 248, 0.15);" onclick="app.switchSection('java'); app.filterJavaCategory('internals'); return false;">⚙️ 55 Internals</a>
+          <a href="#java-versions" class="compact-mini-pill" style="color: var(--accent-orange); font-weight: 700; background: rgba(249, 115, 22, 0.15);" onclick="app.switchSection('java'); app.filterJavaCategory('versions'); return false;">🚀 LTS Ladder (8-25)</a>
           <a href="#java-int-jvm-memory-structure" class="compact-mini-pill" onclick="app.navigateToJavaInternal('java-int-jvm-memory-structure'); return false;">JVM Memory</a>
           <a href="#java-int-gc-implementations" class="compact-mini-pill" onclick="app.navigateToJavaInternal('java-int-gc-implementations'); return false;">G1 vs ZGC</a>
           <a href="#java-int-parent-delegation" class="compact-mini-pill" onclick="app.navigateToJavaInternal('java-int-parent-delegation'); return false;">ClassLoaders</a>
@@ -682,6 +685,13 @@ class RevisionApp {
     this.closeMobileSidebar();
     if (sectionId === 'spring' && topicId.startsWith('sb-int-')) {
       this.selectSpringInternalTopic(topicId);
+      return;
+    }
+    if (sectionId === 'java' && topicId.startsWith('java-version-')) {
+      this.filterJavaCategory('versions');
+      setTimeout(() => {
+        this.scrollToJavaVersion(topicId);
+      }, 100);
       return;
     }
     if (sectionId === 'java' && topicId.startsWith('java-int-')) {
@@ -1238,10 +1248,25 @@ class RevisionApp {
   renderJavaTopics(filterCategory = 'internals') {
     const container = document.getElementById('java-cards-container');
     const banner = document.getElementById('java-active-internal-banner');
+    const ladderSection = document.getElementById('java-versions-ladder-section');
     if (!container) return;
 
     if (banner && filterCategory !== 'custom') {
       banner.style.display = 'none';
+    }
+
+    if (filterCategory === 'versions') {
+      if (ladderSection) {
+        ladderSection.style.display = 'block';
+        ladderSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+      container.style.display = 'none';
+      return;
+    } else {
+      if (ladderSection) {
+        ladderSection.style.display = 'none';
+      }
+      container.style.display = 'grid';
     }
 
     const archTopics = window.REVISION_APP_DATA?.JAVA_TOPICS || [];
@@ -1299,6 +1324,172 @@ class RevisionApp {
       }
     }
     this.renderJavaTopics(cat);
+  }
+
+  // -------------------------------------------------------------
+  // Java LTS Evolution Ladder (Java 8 -> 11 -> 17 -> 21 -> 25)
+  // -------------------------------------------------------------
+  renderJavaVersions() {
+    const stepperContainer = document.getElementById('java-versions-stepper');
+    const matrixContainer = document.getElementById('java-version-matrix-container');
+    const cardsContainer = document.getElementById('java-version-cards-container');
+
+    const versions = window.REVISION_APP_DATA?.JAVA_VERSIONS || [];
+    const matrix = window.REVISION_APP_DATA?.JAVA_VERSION_MATRIX || [];
+
+    if (stepperContainer) {
+      stepperContainer.innerHTML = versions.map(v => `
+        <div class="java-version-stepper-node" onclick="app.scrollToJavaVersion('${v.id}')" title="Click to inspect ${v.versionNumber} details">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-weight: 800; font-size: 0.95rem; color: var(--accent-orange);">${v.versionNumber}</span>
+            <span style="font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; background: var(--bg-tertiary); color: var(--text-muted); font-weight: 600;">${v.releaseYear}</span>
+          </div>
+          <span style="font-size: 0.76rem; font-weight: 700; color: var(--text-primary); margin-top: 2px;">${v.badge}</span>
+          <p style="margin: 0; font-size: 0.74rem; color: var(--text-secondary); line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+            ${this.escapeHtml(v.oneLiner)}
+          </p>
+        </div>
+      `).join('');
+    }
+
+    if (matrixContainer) {
+      matrixContainer.innerHTML = `
+        <table class="java-version-matrix-table">
+          <thead>
+            <tr>
+              <th style="width: 13%;">LTS Version</th>
+              <th style="width: 9%;">Release</th>
+              <th style="width: 14%;">Ecosystem Status</th>
+              <th style="width: 25%;">Flagship Features</th>
+              <th style="width: 22%;">Classic Interview Trap</th>
+              <th style="width: 17%;">JVM / Memory Evolution</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${matrix.map(row => `
+              <tr>
+                <td>
+                  <strong style="color: var(--accent-orange); font-size: 0.88rem;">${this.escapeHtml(row.version)}</strong>
+                </td>
+                <td>
+                  <span style="font-size: 0.78rem; font-weight: 600; background: var(--bg-tertiary); padding: 2px 6px; border-radius: 4px; color: var(--text-muted);">${this.escapeHtml(row.releaseYear)}</span>
+                </td>
+                <td>
+                  <span style="font-size: 0.76rem; font-weight: 700; color: var(--accent-cyan);">${this.escapeHtml(row.status)}</span>
+                </td>
+                <td>
+                  <div style="font-size: 0.82rem; color: var(--text-secondary); line-height: 1.45;">${this.escapeHtml(row.flagshipFeatures)}</div>
+                </td>
+                <td>
+                  <div style="font-size: 0.82rem; color: #f87171; line-height: 1.45; font-weight: 500;">⚠️ ${this.escapeHtml(row.classicTrap)}</div>
+                </td>
+                <td>
+                  <div style="font-size: 0.82rem; color: var(--text-secondary); line-height: 1.45;">${this.escapeHtml(row.jvmMemoryEvolution)}</div>
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      `;
+    }
+
+    if (cardsContainer) {
+      const formatted = versions.map(v => this.formatJavaVersionAsTopic(v));
+      cardsContainer.innerHTML = this.renderTopicCardsHtml(formatted, 'border-java');
+      cardsContainer.querySelectorAll('.cheat-card').forEach(card => card.classList.add('open'));
+    }
+  }
+
+  formatJavaVersionAsTopic(item) {
+    const flagshipHtml = (item.flagshipFeatures || []).map(f => {
+      const parts = f.split(':');
+      if (parts.length > 1) {
+        return `<li style="margin-bottom: 6px;"><strong style="color: var(--accent-orange);">${this.escapeHtml(parts[0])}:</strong> ${this.escapeHtml(parts.slice(1).join(':'))}</li>`;
+      }
+      return `<li style="margin-bottom: 6px;">${this.escapeHtml(f)}</li>`;
+    }).join('');
+
+    const trapsHtml = (item.traps || []).map(t => {
+      const parts = t.split(':');
+      if (parts.length > 1) {
+        return `<li style="margin-bottom: 6px;"><strong style="color: #f87171;">⚠️ ${this.escapeHtml(parts[0])}:</strong> ${this.escapeHtml(parts.slice(1).join(':'))}</li>`;
+      }
+      return `<li style="margin-bottom: 6px;">⚠️ ${this.escapeHtml(t)}</li>`;
+    }).join('');
+
+    return {
+      id: item.id,
+      title: item.title,
+      category: `Java LTS Ladder: ${item.versionNumber}`,
+      badge: item.badge,
+      oneLiner: item.oneLiner,
+      visualDiagram: `
+        <!-- Elevator Pitch -->
+        <div class="callout-box callout-info" style="margin: 0 0 14px 0; background: rgba(249, 115, 22, 0.08); border-left: 4px solid var(--accent-orange);">
+          <span class="callout-icon">💡</span>
+          <div>
+            <strong style="color: var(--accent-orange); display: block; margin-bottom: 4px; font-size: 0.85rem;">What is it exactly? (Elevator Pitch)</strong>
+            <div style="font-size: 0.86rem; color: var(--text-primary); line-height: 1.55;">${this.escapeHtml(item.whatIsIt)}</div>
+          </div>
+        </div>
+
+        <!-- Flagship Features -->
+        <div style="margin: 14px 0 12px 0;">
+          <div style="font-size: 0.84rem; font-weight: 700; color: var(--accent-orange); margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+            <span>✨</span> Flagship Language &amp; API Features:
+          </div>
+          <ul style="font-size: 0.84rem; line-height: 1.6; color: var(--text-secondary); background: var(--bg-tertiary); padding: 12px 16px 12px 28px; border-radius: var(--radius-sm); border-left: 3px solid var(--accent-orange); margin: 0;">
+            ${flagshipHtml}
+          </ul>
+        </div>
+
+        <!-- Compiler & Runtime Traps -->
+        <div class="version-trap-callout">
+          <div style="font-size: 0.84rem; font-weight: 700; color: #f87171; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+            <span>🔥</span> Classic Compiler &amp; Runtime Traps (Senior Interview Gotchas):
+          </div>
+          <ul style="font-size: 0.84rem; line-height: 1.6; color: var(--text-secondary); margin: 0; padding-left: 20px;">
+            ${trapsHtml}
+          </ul>
+        </div>
+
+        <!-- JVM & Native Memory Changes -->
+        <div class="version-jvm-callout">
+          <div style="font-size: 0.84rem; font-weight: 700; color: #38bdf8; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
+            <span>⚙️</span> JVM &amp; Native Memory Architecture Evolution:
+          </div>
+          <div style="font-size: 0.84rem; line-height: 1.6; color: var(--text-secondary);">
+            ${this.escapeHtml(item.jvmMemoryChange)}
+          </div>
+        </div>
+
+        <!-- Interviewer Strategy Pivot -->
+        <div class="version-pivot-callout">
+          <div style="font-size: 0.84rem; font-weight: 700; color: #10b981; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
+            <span>🎯</span> Interviewer Strategy Pivot:
+          </div>
+          <div style="font-size: 0.84rem; line-height: 1.6; color: var(--text-secondary);">
+            ${this.escapeHtml(item.interviewPivot)}
+          </div>
+        </div>
+      `,
+      keyPoints: item.flagshipFeatures || [],
+      codeSnippet: item.codeSnippet,
+      pitfall: (item.traps && item.traps[0]) || '',
+      interviewTip: item.interviewPivot
+    };
+  }
+
+  scrollToJavaVersion(id) {
+    const el = document.getElementById(id);
+    if (el) {
+      el.classList.add('open');
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      el.style.boxShadow = '0 0 0 2px var(--accent-orange), 0 8px 24px rgba(249, 115, 22, 0.25)';
+      setTimeout(() => {
+        el.style.boxShadow = '';
+      }, 2500);
+    }
   }
 
   // -------------------------------------------------------------
@@ -4512,6 +4703,17 @@ class RevisionApp {
         title: t.title,
         category: 'Java Architecture',
         snippet: t.oneLiner || t.summary
+      });
+    });
+
+    // Java Version Ladder (Java 8 -> 25 LTS)
+    (window.REVISION_APP_DATA?.JAVA_VERSIONS || []).forEach(v => {
+      this.searchIndex.push({
+        id: v.id,
+        section: 'java',
+        title: `${v.versionNumber}: ${v.title}`,
+        category: 'Java LTS Evolution Ladder',
+        snippet: (v.oneLiner || v.whatIsIt || '').slice(0, 160)
       });
     });
 

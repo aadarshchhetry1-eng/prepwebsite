@@ -248,6 +248,7 @@
             <button class="filter-chip" onclick="app.filterJavaCategory('io_nio')">💾 I/O &amp; NIO (6)</button>
             <button class="filter-chip" onclick="app.filterJavaCategory('tricky-questions')">🔥 460 Tricky Q&amp;A</button>
             <button class="filter-chip" onclick="app.filterJavaCategory('architecture')">Architecture (7)</button>
+            <button class="filter-chip highlight" style="color: var(--accent-orange); border-color: rgba(249, 115, 22, 0.4); background: rgba(249, 115, 22, 0.08);" onclick="app.filterJavaCategory('versions')">🚀 Java Version Ladder (8-25)</button>
           </div>
           <div style="display: flex; gap: 6px; margin-left: auto;">
             <button class="btn-secondary" style="font-size: 0.75rem; padding: 4px 10px;" onclick="app.toggleAllCardsInSection('java-cards-container', true)">Expand All Visuals</button>
@@ -277,6 +278,69 @@
           </div>
           <div id="java-active-internal-banner" style="display: none; padding: 12px 16px; background: rgba(56, 189, 248, 0.08); border-left: 4px solid var(--primary-color); border-radius: var(--radius-sm); margin-top: 14px;">
             <!-- Populated dynamically when a specific internal topic is selected -->
+          </div>
+        </div>
+
+        <!-- Java Version Evolution Ladder Section (Java 8 -> 25 LTS) -->
+        <div id="java-versions-ladder-section" style="margin-bottom: 26px;">
+          <!-- Hero Callout & Interview Strategy Banner -->
+          <div style="background: linear-gradient(135deg, rgba(249, 115, 22, 0.12), rgba(168, 85, 247, 0.08)); border: 1px solid rgba(249, 115, 22, 0.35); border-radius: var(--radius-lg); padding: 22px 24px; margin-bottom: 20px; box-shadow: var(--shadow-sm);">
+            <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 14px;">
+              <div style="display: flex; align-items: center; gap: 12px;">
+                <span style="font-size: 2rem;">🚀</span>
+                <div>
+                  <h3 style="margin: 0; font-size: 1.25rem; font-weight: 800; color: var(--accent-orange); letter-spacing: -0.01em;">
+                    Java Version-by-Version LTS Evolution Ladder (Java 8 ➔ 11 ➔ 17 ➔ 21 ➔ 25)
+                  </h3>
+                  <span style="font-size: 0.82rem; color: var(--text-muted); font-weight: 600;">
+                    Strategic Interview Rubric for 2026 Enterprise &amp; Staff/Senior Technical Evaluations
+                  </span>
+                </div>
+              </div>
+              <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                <span class="hero-badge-pill" style="border-color: rgba(249, 115, 22, 0.4); color: var(--accent-orange); font-size: 0.72rem;">Java 8 (2014)</span>
+                <span class="hero-badge-pill" style="border-color: rgba(56, 189, 248, 0.4); color: var(--accent-cyan); font-size: 0.72rem;">Java 11 (2018)</span>
+                <span class="hero-badge-pill" style="border-color: rgba(168, 85, 247, 0.4); color: var(--accent-purple); font-size: 0.72rem;">Java 17 (2021)</span>
+                <span class="hero-badge-pill" style="border-color: rgba(34, 197, 94, 0.4); color: var(--accent-green); font-size: 0.72rem;">Java 21 (2023)</span>
+                <span class="hero-badge-pill highlight" style="font-size: 0.72rem;">Java 25 (Sept 2025 LTS)</span>
+              </div>
+            </div>
+
+            <div class="callout-box callout-warning" style="margin: 0; border-left: 4px solid var(--accent-orange); background: rgba(249, 115, 22, 0.08);">
+              <span class="callout-icon">🎯</span>
+              <div>
+                <strong style="color: var(--accent-orange); font-size: 0.88rem; display: block; margin-bottom: 4px;">
+                  Interviewer Strategic Calibration: "Which Java version have you worked on?"
+                </strong>
+                <p style="margin: 0; font-size: 0.85rem; color: var(--text-secondary); line-height: 1.55;">
+                  When an interviewer asks this question, they immediately pivot into your answer to test <strong>version-specific features</strong>, <strong>JVM memory architecture shifts (Metaspace, G1GC, ZGC, Lilliput 8B compact headers)</strong>, and <strong>subtle runtime traps</strong> (e.g. <code>parallelStream()</code> thread pool starvation, using Records as JPA entities, Virtual Thread carrier pinning with <code>synchronized</code> vs <code>ReentrantLock</code>).
+                </p>
+              </div>
+            </div>
+
+            <!-- Visual Stepper / Interactive Timeline -->
+            <div id="java-versions-stepper" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-top: 18px;">
+              <!-- Populated dynamically by app.renderJavaVersions() -->
+            </div>
+          </div>
+
+          <!-- Quick Summary Matrix Comparison Table -->
+          <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 18px 20px; margin-bottom: 22px; box-shadow: var(--shadow-sm);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="font-size: 1.2rem;">📊</span>
+                <strong style="font-size: 0.95rem; color: var(--text-primary);">Quick Summary Matrix: LTS Version Comparison at a Glance</strong>
+              </div>
+              <span style="font-size: 0.75rem; color: var(--text-muted); background: var(--bg-tertiary); padding: 3px 8px; border-radius: 4px;">Rapid Revision Cheat Sheet</span>
+            </div>
+            <div id="java-version-matrix-container" style="overflow-x: auto;">
+              <!-- Populated dynamically by app.renderJavaVersions() -->
+            </div>
+          </div>
+
+          <!-- Version Deep Dive Cards -->
+          <div id="java-version-cards-container" class="card-grid-2">
+            <!-- Populated dynamically by app.renderJavaVersions() -->
           </div>
         </div>
 
@@ -1935,6 +1999,7 @@
   <script src="js/data/java-topic-questions.js"></script>
   <script src="js/data/java-internals-data.js"></script>
   <script src="js/data/java-patterns-data.js"></script>
+  <script src="js/data/java-versions-data.js"></script>
   <script src="js/data/streams-data.js"></script>
   <script src="js/data/springboot-data.js"></script>
   <script src="js/data/springboot-internals-data.js"></script>

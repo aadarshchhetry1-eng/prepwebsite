@@ -2004,3 +2004,93 @@ pre code {
     color: #111 !important;
   }
 }
+
+/* ==========================================================================
+   Java Version Ladder (8 -> 25 LTS) Styles
+   ========================================================================== */
+.java-version-stepper-node {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  text-decoration: none;
+  position: relative;
+  overflow: hidden;
+}
+.java-version-stepper-node:hover {
+  border-color: var(--accent-orange);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(249, 115, 22, 0.15);
+}
+.java-version-stepper-node.active {
+  border-color: var(--accent-orange);
+  background: rgba(249, 115, 22, 0.08);
+}
+.java-version-stepper-node::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--accent-orange), var(--accent-purple));
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+.java-version-stepper-node:hover::before,
+.java-version-stepper-node.active::before {
+  opacity: 1;
+}
+
+.java-version-matrix-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.84rem;
+  min-width: 820px;
+}
+.java-version-matrix-table th {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  padding: 12px 14px;
+  font-weight: 700;
+  border-bottom: 1px solid var(--border-color);
+  white-space: nowrap;
+}
+.java-version-matrix-table td {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  line-height: 1.5;
+  vertical-align: top;
+}
+.java-version-matrix-table tr:hover td {
+  background: rgba(249, 115, 22, 0.03);
+}
+
+.version-trap-callout {
+  background: rgba(239, 68, 68, 0.08);
+  border-left: 4px solid #ef4444;
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  margin: 12px 0;
+}
+.version-jvm-callout {
+  background: rgba(56, 189, 248, 0.08);
+  border-left: 4px solid #38bdf8;
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  margin: 12px 0;
+}
+.version-pivot-callout {
+  background: rgba(16, 185, 129, 0.08);
+  border-left: 4px solid #10b981;
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  margin: 12px 0;
+}
