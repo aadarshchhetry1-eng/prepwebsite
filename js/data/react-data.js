@@ -1626,4 +1626,68 @@ export function LikeButton({ initialLikes }: { initialLikes: number }) {
 }`,
     warStory: "A social media platform's Like button had a 400ms API latency. Users repeatedly mashed the button thinking it didn't register, triggering duplicate API calls and race conditions where the count fluctuated. Refactoring to React 19's useOptimistic gave instant feedback while useActionState automatically serialized concurrent clicks."
   }
+,
+  {
+    id: "react-q31-useeffect-batching-keys-renders-profiling",
+    title: "31. React 18 Production Diagnostics: useEffect Stale Closures, Universal Batching, Key Index Bugs & Render Profiling (Interview Deep Dive Q5.1)",
+    difficulty: "Staff / Principal",
+    category: "React Engine, Hooks & Performance",
+    summary: "useEffect dependency rules, re-render triggers & context cascade, array index key traps, React 18 universal batching, and DevTools render profiling.",
+    problem: "1) useEffect dependency rules: what breaks with a missing dep, and what breaks with an unstable dep? 2) What triggers a component re-render, and what is the Context re-render trap? 3) Why is array index a catastrophic key? 4) What does React 18 batch, and controlled vs uncontrolled inputs? 5) How do you systematically debug 'Too many re-renders'?",
+    juniorTrap: "Silencing the ESLint react-hooks/exhaustive-deps rule instead of resolving stale closures with functional state updaters or refs, or passing array index as key in dynamic list items with local state.",
+    interviewerIntent: "Assesses deep understanding of React Fiber reconciliation, JavaScript closure semantics, Context propagation re-render cascades, and production profiling workflows.",
+    seniorAnswer: [
+      "1. useEffect Dependency Rules: Missing Dependency -> STALE CLOSURE: The effect captures variables from the render in which it was instantiated. If dependencies are omitted, handlers/timers continuously read stale cached values from the initial render. Fix: include all referenced variables, use a ref (useRef) for latest-value patterns, or use functional state updaters (setCount(c => c + 1)). Unstable Dependency -> INFINITE / EXCESS RENDERS: Passing inline objects, arrays, or anonymous functions creates a new memory reference on every render, triggering the effect continuously. Fix: useMemo/useCallback, or declare the object inside the effect.",
+      "2. What Triggers a Re-render: 1) State update (setState); 2) Parent component re-render (unless child is memoized via React.memo with shallow-equal props); 3) Context value update. The Context Re-render Trap: Every consumer subscribed to a Context re-renders whenever the provider's value changes. Passing inline object <MyContext.Provider value={{ a, b }}> creates a new reference on every provider render, causing ALL consumers across the entire tree to re-render! Fix: Wrap context value in useMemo, or split into separate StateContext and DispatchContext.",
+      "3. Why Array Index as Key is Catastrophic: React keys determine Fiber identity across renders. When items are inserted, deleted, or sorted, indices shift. React matches the wrong Fiber instances, causing component state (input text, focus, checkbox checked, CSS animations) to remain attached to the wrong item! Always use stable, globally unique business IDs.",
+      "4. React 18 Universal Batching: React 17 only batched updates inside React synthetic event handlers. React 18 automatically batches ALL state updates across promises (fetch.then), setTimeout, and native event handlers into a single re-render. To opt-out for immediate DOM updates, use ReactDOM.flushSync(). Controlled inputs (value + onChange): single source of truth, but causes a render per keystroke (needs debouncing). Uncontrolled inputs (ref, defaultValue): zero renders per keystroke, ideal for heavy forms.",
+      "5. Systematic Debugging of 'Too Many Renders': 1) Open React DevTools Profiler -> enable 'Record why each component rendered'; 2) Identify derived state erroneously stored in useState instead of calculated during render; 3) Detect unmemoized props breaking React.memo; 4) Check for unconditional state setters inside useEffect or render bodies; 5) Check for unmemoized Context providers mounted too high in the tree."
+    ],
+    innerWorking: "React Fiber stores hook states in a singly linked list on fiber.memoizedState. In React 18 concurrent mode, work is scheduled in lanes. Universal batching merges updates into a single lane, flushing them in a single reconciliation pass.",
+    solution: `// 1. PREVENTING STALE CLOSURE & UNSTABLE DEPS:
+function TimerComponent({ onTick }) {
+    const [count, setCount] = useState(0);
+
+    // Functional updater does NOT require 'count' in deps:
+    useEffect(() => {
+        const id = setInterval(() => {
+            setCount(prev => prev + 1); // Safe: no stale closure!
+        }, 1000);
+        return () => clearInterval(id);
+    }, []); // Clean empty deps!
+
+    // Memoized callback prevents effect loops in children:
+    const handleAction = useCallback(() => {
+        onTick(count);
+    }, [count, onTick]);
+}
+
+// 2. CONTEXT VALUE MEMOIZATION (PREVENTS CASCADE):
+export const UserContext = createContext();
+
+export function UserProvider({ children }) {
+    const [user, setUser] = useState(null);
+    const [theme, setTheme] = useState('dark');
+
+    // Prevents all consumers from re-rendering on unrelated renders:
+    const contextValue = useMemo(() => ({
+        user, setUser, theme, setTheme
+    }), [user, theme]);
+
+    return (
+        <UserContext.Provider value={contextValue}>
+            {children}
+        </UserContext.Provider>
+    );
+}
+
+// 3. REACT 18 UNIVERSAL BATCHING:
+async function handleUpdate() {
+    // React 18 batches both state updates into ONE single render:
+    const data = await fetchUserData();
+    setUser(data.user);
+    setIsLoading(false); // Only 1 re-render occurs!
+}`,
+    warStory: "A SaaS dashboard had a global AppContext passing an unmemoized value={{ activeTab, user, notifications }}. Every time a 1-second notification polling interval fired, the unmemoized object created a new reference, re-rendering a 10,000-cell financial grid across all tabs. Users experienced 200ms input lag on every keystroke until the context was split and values were wrapped in useMemo."
+  }
 ];

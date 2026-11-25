@@ -1177,4 +1177,79 @@ public class BillingJob {
 }`,
     warStory: "A financial fintech deployed 10 replicas in Kubernetes. A nightly cron job charged monthly subscription fees. Because `@Scheduled` had no distributed lock, customers were charged 10 times in 1 second! The company had to refund $400,000 in duplicate fees and pay bank chargeback penalties before ShedLock was merged."
   }
+,
+  {
+    id: "spring-q16-distributed-dual-write-saga-outbox-idempotency",
+    title: "16. Dual-Write Across Microservices: @Transactional Network Anti-Pattern, Outbox CDC & Idempotent Saga Compensation",
+    difficulty: "Staff / Principal Trap",
+    category: "Microservices & Distributed Transactions",
+    summary: "Order Service calls Payment Service over HTTP inside @Transactional, then updates Order DB. Payment succeeds, but Order Service DB commit fails.",
+    problem: "You have an Order Service and a Payment Service. Inside an Order Service method annotated with @Transactional, you call Payment Service over HTTP, then update the order status in the DB. Payment succeeds, but the Order Service DB commit fails afterward. What consistency problem does this create, why does @Transactional fail, and how do you redesign with Saga/Outbox/CDC/Idempotency?",
+    juniorTrap: "Assuming Spring's @Transactional magically rolls back remote HTTP payment calls upon local DB commit failure, or assuming swapping the call order (committing DB first then calling HTTP) solves the issue.",
+    interviewerIntent: "Evaluates distributed transaction boundaries, dual-write failure modes, why 2PC/XA is an anti-pattern in microservices, and mastery of Transactional Outbox with CDC (Debezium), Saga orchestration/choreography, and idempotent consumer deduplication.",
+    seniorAnswer: [
+      "1. The Core Distributed Problem: Non-atomic distributed transaction / dual write. There are two independent transactional resources (remote payment service state and local relational database). With no distributed 2PC atomicity across them, partial failure leaves money deducted with no order confirmed. The system is permanently inconsistent with zero automatic recovery.",
+      "2. Why @Transactional Does Not Protect You: 1) It only demarcates a local JDBC Connection boundary on a single datasource; it cannot enlist or roll back remote HTTP calls. 2) Holding an open DB transaction across a network call is a severe anti-pattern: slow payment service latency exhausts the HikariCP connection pool and holds database row locks, cascading into service-wide timeouts. 3) The Ordering Paradox: Calling payment before commit leads to payment succeeding but commit failing; committing before payment leads to commit succeeding but payment HTTP call timing out or failing. There is NO safe synchronous ordering.",
+      "3. The Architectural Redesign (Transactional Outbox + Asynchronous Saga): In the SAME local database transaction that writes the Order entity (in PENDING status), insert a row into an 'outbox' table. A CDC process (Debezium reading the database commit log/WAL) publishes the outbox event to Kafka with zero dual-write risk.",
+      "4. Saga (Orchestration vs Choreography): Decompose into local transactions with compensating transactions. Orchestration uses a central state machine to drive steps; choreography reacts to events. If the order subsequently fails, emit a compensating 'RefundCommand' to Payment.",
+      "5. Why Not kafkaTemplate.send() inside @Transactional: kafkaTemplate.send() is not transactional with the database! Either the DB commits and Kafka send fails (event lost forever), or Kafka send succeeds and DB rolls back (phantom irreversible event emitted). Furthermore, broker latency blocks the DB transaction.",
+      "6. Idempotency Invariant: Producer attaches an idempotency key (orderId + step UUID). Consumer stores processed keys in a 'processed_messages' table in the same DB transaction as the business effect. A saga state machine ensures compensation transitions only once (e.g. REFUND_PENDING -> REFUNDED), preventing duplicate charges or duplicate refunds on Kafka redelivery."
+    ],
+    innerWorking: "Spring's TransactionInterceptor intercepts the method, requests a java.sql.Connection from HikariCP, and executes conn.setAutoCommit(false). If the remote Payment HTTP call hangs for 4 seconds, that physical DB connection sits completely idle on the thread while holding DB row locks. 30 concurrent requests will exhaust default pool size (maximumPoolSize=30), taking down the entire Order microservice.",
+    solution: `// 1. ATOMIC LOCAL WRITE (Order + Outbox in ONE Local Transaction):
+@Transactional
+public Order createOrderWithOutbox(OrderRequest req) {
+    Order order = orderRepository.save(new Order(req.getOrderId(), req.getAmount(), OrderStatus.PENDING));
+    
+    // Outbox table in the SAME database: 100% atomic with business write!
+    OutboxEvent event = new OutboxEvent(
+        UUID.randomUUID().toString(), // Event ID (Idempotency Key)
+        "OrderCreated",
+        order.getId(),
+        objectMapper.writeValueAsString(new OrderCreatedPayload(order.getId(), req.getAmount()))
+    );
+    outboxRepository.save(event);
+    return order;
+    // Debezium CDC reads Postgres WAL / MySQL Binlog and streams event to Kafka!
+}
+
+// 2. IDEMPOTENT PAYMENT CONSUMER:
+@KafkaListener(topics = "order-created", groupId = "payment-service")
+@Transactional
+public void handleOrderCreated(ConsumerRecord<String, String> record) {
+    OrderCreatedPayload payload = parse(record.value());
+    String idempotencyKey = "order-payment-" + payload.getOrderId();
+
+    // Idempotency Guard: Unique constraint on processed_messages table
+    if (processedMessageRepo.existsById(idempotencyKey)) {
+        log.warn("Duplicate event received. Skipping payment for order: {}", payload.getOrderId());
+        return;
+    }
+
+    try {
+        PaymentReceipt receipt = paymentGateway.charge(payload.getAmount());
+        processedMessageRepo.save(new ProcessedMessage(idempotencyKey, LocalDateTime.now()));
+        outboxRepo.save(new OutboxEvent("PaymentSucceeded", payload.getOrderId()));
+    } catch (PaymentException ex) {
+        outboxRepo.save(new OutboxEvent("PaymentFailed", payload.getOrderId()));
+    }
+}
+
+// 3. COMPENSATING TRANSACTION (REFUND) WITH SAGA STATE MACHINE GUARD:
+@Transactional
+public void executeCompensatingRefund(RefundCommand cmd) {
+    Order order = orderRepository.findById(cmd.getOrderId()).orElseThrow();
+    
+    // State machine invariant prevents double-firing compensation
+    if (order.getStatus() == OrderStatus.REFUNDED) {
+        log.info("Compensation already executed for order: {}", cmd.getOrderId());
+        return; 
+    }
+    
+    paymentGateway.refund(order.getPaymentId(), cmd.getIdempotencyKey());
+    order.setStatus(OrderStatus.REFUNDED);
+    orderRepository.save(order);
+}`,
+    warStory: "A tier-1 airline booking system charged $1,200 flights via credit card gateway inside an active Spring @Transactional method. During a holiday flash sale, Postgres hit lock contention, causing transactions to time out during the commit phase after the credit card was charged. 3,400 customers had their cards charged but received no airline ticket, causing $4M in chargeback fees and an emergency FTC compliance audit before the Outbox pattern with Debezium CDC was deployed."
+  }
 ];

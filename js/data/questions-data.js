@@ -1221,4 +1221,225 @@ class VipOrderProcessor extends OrderProcessor {
 }`,
     warStory: "A banking integration subclassed a generic AccountValidator. The subclass added a rule rejecting accounts without tax IDs. The generic batch payment processor, unaware of this tightened precondition, crashed mid-run, failing 12,000 commercial wire transfers."
   }
+,
+  {
+    id: "q-mock-dual-write-saga-outbox-idempotency",
+    category: "Spring Boot & Microservices",
+    difficulty: "Staff / Principal",
+    question: "Dual-write across microservices: Order Service calls Payment Service over HTTP inside @Transactional, then updates Order DB. Why does @Transactional fail, and how do you redesign with Outbox, Saga, CDC & Idempotency?",
+    interviewerIntent: "Assesses distributed transactions, dual-write failure modes, why 2PC/XA is an anti-pattern in microservices, and mastery of Transactional Outbox with CDC (Debezium) and Saga compensation.",
+    juniorTrap: "Assuming Spring's @Transactional magically rolls back remote HTTP payment calls upon local DB commit failure, or reversing call order.",
+    seniorAnswer: [
+      "1. Distributed Dual Write: Non-atomic distributed transaction. Two independent state machines (Payment Service and local DB). With no distributed atomicity, payment succeeds but order DB commit can fail, leaving money charged without an order.",
+      "2. Why @Transactional Fails: It only demarcates a local JDBC Connection boundary on a single datasource; it cannot rollback remote HTTP calls. Holding an open DB connection across a network call exhausts the HikariCP connection pool and holds row locks.",
+      "3. The Ordering Paradox: Calling payment before commit leads to payment succeeding but commit failing. Committing before payment leads to commit succeeding but network call timing out. There is NO safe synchronous ordering.",
+      "4. Transactional Outbox Pattern: In the SAME local database transaction that writes the Order entity (in PENDING status), insert an event record into an 'outbox' table. A CDC process (Debezium reading Postgres WAL) publishes the event to Kafka with zero dual-write risk.",
+      "5. Saga Pattern (Orchestration vs Choreography): Decompose into local transactions with compensating transactions. If a subsequent step fails, an orchestrator emits a compensating 'RefundCommand' to Payment.",
+      "6. Idempotency Invariant: Producer attaches an idempotency key (orderId + step UUID). Consumer stores processed keys in a 'processed_messages' table in the same DB transaction as the business effect."
+    ],
+    codeSnippet: `// Atomic Local Write with Transactional Outbox:
+@Transactional
+public Order createOrderWithOutbox(OrderRequest req) {
+    Order order = orderRepository.save(new Order(req.getOrderId(), req.getAmount(), OrderStatus.PENDING));
+    OutboxEvent event = new OutboxEvent(UUID.randomUUID().toString(), "OrderCreated", order.getId(), jsonPayload);
+    outboxRepository.save(event);
+    return order;
+}`,
+    warStory: "A tier-1 airline booking system charged credit cards inside @Transactional. Database lock contention during a flash sale caused commit timeouts after payment. 3,400 customers had cards charged without tickets, causing $4M in chargeback fees."
+  },
+  {
+    id: "q-mock-kafka-consumer-groups-rebalance-timeouts",
+    category: "Kafka & Distributed Streaming",
+    difficulty: "Staff / Principal",
+    question: "Kafka Consumer Groups: 6 partitions with 3 consumers — max parallelism vs 9 consumers? Consumer death flow, Eager vs Cooperative Sticky, ordering beyond partition count, and timeout traps.",
+    interviewerIntent: "Tests mastery of Kafka's partitioning model, Group Coordinator protocol, cooperative sticky rebalancing, per-key ordering invariants, and background heartbeat vs poll interval timeout traps.",
+    juniorTrap: "Believing you can increase consumer threads past partition count in one consumer group, or confusing heartbeat timeouts with poll interval processing timeouts.",
+    seniorAnswer: [
+      "1. Max Parallelism: Max consumer parallelism = partition count = 6. With 9 consumers, 6 process partitions and 3 sit idle in the group (costing only heartbeats). You can never exceed partition count parallelism within a single consumer group.",
+      "2. Consumer Death Flow: Coordinator notices missing heartbeat within session.timeout.ms -> JoinGroup -> leader elected -> SyncGroup assignment. Eager revokes all partitions from all members (stop-the-world). Cooperative Sticky revokes only migrating partitions across 2 phases without pausing healthy consumers.",
+      "3. Per-orderId Ordering: Guaranteed only within a single partition by hashing orderId. Broken by changing partition counts, null keys, retries with max.in.flight > 1 (without idempotence), and multi-threaded consumer dispatch.",
+      "4. Scaling Beyond Partition Count: Route consumed records to an internal worker thread pool using orderId.hashCode() % N_WORKERS where each worker queue is strictly single-threaded.",
+      "5. Timeout Disasters: session.timeout.ms (heartbeat timeout). heartbeat.interval.ms (~1/3 of session timeout, background thread). max.poll.interval.ms (time between poll() calls). When processing thread is stuck on slow DB/API, max.poll.interval.ms expires -> consumer kicked out -> rebalance storm -> duplicate reprocessing."
+    ],
+    codeSnippet: `// Scaling Throughput Beyond Partition Count with Per-Key Serialized Workers:
+ExecutorService[] workers = new ExecutorService[16];
+for (int i = 0; i < 16; i++) workers[i] = Executors.newSingleThreadExecutor();
+
+while (running) {
+    ConsumerRecords<String, OrderEvent> records = consumer.poll(Duration.ofMillis(100));
+    for (ConsumerRecord<String, OrderEvent> record : records) {
+        int workerIndex = Math.abs(record.key().hashCode()) % workers.length;
+        // All events for the same orderId execute sequentially on workerIndex!
+        workers[workerIndex].submit(() -> processOrder(record));
+    }
+}`,
+    warStory: "An e-commerce payment consumer took 1.2s per record to verify against a lagging fraud API with 500 records. Processing took 600s, exceeding max.poll.interval.ms (300s). Kafka kicked the consumer out every 5 minutes, duplicating payments."
+  },
+  {
+    id: "q-mock-kafka-eos-transactions-poison-pills",
+    category: "Kafka & Distributed Streaming",
+    difficulty: "Staff / Principal",
+    question: "Kafka Exactly-Once Semantics (EOS): Duplicate windows with commitSync(), enable.idempotence=true guarantees vs limits, transactional producer recipe, and non-blocking retry topics vs poison pills.",
+    interviewerIntent: "Assesses deep knowledge of Kafka's transactional coordinator, 2-phase commit markers, consumer offset transactionality, and non-blocking DLQ error handling architecture.",
+    juniorTrap: "Assuming enable.idempotence=true gives end-to-end exactly-once, or retrying poison pills in-place with Thread.sleep on a partitioned topic.",
+    seniorAnswer: [
+      "1. Duplicate Windows with commitSync(): Crash between processing and commitSync(), rebalance mid-batch, producer retries without idempotence, downstream DB write failure.",
+      "2. enable.idempotence=true: Broker deduplication per producer session per partition via sequence number + PID epoch; does NOT provide end-to-end exactly-once or survive producer restarts.",
+      "3. Transactional Producer & EOS Recipe: transactional.id fences zombie producers. sendOffsetsToTransaction(offsets, groupId) commits consumer offsets and produced messages atomically. Consumer requirement: isolation.level=read_committed.",
+      "4. Poison Pill: Default behavior causes infinite retry loops and head-of-line blocking stalling the partition.",
+      "5. Non-Blocking Retry Topics: Classify non-retryable (corrupt JSON) -> DLQ. Retryable (503/timeout) -> delayed retry topics (orders-retry-1m). Commit offset on main topic immediately so other partition keys continue processing."
+    ],
+    codeSnippet: `producer.initTransactions();
+while (running) {
+    ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(100));
+    producer.beginTransaction();
+    for (var r : records) producer.send(new ProducerRecord<>("out-topic", r.key(), transform(r.value())));
+    producer.sendOffsetsToTransaction(currentOffsets(records), "group-id");
+    producer.commitTransaction();
+}`,
+    warStory: "A credit card fraud analytics service used commitSync() after sending push notifications. During a broker upgrade, commitSync timed out. The consumer restarted and re-polled 1,000 fraud alerts, sending duplicate push notifications to 1,000 customers."
+  },
+  {
+    id: "q-mock-kafka-lag-acks-schema-isr",
+    category: "Kafka & Distributed Streaming",
+    difficulty: "Staff / Principal",
+    question: "Kafka Production Triage: Consumer lag triage levers (cheapest to most invasive), acks=1 silent data loss risk, Schema Registry compatibility rules, and ISR CP durability math.",
+    interviewerIntent: "Assesses operational incident triage discipline, deep understanding of Kafka replication protocols (ISR and min.insync.replicas), and schema compatibility governance.",
+    juniorTrap: "Immediately increasing topic partitions during a lag spike, or using acks=1 in financial pipelines.",
+    seniorAnswer: [
+      "1. Lag Triage Levers (Cheapest -> Most Invasive): 1) Tune consumer (increase max.poll.records, batch DB writes, remove sync calls); 2) Scale consumers up to partition count; 3) Profile downstream bottleneck (DB/API); 4) Increase partitions/split topic; 5) Upstream backpressure. Try #1 first because it is zero-risk and reversible.",
+      "2. acks=1 Silent Data Loss: Leader writes to local log and acks; followers replicate asynchronously. If leader dies before replication, data is silently lost forever. Fix: acks=all + min.insync.replicas=2 + unclean.leader.election.enable=false + enable.idempotence=true.",
+      "3. Schema Registry: BACKWARD mode allows adding optional fields with defaults (new consumers read old events). FORWARD allows deleting fields (old consumers read new events). FULL/FULL_TRANSITIVE is best for mixed fleets.",
+      "4. Safe Field Removal Rule: Deprecate field -> stop producing -> wait until all consumers upgraded -> delete field.",
+      "5. ISR Math (RF=3, min.insync.replicas=2, acks=all): 1 broker dies: ISR=2 >= 2 -> writes succeed. 2 brokers die: ISR=1 < 2 -> producer gets NotEnoughReplicasException, writes rejected (CP consistency over availability). Surviving broker still serves reads."
+    ],
+    codeSnippet: `// Mission-Critical Zero Data Loss Producer Config:
+props.put(ProducerConfig.ACKS_CONFIG, "all");
+props.put(ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG, "true");
+props.put(ProducerConfig.RETRIES_CONFIG, Integer.MAX_VALUE);
+// Broker-side: min.insync.replicas=2, unclean.leader.election.enable=false`,
+    warStory: "A crypto trading platform configured acks=1. AWS experienced a transient rack failure in us-east-1. 420 trade execution messages acknowledged to clients were never replicated, causing $1.8M in Bitcoin trades to vanish from the ledger."
+  },
+  {
+    id: "q-mock-jpa-nplus1-pagination-locking-dirtychecking",
+    category: "SQL / JPA / Hibernate",
+    difficulty: "Staff / Principal",
+    question: "JPA/Hibernate Traps: N+1 with HHH000104 In-Memory Pagination OOM, Optimistic vs Pessimistic vs Atomic update, and Dirty Checking vs Bulk JPQL cache divergence.",
+    interviewerIntent: "Assesses Hibernate first-level cache mechanics, SQL generation, pagination hazards, database lock escalation, and persistence context dirty checking divergence.",
+    juniorTrap: "Using JOIN FETCH with setFirstResult()/setMaxResults() (Pageable) on a OneToMany collection, causing Hibernate to load millions of rows into JVM RAM to paginate in memory.",
+    seniorAnswer: [
+      "1. N+1 Problem & Fixes: findAll() issues 1 query for orders + N queries for items. Fix A: JOIN FETCH or @EntityGraph. Fix B: @BatchSize(size = 50) on collection. Fix C: DTO projection.",
+      "2. The Pagination Trap with JOIN FETCH: Combining setFirstResult()/setMaxResults() with JOIN FETCH on a collection triggers 'HHH000104: firstResult/maxResults specified with collection fetch; applying in memory'. Hibernate removes LIMIT/OFFSET from the SQL, queries the ENTIRE table into memory, and slices in memory, causing OutOfMemoryError!",
+      "3. Safe Pagination Fix: Two-Step Paging: Step 1: Page parent IDs only: 'SELECT o.id FROM Order o ORDER BY o.id' with Pageable. Step 2: Fetch entities: 'SELECT o FROM Order o JOIN FETCH o.items WHERE o.id IN (:ids)'.",
+      "4. Locking Matrix: Optimistic (@Version, WHERE id=? AND version=?, OptimisticLockException, backoff retry). Pessimistic (@Lock(PESSIMISTIC_WRITE), SELECT ... FOR UPDATE, holds DB row lock until commit, deadlock risk). Conditional Atomic UPDATE (UPDATE stock SET qty = qty - 1 WHERE id = ? AND qty >= 1; zero lock holding).",
+      "5. Dirty Checking vs Bulk JPQL: order.setStatus('X') marks entity dirty in 1st-level cache; bulk UPDATE executes directly against DB. Result: DB has 'Y', persistence context still has 'X'! Fix: entityManager.flush() and clear(), or @Modifying(clearAutomatically = true, flushAutomatically = true)."
+    ],
+    codeSnippet: `// Safe Two-Step Paging:
+Page<Long> ids = orderRepo.findOrderIdsPaged(pageable);
+List<Order> orders = orderRepo.findOrdersWithItemsByIds(ids.getContent());
+
+// Bulk Update with Cache Clear:
+@Modifying(clearAutomatically = true, flushAutomatically = true)
+@Query("UPDATE Order o SET o.status = :status WHERE o.id = :id")
+int bulkUpdateStatus(@Param("id") Long id, @Param("status") String status);`,
+    warStory: "An e-commerce order history endpoint combined JOIN FETCH on order_items with PageRequest.of(0, 20). Hibernate threw HHH000104 and loaded all 1.8M orders into memory, triggering continuous GC pauses and a catastrophic production OOM."
+  },
+  {
+    id: "q-mock-concurrency-volatile-dcl-reentrantlock",
+    category: "Java Multithreading & Concurrency",
+    difficulty: "Staff / Principal",
+    question: "Java Memory Model & Concurrency: Why volatile count++ is not thread-safe, Double-Checked Locking memory reordering & safe publication, and ReentrantLock vs synchronized.",
+    interviewerIntent: "Tests precision on Java Memory Model (JMM) happens-before rules, instruction reordering, safe publication of object references, and explicit lock semantics.",
+    juniorTrap: "Assuming volatile makes compound operations atomic, or assuming double-checked locking without volatile is safe.",
+    seniorAnswer: [
+      "1. volatile int count; count++ Is NOT Thread-Safe: count++ is 3 bytecodes: getfield, iadd, putfield. Two threads reading count=5 both write count=6 (lost update). Volatile guarantees visibility and ordering (Store-Load barrier; volatile write happens-before subsequent volatile read), but NOT atomicity. Fix: AtomicInteger or LongAdder.",
+      "2. DCL Requires volatile: 'instance = new Singleton()' is 3 steps: [A] Allocate heap memory; [B] Invoke constructor; [C] Assign memory address to reference. Without volatile, CPU/JIT can reorder [C] before [B]. Thread B sees instance != null and returns a partially initialized object (NPE/torn state). volatile adds a Store-Store barrier preventing reordering.",
+      "3. ReentrantLock Advantages: 1) tryLock(timeout) prevents deadlocks and enables fast-fail load shedding; 2) lockInterruptibly() allows thread cancellation; 3) Multiple Condition objects (notEmpty vs notFull) avoiding notifyAll() storms; 4) Lock metrics (isLocked(), getQueueLength()). Must unlock in finally block."
+    ],
+    codeSnippet: `public class SafeSingleton {
+    private static volatile SafeSingleton instance;
+    public static SafeSingleton getInstance() {
+        if (instance == null) {
+            synchronized (SafeSingleton.class) {
+                if (instance == null) instance = new SafeSingleton();
+            }
+        }
+        return instance;
+    }
+}`,
+    warStory: "An ad-tech bidding engine used DCL without volatile on an in-memory GeoIP cache. On ARM64 Graviton instances, weakly-ordered memory reordered constructor allocation, causing 15% of ad bids to fail with NullPointerExceptions."
+  },
+  {
+    id: "q-mock-concurrency-threadpools-completablefuture-virtualthreads",
+    category: "Java Multithreading & Concurrency",
+    difficulty: "Staff / Principal",
+    question: "Executor Architecture: Thread pool sizing formulas, Executors factory OOM traps, CompletableFuture composition pitfalls, and Virtual Thread carrier pinning.",
+    interviewerIntent: "Assesses capacity planning formulas, ExecutorService failure modes, modern asynchronous functional programming, and Java 21 Project Loom runtime internals.",
+    juniorTrap: "Using Executors.newFixedThreadPool(N) with unbounded queue causing OOM, or running blocking I/O inside CompletableFuture.thenApply().",
+    seniorAnswer: [
+      "1. Sizing Formulas: CPU-Bound = cores + 1. I/O-Bound = cores * (1 + Wait_Time / Service_Time). Example: 8 cores with 90% wait time = 80 threads.",
+      "2. Executors Factory Traps: newFixedThreadPool uses unbounded LinkedBlockingQueue (OOM under load spikes). newCachedThreadPool uses unbounded threads (thread exhaustion crash). Rule: Always construct explicit ThreadPoolExecutor with bounded queue and CallerRunsPolicy.",
+      "3. CompletableFuture Composition: thenApply (map sync), thenCompose (flatMap async), thenCombine (fan-in parallel merge). Pitfall: running blocking I/O in thenApply blocks the completing thread or global ForkJoinPool.commonPool(). Pitfall: unhandled exceptions silently swallow downstream stages.",
+      "4. Virtual Threads (Java 21): Boost throughput for high-concurrency I/O-bound workloads (~1KB user-mode stack). Never pool virtual threads. Ineffective for CPU-bound tasks. Carrier Pinning: executing blocking calls inside synchronized or JNI pins the virtual thread to its OS carrier thread, starving the carrier pool. Fix: Use ReentrantLock."
+    ],
+    codeSnippet: `// Production Bounded ThreadPool:
+ThreadPoolExecutor executor = new ThreadPoolExecutor(
+    8, 32, 60L, TimeUnit.SECONDS,
+    new ArrayBlockingQueue<>(1000),
+    new CustomizableThreadFactory("worker-"),
+    new ThreadPoolExecutor.CallerRunsPolicy()
+);`,
+    warStory: "A SaaS analytics provider used newCachedThreadPool(). During an external migration, 25,000 webhooks arrived in 10 seconds. The JVM attempted to spawn 25,000 OS platform threads, exhausting Linux PIDs and taking down all services."
+  },
+  {
+    id: "q-mock-react-useeffect-batching-keys-renders",
+    category: "React & Frontend Architecture",
+    difficulty: "Staff / Principal",
+    question: "React 18 Production Diagnostics: useEffect stale closures vs unstable deps, context re-render cascade, array index key traps, universal batching, and render profiling.",
+    interviewerIntent: "Assesses deep understanding of React Fiber reconciliation, JavaScript closure semantics, Context propagation re-render cascades, and production profiling workflows.",
+    juniorTrap: "Silencing ESLint exhaustive-deps instead of using functional state updaters, or using array index as keys in dynamic list items.",
+    seniorAnswer: [
+      "1. useEffect Rules: Missing dep -> STALE CLOSURE (captures outdated state from initial render; fix with functional updater setCount(c => c + 1) or useRef). Unstable dep -> INFINITE RENDERS (inline object/array creates new memory reference every render; fix with useMemo/useCallback).",
+      "2. Re-render Triggers & Context Cascade: State update, parent re-render, context value change. Context trap: inline <Provider value={{ a, b }}> creates new object reference on every render, re-rendering all consumer subtrees regardless of React.memo. Fix: wrap value in useMemo or split contexts.",
+      "3. Index as Key: Inserting or deleting items shifts indices, causing React to mismatch component instances. Internal state (input values, focus, animation state) attaches to the wrong element. Always use stable unique database IDs.",
+      "4. React 18 Universal Batching: Automatically batches all state updates across promises, setTimeout, and native event handlers into a single re-render. Controlled (value + onChange, render per keystroke) vs Uncontrolled (ref, zero renders per keystroke).",
+      "5. Debugging Excess Renders: Use React DevTools Profiler ('Record why each component rendered'); detect derived state stored in useState, missing React.memo, unmemoized context providers."
+    ],
+    codeSnippet: `// Stale Closure Prevention with Functional Updater:
+useEffect(() => {
+    const id = setInterval(() => setCount(prev => prev + 1), 1000);
+    return () => clearInterval(id);
+}, []); // Safe!
+
+// Context Value Memoization:
+const contextValue = useMemo(() => ({ user, setUser }), [user]);`,
+    warStory: "A SaaS dashboard had an AppContext passing an unmemoized object. Every time a 1-second notification interval fired, the unmemoized object re-rendered a 10,000-cell financial grid across all tabs, creating 200ms input lag on every keystroke."
+  },
+  {
+    id: "q-mock-devops-jenkins-pipeline-buildonce-expandcontract",
+    category: "DevOps & CI/CD Pipelines",
+    difficulty: "Staff / Principal",
+    question: "Enterprise CI/CD Architecture: Declarative Jenkinsfile, 'Build Once Deploy Many', Zero-Downtime Rollbacks & Expand/Contract Database Migrations.",
+    interviewerIntent: "Assesses enterprise delivery pipeline design, container artifact immutability, zero-downtime database deployment strategies (Parallel Change pattern), and operational CI/CD hygiene.",
+    juniorTrap: "Rebuilding Docker images separately per environment, or executing code rollbacks after destructive database schema changes.",
+    seniorAnswer: [
+      "1. Enterprise Pipeline Design: Declarative Jenkinsfile versioned in source repo; Multibranch pipeline with webhook triggers (no polling); shared libraries (vars/); ephemeral Kubernetes agent pods (never build on controller); withCredentials secret masking; parallel unit + integration test stages with SonarQube and Trivy scans; immutable Docker image tagged with git SHA.",
+      "2. 'Build Once, Deploy Many': Build Docker image ONCE at git commit, tag with immutable git SHA, and promote the exact same container digest across Dev -> Staging -> Prod. Rebuilding per environment causes environment drift and invalidates staging tests.",
+      "3. Rollback & DB Migration Constraint: Rollback redeploys the previous known-good Docker image digest. DB Constraint: Code cannot roll back if DB schema had breaking changes.",
+      "4. Solution: Expand/Contract (Parallel Change) Pattern: Phase 1 (Expand): Add new nullable column/table; deploy dual-writing code. Phase 2: Backfill historical data; deploy code reading from new schema. Phase 3 (Contract): After stabilization, deploy subsequent release dropping old column. Code rollbacks never require DB rollbacks!",
+      "5. Jenkins Anti-Patterns: Polling SCM instead of webhooks; giant monolithic stages; shell steps without 'set -e'; retrying flaky tests blindly; building on Jenkins controller; echoing secrets; baking environment config into Docker images."
+    ],
+    codeSnippet: `pipeline {
+    agent { kubernetes { yaml podTemplateYaml } }
+    environment { IMAGE_TAG = "\${env.GIT_COMMIT.take(7)}" }
+    stages {
+        stage('Build & Push Immutable Image') {
+            steps { sh "docker build -t app:\${IMAGE_TAG} . && docker push app:\${IMAGE_TAG}" }
+        }
+        stage('Deploy Staging') { steps { sh "helm upgrade --install app ./helm --set image.tag=\${IMAGE_TAG} -n staging" } }
+        stage('Deploy Prod') { steps { sh "helm upgrade --install app ./helm --set image.tag=\${IMAGE_TAG} -n prod" } }
+    }
+}`,
+    warStory: "An enterprise bank ran Jenkins jobs on the controller node. A developer's script ran 'rm -rf /' inside a build step without checking for variable nullness, destroying all build histories, credentials, and job configurations across 80 microservices."
+  }
 ];

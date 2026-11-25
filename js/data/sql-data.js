@@ -758,4 +758,61 @@ WHERE e.salary > m.salary;`,
     explanation: "Classic self-join: Join the Employee table to itself on `e.managerId = m.id`. Filter where subordinate salary `e.salary` is strictly greater than manager salary `m.salary`.",
     trap: "Using `LEFT JOIN`: Subordinates without managers have `m.salary IS NULL`, and `e.salary > NULL` evaluates to UNKNOWN, which produces no rows. `INNER JOIN` is cleaner and index-friendly."
   }
+,
+  {
+    id: "sql-q21-jpa-nplus1-pagination-locking-dirtychecking",
+    title: "21. JPA/Hibernate Production Traps: N+1 with HHH000104 In-Memory Pagination OOM, Locking Matrix & Bulk UPDATE Cache Divergence (Interview Deep Dive Q3.1)",
+    difficulty: "Staff / Principal",
+    category: "JPA, Hibernate & Locking Internals",
+    summary: "N+1 query resolution with JOIN FETCH, the HHH000104 pagination in-memory OOM disaster, Optimistic vs Pessimistic vs Atomic update, and Dirty Checking vs Bulk JPQL cache divergence.",
+    problem: "@Entity class Order { @Id Long id; @OneToMany(mappedBy='order', fetch=FetchType.LAZY) List<OrderItem> items; }. 1) Slow in prod with findAll() then o.getItems().size(): what happens, and 3 fixes (including the pagination trap with JOIN FETCH)? 2) Two users update Order.status: Optimistic vs Pessimistic vs Conditional Atomic UPDATE, @Version, exceptions, and when to pick each? 3) Inside one @Transactional: order.setStatus('X') then JPQL bulk UPDATE Order o SET o.status='Y': what ends up in DB and persistence context?",
+    juniorTrap: "Using JOIN FETCH with setFirstResult()/setMaxResults() (Pageable) on a OneToMany collection, causing Hibernate to load millions of rows into JVM RAM to paginate in memory.",
+    interviewerIntent: "Assesses Hibernate first-level cache mechanics, SQL generation, pagination hazards, database lock escalation, and persistence context dirty checking divergence.",
+    seniorAnswer: [
+      "1. The N+1 Query Problem: findAll() issues 1 query for N orders; each getItems().size() lazily initializes the collection by executing 1 query per order -> 1 + N SQL queries, causing severe network roundtrip latency. Fix A: JOIN FETCH (SELECT o FROM Order o JOIN FETCH o.items) or @EntityGraph. Fix B: @BatchSize(size = 50) on the collection, turning N queries into N/50 (WHERE order_id IN (...)). Fix C: Read-only DTO projection (SELECT new OrderDto(o.id, count(i.id)) FROM ...).",
+      "2. The Critical Pagination Trap with JOIN FETCH: Combining setFirstResult()/setMaxResults() (Spring Data Pageable) with JOIN FETCH on a collection causes Hibernate to throw warning 'HHH000104: firstResult/maxResults specified with collection fetch; applying in memory'. Because an SQL join multiplies rows (1 order with 5 items = 5 rows), the SQL LIMIT/OFFSET would truncate items, not orders! Hibernate removes LIMIT/OFFSET from the SQL, queries the ENTIRE table into JVM memory, and slices in memory. On large tables, this causes instant OutOfMemoryError (OOM)!",
+      "3. Safe Pagination Fix: Use Two-Step Paging: Step 1: Page parent IDs only: 'SELECT o.id FROM Order o ORDER BY o.id' with Pageable. Step 2: Fetch full entities: 'SELECT o FROM Order o JOIN FETCH o.items WHERE o.id IN (:ids)'. Or simply use @BatchSize(size = 50) with standard pagination.",
+      "4. Locking Matrix: Optimistic Locking (@Version column): UPDATE orders SET status=?, version=version+1 WHERE id=? AND version=?. If 0 rows updated, throws OptimisticLockException. Held: zero DB locks held across application logic; scales read-heavy workloads with retry loops. Pessimistic Locking (@Lock(LockModeType.PESSIMISTIC_WRITE)): Emits 'SELECT ... FOR UPDATE'. Holds DB row lock until transaction commit; blocks other writers, risks deadlock and connection timeouts. Best for high-contention zero-loss invariants (inventory decrement).",
+      "5. Conditional Atomic UPDATE (Best of Both): 'UPDATE stock SET qty = qty - 1 WHERE id = :id AND qty >= 1'. Zero locks held across Java logic, zero retry storms, atomic single SQL statement.",
+      "6. Dirty Checking vs Bulk JPQL Cache Divergence: order.setStatus('X') only modifies the entity in the first-level cache (Persistence Context). The JPQL bulk update 'UPDATE Order o SET o.status='Y'' executes directly against the DB (triggering an auto-flush first). Net result: DB has 'Y', but the in-memory Hibernate persistence context still holds 'X'! Any subsequent read in the same transaction returns the STALE 'X' from first-level cache! Fix: Call entityManager.flush() and entityManager.clear(), or annotate with @Modifying(clearAutomatically = true, flushAutomatically = true)."
+    ],
+    innerWorking: "Hibernate Session represents the First-Level Cache and Identity Map. JPQL bulk updates bypass the Session's object graph management entirely and translate directly to raw SQL executed against the JDBC Connection. Without clearAutomatically=true, the Persistence Context becomes desynchronized from the actual database state.",
+    solution: `// 1. SAFE TWO-STEP PAGINATION (AVOIDS HHH000104 OOM):
+// Step A: Page IDs only in DB:
+@Query("SELECT o.id FROM Order o ORDER BY o.createdAt DESC")
+Page<Long> findOrderIdsPaged(Pageable pageable);
+
+// Step B: Fetch items for those IDs without memory pagination:
+@Query("SELECT DISTINCT o FROM Order o LEFT JOIN FETCH o.items WHERE o.id IN :ids")
+List<Order> findOrdersWithItemsByIds(@Param("ids") List<Long> ids);
+
+// 2. OPTIMISTIC LOCKING WITH AUTOMATIC RETRY:
+@Entity
+public class Order {
+    @Id private Long id;
+    private String status;
+    @Version private Long version; // Optimistic lock guard
+}
+
+// Service retry loop:
+@Retryable(retryFor = ObjectOptimisticLockingFailureException.class, maxAttempts = 3, backoff = @Backoff(delay = 100))
+@Transactional
+public void updateOrderStatusOptimistic(Long orderId, String newStatus) {
+    Order order = orderRepo.findById(orderId).orElseThrow();
+    order.setStatus(newStatus);
+    orderRepo.save(order);
+}
+
+// 3. BULK UPDATE WITH PERSISTENCE CONTEXT CLEARING:
+@Modifying(clearAutomatically = true, flushAutomatically = true)
+@Query("UPDATE Order o SET o.status = :status WHERE o.id = :id")
+int bulkUpdateStatus(@Param("id") Long id, @Param("status") String status);
+
+// 4. CONDITIONAL ATOMIC UPDATE (NO LOCK HOLDING):
+@Modifying
+@Query("UPDATE Product p SET p.stock = p.stock - :qty WHERE p.id = :id AND p.stock >= :qty")
+int decrementStockAtomic(@Param("id") Long id, @Param("qty") int qty);`,
+    explanation: "Addresses the 4 classic enterprise JPA failure modes: N+1 lazy loading, in-memory collection pagination OOM (HHH000104), lock contention trade-offs (Optimistic vs Pessimistic vs Atomic), and first-level cache desynchronization under bulk JPQL.",
+    trap: "Running JOIN FETCH with Pageable on OneToMany collections. Hibernate prints HHH000104 warning and loads all database rows into RAM."
+  }
 ];

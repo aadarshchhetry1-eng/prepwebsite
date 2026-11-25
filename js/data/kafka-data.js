@@ -1019,4 +1019,148 @@ done`,
 // Event Sourcing        | Native & Ideal                   | Impossible (No Replay)`,
     warStory: "A logistics company selected Kafka for dispatching courier delivery jobs. Because individual delivery jobs had wild processing time variations (from 10 seconds to 45 minutes), slow jobs blocked entire partitions. They spent 6 months migrating worker dispatch queues back to RabbitMQ/SQS where individual message NACK and per-message routing work naturally."
   }
+,
+  {
+    id: "kafka-scen-21",
+    title: "21. Consumer Groups, Parallelism Limits, Eager vs Cooperative Rebalance & Timeout Disasters (Interview Deep Dive Q2.1)",
+    difficulty: "Staff / Principal",
+    category: "Consumer Group Internals & Protocols",
+    summary: "Topic orders has 6 partitions and 3 consumers. Max parallelism? 9 consumers? Consumer death flow? Eager vs Cooperative? Per-key ordering beyond partition count? max.poll.interval.ms vs session.timeout.ms.",
+    problem: "Topic 'orders' has 6 partitions, and consumer group has 3 consumers. 1) Max parallelism and what happens with 9 consumers? 2) One consumer dies: walk through detection -> rebalance -> reassignment; why is eager 'stop-the-world' vs cooperative? 3) How do you guarantee per-orderId ordering, what breaks it, and how to scale throughput beyond partition count? 4) max.poll.interval.ms vs session.timeout.ms vs heartbeat.interval.ms: which bites on slow processing?",
+    juniorTrap: "Believing you can increase consumer threads past the partition count in one consumer group, or confusing heartbeat timeouts with poll interval processing timeouts.",
+    interviewerIntent: "Tests mastery of Kafka's core partitioning and group coordinator protocol, cooperative sticky rebalancing, partition-key invariants, and thread-model dispatching beyond partition boundaries.",
+    seniorAnswer: [
+      "1. Max Parallelism: Max consumer parallelism = partition count = 6. With 9 consumers, 6 receive partitions and 3 sit completely idle. They remain group members and heartbeat, wasting resources but harmless. You can NEVER exceed partition count parallelism within a single consumer group.",
+      "2. Consumer Death & Rebalance Flow: 1) Detection: Group Coordinator (broker managing __consumer_offsets partition for groupId) notices missing heartbeat within session.timeout.ms. 2) Members send JoinGroup requests; coordinator designates a Group Leader (first consumer to reply). 3) Group Leader runs partition assignment algorithm. 4) Members send SyncGroup to receive assignments. 5) Eager (Range/RoundRobin) forces ALL members to revoke ALL partitions simultaneously, causing total stop-the-world for the entire group. 6) Cooperative Sticky (KIP-429) uses a 2-phase protocol where only migrating partitions are revoked, while unaffected consumers continue processing uninterrupted.",
+      "3. Per-orderId Ordering Invariant: Kafka guarantees ordering ONLY within a single partition. Producer hashes record key (orderId) to assign it to a deterministic partition. What breaks ordering: 1) Increasing partition count dynamically (key hashes to a different partition, splitting in-flight sequence); 2) Producing with null key (round-robin); 3) Producer retries with max.in.flight.requests.per.connection > 1 without idempotence; 4) Multi-threaded processing in consumer.",
+      "4. Scaling Throughput Beyond Partition Count: To scale beyond 6 partitions while maintaining per-orderId order: 1) Consume batches on consumer thread, but route each record to an internal worker thread pool using a hash of the orderId (e.g. orderId.hashCode() % N_WORKERS) where each worker queue is strictly single-threaded; OR 2) Split into multiple sub-topics by key prefix.",
+      "5. Timeout Disasters: session.timeout.ms (heartbeat timeout: coordinator marks consumer dead). heartbeat.interval.ms (~1/3 of session timeout; sent by background thread). max.poll.interval.ms (max duration between poll() calls). THE ONE THAT BITES ON SLOW PROCESSING: If processing records takes longer than max.poll.interval.ms (e.g. slow database batch or external REST API), the coordinator kicks the consumer out, triggers a rebalance storm, and uncommitted records are re-delivered to another consumer, causing duplicate processing loops!"
+    ],
+    innerWorking: "Heartbeats run on a dedicated background heartbeat thread in modern Kafka clients. Therefore, even if the application processing thread is 100% deadlocked or blocked in a database query, heartbeats continue successfully! The broker will ONLY detect the stuck processing thread when max.poll.interval.ms expires.",
+    solution: `// 1. Consumer Configuration for Resilience:
+Properties props = new Properties();
+props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "kafka:9092");
+props.put(ConsumerConfig.GROUP_ID_CONFIG, "order-processors");
+props.put(ConsumerConfig.PARTITION_ASSIGNMENT_STRATEGY_CONFIG, 
+    "org.apache.kafka.clients.consumer.CooperativeStickyAssignor"); // Cooperative!
+
+// Timeout Tuning to Prevent False Rebalances:
+props.put(ConsumerConfig.HEARTBEAT_INTERVAL_MS_CONFIG, 3000);   // 3 sec (1/3 of session)
+props.put(ConsumerConfig.SESSION_TIMEOUT_MS_CONFIG, 10000);     // 10 sec dead detection
+props.put(ConsumerConfig.MAX_POLL_INTERVAL_MS_CONFIG, 300000);  // 5 min for slow batch!
+props.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 100);         // Bound batch size!
+
+// 2. Scaling Throughput Beyond Partition Count with Per-Key Serialized Workers:
+ExecutorService[] workers = new ExecutorService[16];
+for (int i = 0; i < 16; i++) workers[i] = Executors.newSingleThreadExecutor();
+
+while (running) {
+    ConsumerRecords<String, OrderEvent> records = consumer.poll(Duration.ofMillis(100));
+    for (ConsumerRecord<String, OrderEvent> record : records) {
+        int workerIndex = Math.abs(record.key().hashCode()) % workers.length;
+        // All events for the same orderId execute sequentially on workerIndex!
+        workers[workerIndex].submit(() -> processOrder(record));
+    }
+}`,
+    warStory: "An e-commerce payment consumer used default max.poll.interval.ms=300000 with max.poll.records=500. During Cyber Monday, each payment took 1.2s to verify against a lagging fraud API (500 x 1.2s = 600s). Because processing exceeded 300s, Kafka kicked the consumer out every 5 minutes, reassigned partitions to another worker, and reprocessed the exact same 500 orders, causing tens of thousands of duplicate charges!"
+  },
+  {
+    id: "kafka-scen-22",
+    title: "22. Exactly-Once Semantics (EOS): Transactional Producer Recipe, Idempotence Boundaries & Poison Pill Triage (Interview Deep Dive Q2.2)",
+    difficulty: "Staff / Principal",
+    category: "Transactions, EOS & Failure Isolation",
+    summary: "commitSync duplicate windows, enable.idempotence=true guarantees vs limits, transactional producer read-process-write EOS recipe, and non-blocking retry topics vs poison pills.",
+    problem: "1) With enable.auto.commit=false and commitSync() after processing, where can duplicates still occur? 2) What does enable.idempotence=true guarantee and what does it NOT? 3) Transactional producer: what do transactional.id and sendOffsetsToTransaction buy you, and what is the read-process-write EOS recipe? 4) Poison pill: default behavior and how to handle it with DLQ/retry topics without head-of-line blocking.",
+    juniorTrap: "Assuming enable.idempotence=true on the producer gives end-to-end exactly-once processing across consumers and databases, or retrying poison pills in-place with Thread.sleep on a partitioned topic.",
+    interviewerIntent: "Assesses deep knowledge of Kafka's transactional coordinator, 2-phase commit commit markers, consumer offset transactionality, and non-blocking DLQ error handling architecture.",
+    seniorAnswer: [
+      "1. Duplicate Windows with commitSync(): 1) Crash between business processing (e.g. DB write) and commitSync(); 2) Rebalance mid-batch reassigned partition to another node before commit; 3) Downstream failure after DB write; 4) Producer retries without idempotence duplicating messages in broker log. Mitigation: Idempotent consumers with unique DB constraints.",
+      "2. What enable.idempotence=true Guarantees vs NOT: Guarantees exactly-once write to broker log PER PRODUCER SESSION per partition (broker tracks PID + Sequence Number to discard duplicates). Forces acks=all, retries=INT_MAX, max.in.flight<=5. Does NOT guarantee end-to-end exactly-once: does not deduplicate across producer restarts (new PID generated), does not protect consumer duplicate reads, does not span multiple partitions.",
+      "3. Transactional Producer & EOS Recipe: transactional.id fences zombie producers (higher epoch revokes earlier instance). sendOffsetsToTransaction writes consumer offsets into the SAME transaction as output records. In atomic commit, Kafka writes COMMIT markers to both output and __consumer_offsets partitions. Consumer must set isolation.level=read_committed to filter out aborted transaction markers.",
+      "4. Poison Pill & Head-of-Line Blocking: Default behavior: consumer fails, throws exception, rolls back offset, reads the exact same corrupt record on next poll, and loops infinitely! The entire partition stalls behind that poison pill (head-of-line blocking).",
+      "5. Non-Blocking Retry Topics Architecture: 1) Classify errors: Non-retryable (corrupt JSON, validation) -> route immediately to DLQ (orders-dlq). 2) Retryable (DB timeout, 503) -> route to delayed retry topics (orders-retry-1m, orders-retry-5m). Commit offset on main topic immediately so other partition keys continue processing smoothly!"
+    ],
+    innerWorking: "Under isolation.level=read_committed, the Kafka consumer buffers messages in memory until it reads a COMMIT marker in the log. If it encounters an ABORT marker, all buffered messages for that transaction are immediately discarded from client memory before reaching application code.",
+    solution: `// 1. Transactional Producer Read-Process-Write Loop:
+KafkaProducer<String, String> producer = new KafkaProducer<>(prodProps);
+KafkaConsumer<String, String> consumer = new KafkaConsumer<>(consProps);
+
+producer.initTransactions();
+
+while (running) {
+    ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(100));
+    if (records.isEmpty()) continue;
+
+    try {
+        producer.beginTransaction();
+        Map<TopicPartition, OffsetAndMetadata> offsetsToCommit = new HashMap<>();
+
+        for (ConsumerRecord<String, String> record : records) {
+            // Business transformation
+            String processedValue = transform(record.value());
+            producer.send(new ProducerRecord<>("output-topic", record.key(), processedValue));
+
+            // Track next offset to commit
+            offsetsToCommit.put(
+                new TopicPartition(record.topic(), record.partition()),
+                new OffsetAndMetadata(record.offset() + 1)
+            );
+        }
+
+        // Atomically commit output messages AND consumer offsets!
+        producer.sendOffsetsToTransaction(offsetsToCommit, "order-group-id");
+        producer.commitTransaction();
+    } catch (ProducerFencedException | OutOfOrderSequenceException e) {
+        // Fatal zombie state: close producer immediately
+        producer.close();
+        break;
+    } catch (KafkaException e) {
+        // Transient error: abort and retry batch
+        producer.abortTransaction();
+        // Reset consumer offset to retry
+    }
+}`,
+    warStory: "A credit card fraud analytics service used commitSync() after sending push notifications. During a broker rolling upgrade, commitSync timed out after 30 seconds. The consumer restarted and re-polled the last 1,000 fraud alerts, sending duplicate push notifications to 1,000 customers warning them their cards were compromised, causing the banking phone lines to jam for 6 hours."
+  },
+  {
+    id: "kafka-scen-23",
+    title: "23. Triage Levers for Consumer Lag, acks=1 Silent Loss, Schema Evolution Compatibility & ISR Math (Interview Deep Dive Q2.3)",
+    difficulty: "Staff / Architect",
+    category: "Operational Runbooks, Durability & Schema Governance",
+    summary: "Consumer lag triage levers cheapest-to-most-invasive, acks=1 silent data loss risk, Schema Registry evolution rules, and ISR CP durability math.",
+    problem: "1) Consumer group lag is climbing rapidly: 4-5 levers from cheapest to most invasive, which first and why? 2) Producer uses acks=1 for speed: what can silently go wrong and what is the fix? 3) Add field without breaking 5 downstream consumers: compatibility mode and rule for removing a field? 4) RF=3, min.insync.replicas=2, acks=all: 1 broker dies vs 2 brokers die, what happens and why is it correct?",
+    juniorTrap: "Immediately increasing topic partitions during a lag spike (which permanently alters key routing and breaks in-flight ordering), or using acks=1 in financial pipelines.",
+    interviewerIntent: "Assesses operational incident triage discipline, deep understanding of Kafka replication protocols (ISR and min.insync.replicas), and schema compatibility governance.",
+    seniorAnswer: [
+      "1. Lag Triage Levers (Cheapest -> Most Invasive): Lever 1 (Cheapest & First): Tune consumer client (increase max.poll.records, batch DB writes, remove synchronous HTTP calls inside consumer loop). Lever 2: Scale consumer pods up to partition count (if consumers < partitions). Lever 3: Profile and optimize downstream bottlenecks (slow DB queries, index misses, network latency). Lever 4: Increase partition count / split topic (most invasive: permanently breaks key-hash mapping for in-flight orders, requires consumer re-deployments). Lever 5: Upstream backpressure / rate-limiting (drops traffic at gateway). Always try #1 first because it is zero-risk, instantaneous, and reversible.",
+      "2. acks=1 Silent Data Loss: Under acks=1, the leader broker writes to its local page cache/disk and immediately acknowledges success. Followers replicate asynchronously. If the leader broker suffers sudden power failure or kernel panic before replication completes, un-replicated records are permanently lost with ZERO error thrown to the producer. Fix: acks=all + min.insync.replicas=2 + RF=3 + unclean.leader.election.enable=false + enable.idempotence=true.",
+      "3. Schema Registry Evolution: BACKWARD Compatibility: Consumers on new schema can read old schema events (safe to add optional fields with defaults). FORWARD Compatibility: Consumers on old schema can read new schema events (safe to delete fields). FULL / FULL_TRANSITIVE Compatibility: Both forward and backward compatible (safest for multi-team enterprise ecosystems).",
+      "4. Safe Field Removal Rule: NEVER delete a field directly! 1) Mark field optional/deprecated; 2) Stop producing values; 3) Wait until all 5 downstream consumers upgrade their schemas; 4) Remove field in next schema version. Never re-use field IDs/tags.",
+      "5. ISR Math & CAP Theorem (RF=3, min.insync.replicas=2, acks=all): One Broker Dies: Active ISR = 2 >= min.insync.replicas (2). Writes succeed with zero interruption and zero data loss. Two Brokers Die: Active ISR = 1 < min.insync.replicas (2). Producer receives NotEnoughReplicasException and writes FAIL. Why correct: You explicitly configured Consistency over Availability (CP). Rejecting writes is far better than accepting writes that cannot be safely replicated and would be lost upon leader failure. Surviving broker still serves READS!"
+    ],
+    innerWorking: "When min.insync.replicas=2 and acks=all, the broker leader will not append a message offset to the High Watermark (HW) until at least 2 in-sync replicas have committed the record. If only 1 replica remains in ISR, the leader immediately rejects the produce request with NotEnoughReplicasException.",
+    solution: `// 1. Mission-Critical Zero Data Loss Producer Config:
+Properties props = new Properties();
+props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "kafka-cluster:9092");
+props.put(ProducerConfig.ACKS_CONFIG, "all");                            // Wait for all in-sync replicas
+props.put(ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG, "true");             // Idempotent producer
+props.put(ProducerConfig.RETRIES_CONFIG, Integer.MAX_VALUE);             // Retry until success
+props.put(ProducerConfig.MAX_IN_FLIGHT_REQUESTS_PER_CONNECTION, 5);      // Safe with idempotence
+
+// 2. Broker-Side Durability Governance (server.properties):
+// min.insync.replicas=2
+// unclean.leader.election.enable=false                                  // Never elect out-of-sync replica!
+
+// 3. Avro Schema with Safe Defaults:
+// {
+//   "type": "record",
+//   "name": "OrderEvent",
+//   "fields": [
+//     { "name": "orderId", "type": "string" },
+//     { "name": "amount", "type": "double" },
+//     { "name": "loyaltyPoints", "type": ["null", "int"], "default": null } // Safe backward compatible addition!
+//   ]
+// }`,
+    warStory: "A crypto trading platform configured acks=1 on trade settlement topics. AWS experienced a transient rack failure in us-east-1, causing the leader broker to terminate. 420 trade execution messages acknowledged to clients were never replicated to follower brokers. Over $1.8M in Bitcoin trades vanished from the ledger, causing an 18-hour trading halt while database transaction logs were manually reconciled."
+  }
 ];

@@ -1323,4 +1323,104 @@ spec:
             sum(rate(http_requests_total{app="payment-service"}[2m])) * 100`,
     warStory: "A latent null-pointer bug was introduced in a checkout release that only triggered for European currency symbols. Argo Rollouts routed 10% of European traffic, detected a 3.4% error rate in Prometheus after 90 seconds, and automatically rolled back without waking up the on-call engineer."
   }
+,
+  {
+    id: "devops-q21-jenkins-pipeline-buildonce-expandcontract-migrations",
+    title: "21. Enterprise CI/CD Architecture: Declarative Jenkinsfile, 'Build Once Deploy Many', Zero-Downtime Rollbacks & Expand/Contract Migrations (Interview Deep Dive Q6.1)",
+    difficulty: "Staff / Principal",
+    category: "CI/CD & Release Engineering",
+    summary: "Production Jenkins declarative pipeline design, ephemeral agents, immutable SHA image promotion, zero-downtime rollback with expand/contract DB migrations, and Jenkins anti-patterns.",
+    problem: "1) Design a production Jenkins pipeline for a Spring Boot service to deploy safely. 2) What does 'build once, deploy many' mean and why does it matter? 3) Rollback strategy including the database migration constraint. 4) Common Jenkins anti-patterns to avoid.",
+    juniorTrap: "Rebuilding the Docker image separately in each environment (Dev, Staging, Prod) or attempting code rollbacks after executing non-backward-compatible database schema migrations.",
+    interviewerIntent: "Assesses enterprise delivery pipeline design, container artifact immutability, zero-downtime database deployment strategies (Parallel Change pattern), and operational CI/CD hygiene.",
+    seniorAnswer: [
+      "1. Enterprise Pipeline Design: Declarative Jenkinsfile versioned in source repository (Pipeline-as-Code); Multibranch Pipeline with webhook triggers (no SCM polling); shared libraries (vars/) for reusable enterprise stages; ephemeral Kubernetes agent pods with podTemplate (never build on controller); withCredentials for secret masking; parallel unit + integration test stages with SonarQube SAST and Trivy/Snyk CVE vulnerability scanning; immutable Docker image tagged with git commit SHA and pushed to registry; automated deployment to Dev -> automated smoke tests -> manual approval gate -> Staging -> Prod. Use post { always { junit ... } } to guarantee test reporting.",
+      "2. 'Build Once, Deploy Many' Principle: Compile source code, execute tests, and build the Docker container image ONCE at the start of the pipeline. Tag the image with the immutable git commit SHA (or content digest). Promote that exact same image artifact across Dev -> Staging -> Production by injecting environment configuration via Kubernetes ConfigMaps and Vault Secrets. Why it matters: Rebuilding in each environment produces non-reproducible artifacts (different base image updates, timestamp drift, dependency resolution differences); what was tested in staging is NOT what is running in production. Promoting an immutable image guarantees reproducibility and enables instantaneous rollback.",
+      "3. Rollback Strategy & The Database Migration Constraint: Rollback is executed by redeploying the previous known-good Docker image digest (or switching service traffic in blue-green). The Database Constraint: Application code CANNOT simply roll back if the database schema underwent breaking changes (e.g. dropped column, renamed field).",
+      "4. Solution: Expand/Contract (Parallel Change) Pattern: Phase 1 (Expand): Migration adds a new nullable column or table. Deploy application code that dual-writes to both old and new schema, but reads from old. Phase 2: Run asynchronous background job to backfill historical data. Deploy code that reads from the new schema. Phase 3 (Contract): After code stabilizes across all environments, deploy a subsequent release with a migration that safely drops the old deprecated column. Because old and new application versions coexist safely with the database schema, code rollbacks NEVER require database rollbacks!",
+      "5. Common Jenkins Anti-Patterns: 1) Polling SCM (pollSCM) or sleep loops instead of instantaneous GitHub webhooks; 2) Giant monolithic pipeline stages that obscure exact failure points; 3) Shell steps without 'set -e' causing failed commands to silently pass; 4) Blindly retrying flaky tests instead of fixing root causes; 5) Running build jobs on the Jenkins controller (master), creating severe security and stability risks; 6) Echoing credentials or tokens in console logs; 7) Baking environment credentials and configs into Docker images instead of runtime injection."
+    ],
+    innerWorking: "Kubernetes pod templates launch an ephemeral Jenkins agent pod on demand containing specialized containers (maven, docker, kubectl, helm). Once the pipeline completes, the pod is terminated, ensuring clean, hermetic build environments with zero cross-build workspace pollution.",
+    solution: `// Declarative Jenkinsfile with Ephemeral Kubernetes Agent:
+pipeline {
+    agent {
+        kubernetes {
+            yaml '''
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    jenkins: agent
+spec:
+  containers:
+  - name: maven
+    image: maven:3.9-eclipse-temurin-17
+    command: ['sleep']
+    args: ['99d']
+  - name: docker
+    image: docker:24-cli
+    command: ['sleep']
+    args: ['99d']
+'''
+        }
+    }
+    environment {
+        IMAGE_NAME = 'gcr.io/my-org/order-service'
+        IMAGE_TAG  = "\${env.GIT_COMMIT.take(7)}"
+    }
+    stages {
+        stage('Parallel Quality Checks') {
+            parallel {
+                stage('Unit & Integration Tests') {
+                    container('maven') {
+                        steps {
+                            sh 'mvn clean verify -DskipITs=false'
+                        }
+                    }
+                }
+                stage('Security & SAST Scan') {
+                    container('maven') {
+                        steps {
+                            sh 'mvn sonar:sonar'
+                        }
+                    }
+                }
+            }
+        }
+        stage('Build & Push Immutable Image') {
+            container('docker') {
+                steps {
+                    // BUILD ONCE: Tagged with git commit SHA
+                    sh "docker build -t \${IMAGE_NAME}:\${IMAGE_TAG} ."
+                    sh "docker push \${IMAGE_NAME}:\${IMAGE_TAG}"
+                }
+            }
+        }
+        stage('Deploy to Staging') {
+            steps {
+                sh "helm upgrade --install order-staging ./helm --set image.tag=\${IMAGE_TAG} -n staging"
+            }
+        }
+        stage('Production Approval Gate') {
+            steps {
+                timeout(time: 24, unit: 'HOURS') {
+                    input message: "Promote \${IMAGE_TAG} to Production?"
+                }
+            }
+        }
+        stage('Deploy to Production') {
+            steps {
+                // PROMOTE THE EXACT SAME IMAGE DIGEST:
+                sh "helm upgrade --install order-prod ./helm --set image.tag=\${IMAGE_TAG} -n prod"
+            }
+        }
+    }
+    post {
+        always {
+            junit '**/target/surefire-reports/*.xml'
+        }
+    }
+}`,
+    warStory: "An enterprise bank ran Jenkins jobs on the bare-metal controller node. A developer's broken build script ran 'rm -rf /' inside a build step without checking for variable nullness. It wiped the Jenkins master disk, destroying all build histories, credentials, and job configurations across 80 microservices, taking 3 days to restore from cold backups."
+  }
 ];

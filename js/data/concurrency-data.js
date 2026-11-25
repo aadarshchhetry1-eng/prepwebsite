@@ -1283,4 +1283,127 @@ public class EventDispatcher {
     }
 }`
   }
+,
+  {
+    id: "concurrency-q26-volatile-dcl-reentrantlock-deep-dive",
+    title: "26. Volatile Compound Assignment Trap, Double-Checked Locking Safe Publication & ReentrantLock Advantages (Interview Deep Dive Q4.1)",
+    difficulty: "Staff / Principal",
+    category: "Memory Model, Synchronization & Locks",
+    summary: "volatile count++ thread safety, happens-before rules, Double-Checked Locking memory reordering & safe publication, and synchronized vs ReentrantLock.",
+    problem: "1) volatile int count; count++ from 10 threads: thread-safe? What does volatile guarantee vs not guarantee? What is the happens-before rule? 2) Why must instance be volatile in double-checked locking? What can a thread observe without it? 3) synchronized vs ReentrantLock: 2 concrete reasons to pick ReentrantLock and what tryLock(timeout) is for.",
+    juniorTrap: "Assuming volatile makes compound operations like count++ atomic, or assuming double-checked locking without volatile is safe on modern multi-core x86/ARM processors.",
+    interviewerIntent: "Tests precision on Java Memory Model (JMM) happens-before rules, instruction reordering, safe publication of object references, and explicit lock semantics.",
+    seniorAnswer: [
+      "1. volatile int count; count++ Is NOT Thread-Safe: count++ compiles to 3 distinct bytecode instructions: (1) getfield (read from memory), (2) iadd (increment on operand stack), (3) putfield (write back to memory). If two threads read count=5 simultaneously, both write count=6, causing lost updates. Volatile guarantees VISIBILITY (reads always see latest write directly from main memory) and ORDERING (forbids instruction reordering via memory barriers), but guarantees ZERO ATOMICITY for compound read-modify-write actions. Fix: AtomicInteger, LongAdder, or locks.",
+      "2. The JMM Volatile Happens-Before Rule: 'A write to a volatile field happens-before every subsequent read of that same field.' Furthermore, all writes made by thread A prior to writing to the volatile field are guaranteed visible to thread B after reading the volatile field.",
+      "3. Why DCL Requires volatile (Safe Publication): The statement 'instance = new Singleton()' consists of 3 distinct JVM bytecode/CPU steps: [A] Allocate memory on heap; [B] Invoke constructor to initialize fields; [C] Assign heap memory address to 'instance' variable. Without volatile, the JIT compiler and CPU out-of-order execution pipeline may reorder step [C] before step [B]! Thread B enters the outer null-check, observes instance != null, skips synchronization, and returns an uninitialized, partially constructed object! Thread B reading fields encounters null pointers or corrupt default values. volatile injects a Store-Store memory barrier preventing [C] from being reordered before [B].",
+      "4. Concrete Reasons to Choose ReentrantLock over synchronized: Reason 1: tryLock(timeout) allows bounded, timed waiting. It prevents deadlocks (if lock B cannot be acquired within 500ms, back off, release lock A, and retry) and enables fail-fast load shedding. Reason 2: lockInterruptibly() allows threads waiting for a lock to respond to Thread.interrupt() and shut down cleanly (synchronized is completely uninterruptible). Reason 3: Multiple Condition instances (e.g. notEmpty vs notFull) on a single lock, avoiding spurious notifyAll() wakeup storms. Reason 4: Lock inspection metrics (isLocked(), getQueueLength(), isHeldByCurrentThread()).",
+      "5. The ReentrantLock Tradeoff: With ReentrantLock, you MUST manually unlock in a finally block: 'lock.lock(); try { ... } finally { lock.unlock(); }'. A missed unlock is a permanent production deadlock; synchronized is automatically released by JVM monitor exit."
+    ],
+    innerWorking: "On x86 architectures, volatile writes generate a 'lock addl $0,0(%%esp)' instruction which flushes the processor's store buffer to L1/L2 cache and invalidates other cores' caches via MESI cache coherence protocols. On ARM64 (Apple Silicon, AWS Graviton), volatile generates explicit 'dmb ish' (Data Memory Barrier Inner Shareable) instructions.",
+    solution: `// 1. Double-Checked Locking (DCL) with volatile:
+public class SafeSingleton {
+    // MUST be volatile to prevent instruction reordering (Step C before Step B)!
+    private static volatile SafeSingleton instance;
+
+    private SafeSingleton() {
+        // initialization
+    }
+
+    public static SafeSingleton getInstance() {
+        if (instance == null) { // 1st check: Avoids synchronization once initialized
+            synchronized (SafeSingleton.class) {
+                if (instance == null) { // 2nd check: Inside monitor
+                    instance = new SafeSingleton(); // Safe publication!
+                }
+            }
+        }
+        return instance;
+    }
+}
+
+// 2. ReentrantLock with tryLock(timeout) Deadlock Avoidance:
+public class AccountTransferService {
+    private final Lock lockA = new ReentrantLock();
+    private final Lock lockB = new ReentrantLock();
+
+    public boolean transferFunds(Account from, Account to, double amount) throws InterruptedException {
+        // Attempt to acquire both locks within 500ms:
+        if (lockA.tryLock(500, TimeUnit.MILLISECONDS)) {
+            try {
+                if (lockB.tryLock(500, TimeUnit.MILLISECONDS)) {
+                    try {
+                        from.debit(amount);
+                        to.credit(amount);
+                        return true;
+                    } finally {
+                        lockB.unlock();
+                    }
+                }
+            } finally {
+                lockA.unlock();
+            }
+        }
+        // Failed to acquire locks in time: Back off, do NOT deadlock!
+        return false;
+    }
+}`,
+    warStory: "An ad-tech bidding engine used Double-Checked Locking without volatile for a shared GeoIP lookup index. On AWS c5 (Intel) instances it worked by coincidence due to strong x86 TSO (Total Store Order) memory models. When the team migrated to AWS Graviton (ARM64) instances, ARM's weakly-ordered memory model immediately reordered the constructor allocation, causing 15% of all ad bids to throw NullPointerExceptions from partially constructed objects, costing $80,000 in lost revenue in 4 hours."
+  },
+  {
+    id: "concurrency-q27-threadpool-sizing-completablefuture-virtualthreads",
+    title: "27. Thread Pool Sizing & OOM Traps, CompletableFuture Composition Pitfalls & Virtual Thread Carrier Pinning (Interview Deep Dive Q4.2)",
+    difficulty: "Staff / Principal",
+    category: "Executor Architecture & Concurrency Evolution",
+    summary: "Thread pool mathematical sizing, Executors factory OOM traps, CompletableFuture composition nuances, and Virtual Thread carrier pinning mechanics.",
+    problem: "1) How do you size a thread pool for mixed CPU/IO workloads? Why are Executors.newFixedThreadPool and newCachedThreadPool traps in production? 2) CompletableFuture: thenApply vs thenCompose vs thenCombine and their production pitfalls? 3) Virtual Threads (Java 21): when do they help, when not, and what is carrier pinning?",
+    juniorTrap: "Using Executors.newFixedThreadPool(200) without realizing it uses an unbounded LinkedBlockingQueue that causes OutOfMemoryError under load, or running blocking database calls inside CompletableFuture.thenApply().",
+    interviewerIntent: "Assesses capacity planning formulas, ExecutorService failure modes, modern asynchronous functional programming, and Java 21 Project Loom runtime internals.",
+    seniorAnswer: [
+      "1. Thread Pool Sizing Formulas: CPU-Bound Tasks: threads = CPU_cores + 1. (Extra thread covers minor page faults). I/O-Bound Tasks: threads = CPU_cores * (1 + Wait_Time / Service_Time). Example: 8 cores with tasks spending 90% waiting on DB (Wait=90ms, Service=10ms): threads = 8 * (1 + 90/10) = 80 threads. Measure under actual load with Micrometer metrics (activeCount, queueSize).",
+      "2. Why Executors Factory Methods Are Production Traps: Executors.newFixedThreadPool(N): Uses an UNBOUNDED LinkedBlockingQueue (capacity Integer.MAX_VALUE). Under load spikes, requests queue up endlessly until heap exhaustion (OutOfMemoryError: Java heap space); tasks never trigger rejection policies. Executors.newCachedThreadPool(): Uses SynchronousQueue but allows UNBOUNDED max threads (Integer.MAX_VALUE). Under load, it spawns thousands of OS platform threads (~1MB stack each), crashing the JVM with OutOfMemoryError: unable to create new native thread and OS context-switch thrashing. Rule: ALWAYS construct explicit ThreadPoolExecutor with bounded queue, named thread factory, and CallerRunsPolicy.",
+      "3. CompletableFuture Composition Mechanics: thenApply(Function<T,R>): Map synchronous transformation on the completing thread. thenCompose(Function<T, CompletableFuture<R>>): FlatMap async chaining; chains a dependent async stage without nesting CompletableFuture<CompletableFuture<R>>. thenCombine(otherFuture, BiFunction): Fan-in parallel merge; executes two independent futures concurrently and combines results when both complete.",
+      "4. CompletableFuture Production Pitfalls: Pitfall 1: Calling blocking I/O (JDBC/HTTP) inside thenApply() blocks the completing thread or the global ForkJoinPool.commonPool(), starving the entire JVM! Always use thenApplyAsync(fn, customExecutor). Pitfall 2: Silently swallowed exceptions: if a future throws an exception and downstream stages lack .exceptionally() or .handle(), the exception is lost and threads hang waiting on join(). Pitfall 3: Calling future.get() without a timeout.",
+      "5. Virtual Threads (Project Loom - Java 21): When They Help: High-throughput I/O-bound workloads (HTTP servers, JDBC database queries, socket operations). Virtual threads are user-mode threads (~1KB heap memory vs ~1MB OS stack); spawn millions with Executors.newVirtualThreadPerTaskExecutor(). Never pool virtual threads! When They Do NOT Help: CPU-bound tasks (cryptography, video rendering; still bound by N physical CPU cores).",
+      "6. Carrier Thread Pinning: A virtual thread is mounted onto an OS carrier thread (from a ForkJoinPool). If a virtual thread executes blocking I/O inside a 'synchronized' block/method or native JNI call, it PINNNS to the underlying OS carrier thread! The carrier thread cannot unmount or run other virtual threads, leading to carrier pool starvation and deadlocks. Fix: Replace synchronized with ReentrantLock around blocking calls (JDK 24+ relaxes synchronized pinning, but ReentrantLock remains best practice). Also avoid ThreadLocal memory bloat with millions of virtual threads."
+    ],
+    innerWorking: "Virtual threads use HotSpot Continuations. When a virtual thread performs blocking socket I/O, the JVM unmounts the continuation from the carrier OS thread, saves its call stack to the heap, and reassigns the carrier thread to another virtual thread. When the OS epoll/kqueue notification arrives, the continuation is rescheduled on any available carrier thread.",
+    solution: `// 1. PRODUCTION-GRADE THREAD POOL CONFIGURATION:
+ThreadPoolExecutor executor = new ThreadPoolExecutor(
+    8,                                                   // Core pool size
+    32,                                                  // Max pool size
+    60L, TimeUnit.SECONDS,                               // Keep-alive time
+    new ArrayBlockingQueue<>(1000),                      // BOUNDED queue (Prevents OOM!)
+    new CustomizableThreadFactory("order-worker-"),      // Named threads
+    new ThreadPoolExecutor.CallerRunsPolicy()            // Natural backpressure: caller thread executes!
+);
+
+// 2. COMPLETABLEFUTURE FAN-IN COMPOSITION:
+CompletableFuture<User> userFuture = CompletableFuture.supplyAsync(
+    () -> userService.fetchUser(userId), executor);
+
+CompletableFuture<List<Order>> ordersFuture = CompletableFuture.supplyAsync(
+    () -> orderService.fetchOrders(userId), executor);
+
+CompletableFuture<UserProfile> profileFuture = userFuture.thenCombineAsync(ordersFuture, 
+    (user, orders) -> new UserProfile(user, orders), executor)
+    .orTimeout(3, TimeUnit.SECONDS) // Avoids hanging forever
+    .exceptionally(ex -> UserProfile.fallback(userId));
+
+// 3. JAVA 21 VIRTUAL THREADS (NO POOLING!):
+try (var virtualExecutor = Executors.newVirtualThreadPerTaskExecutor()) {
+    IntStream.range(0, 10_000).forEach(i -> {
+        virtualExecutor.submit(() -> {
+            // Safe non-pinning lock:
+            reentrantLock.lock();
+            try {
+                return callPaymentGateway(i); // Continuation unmounts from carrier!
+            } finally {
+                reentrantLock.unlock();
+            }
+        });
+    });
+} // Auto-closes and joins all tasks`,
+    warStory: "A SaaS analytics provider processed webhooks with Executors.newCachedThreadPool(). During an external customer data migration, 25,000 webhook POST requests arrived in 10 seconds. The JVM attempted to spawn 25,000 OS platform threads. The Linux host ran out of PIDs, throwing 'java.lang.OutOfMemoryError: unable to create new native thread', taking down all customer microservices on the same EC2 instance."
+  }
 ];

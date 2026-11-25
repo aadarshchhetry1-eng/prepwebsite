@@ -3811,7 +3811,9 @@ class RevisionApp {
     if (filterCategory === 'architecture') {
       list = archTopics;
     } else if (filterCategory === 'coding') {
-      list = codingQs;
+      list = codingQs.filter(q => !q.id.includes('jpa'));
+    } else if (filterCategory === 'jpa_hibernate' || filterCategory === 'jpa') {
+      list = codingQs.filter(q => q.id.includes('jpa') || (q.category || '').toLowerCase().includes('jpa'));
     } else {
       list = [...archTopics, ...codingQs];
     }
